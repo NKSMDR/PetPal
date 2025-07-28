@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- ✅ Hero Section -->
+<section class="hero-banner">
+  <div>
+    <h1 class="mb-3">Find Your Perfect Canine Companion 🐕🦴</h1>
+    <p class="lead mb-4">Buy. Sell. Love. Everything your dog needs in one place!</p>
+    <a href="#" class="btn btn-warning">Browse Dogs</a>
+    <a href="#" class="btn btn-outline-light">Sell Dogs</a>
+  </div>
+</section>
+
+<!-- 🌄 Parallax Section -->
+<section class="parallax-section text-white d-flex align-items-center justify-content-center">
+  <div class="text-center">
+    <h2 class="display-5 fw-bold">Adopt. Train. Love. 🐾</h2>
+    <p class="lead">Every dog deserves a loving home. Your perfect furry friend is waiting!</p>
+    <a href="#" class="btn btn-warning rounded-pill px-4 py-2 mt-3">Explore Available Dogs</a>
+  </div>
+</section>
+
+<!-- Category Cards -->
+<section class="py-5 bg-light text-center">
+  <div class="container">
+    <h2 class="mb-4 fw-bold">Shop By Category</h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card">
+          <img src="{% static 'img/puppies.jpg' %}" class="card-img-top" alt="Puppies">
+          <div class="card-body">
+            <h5 class="card-title">Puppies</h5>
+            <p class="card-text">Adorable puppies ready to join your family.</p>
+            <a href="#" class="btn btn-outline-primary rounded-pill">View Puppies</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <img src="{% static 'img/adult-dogs.jpg' %}" class="card-img-top" alt="Adult Dogs">
+          <div class="card-body">
+            <h5 class="card-title">Adult Dogs</h5>
+            <p class="card-text">Well-trained adult dogs looking for forever homes.</p>
+            <a href="#" class="btn btn-outline-primary rounded-pill">View Adult Dogs</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card">
+          <img src="{% static 'img/dog-accessories.jpg' %}" class="card-img-top" alt="Dog Accessories">
+          <div class="card-body">
+            <h5 class="card-title">Dog Accessories</h5>
+            <p class="card-text">Premium dog food, toys, leashes, and grooming supplies.</p>
+            <a href="/dog-accessories" class="btn btn-outline-primary rounded-pill">Shop Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Featured Testimonials -->
+<section class="py-5 text-center">
+  <div class="container">
+    <h2 class="mb-4 fw-bold">Our Happy Dog Owners</h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="testimonial-card p-4 bg-white">
+          <p>"Found my German Shepherd here – best decision ever!"</p>
+          <h6 class="mt-3">– Rajesh Kumar</h6>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="testimonial-card p-4 bg-white">
+          <p>"Amazing selection of dog accessories and premium food."</p>
+          <h6 class="mt-3">– Priya Sharma</h6>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="testimonial-card p-4 bg-white">
+          <p>"Sold my Golden Retriever puppies quickly. Great platform!"</p>
+          <h6 class="mt-3">– Amit Patel</h6>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="py-5">
+  <div class="container text-center">
+    <h2 class="fw-bold mb-4">Popular Dog Breeds</h2>
+    <div class="row">
+      <div class="col-md-3 col-6 mb-4">
+        <img src="{% static 'img/labrador.jpg' %}" alt="Labrador" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+        <h6>Labrador Retriever</h6>
+      </div>
+      <div class="col-md-3 col-6 mb-4">
+        <img src="{% static 'img/golden.jpg' %}" alt="Golden Retriever" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+        <h6>Golden Retriever</h6>
+      </div>
+      <div class="col-md-3 col-6 mb-4">
+        <img src="{% static 'img/german-shepherd.jpg' %}" alt="German Shepherd" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+        <h6>German Shepherd</h6>
+      </div>
+      <div class="col-md-3 col-6 mb-4">
+        <img src="{% static 'img/husky.jpg' %}" alt="Siberian Husky" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+        <h6>Siberian Husky</h6>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col-md-3 col-6 mb-4">
+        <img src="{% static 'img/bulldog.jpg' %}" alt="Bulldog" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+        <h6>French Bulldog</h6>
+      </div>
+      <div class="col-md-3 col-6 mb-4">
+        <img src="{% static 'img/beagle.jpg' %}" alt="Beagle" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+        <h6>Beagle</h6>
+      </div>
+      <div class="col-md-3 col-6 mb-4">
+        <img src="{% static 'img/poodle.jpg' %}" alt="Poodle" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+        <h6>Poodle</h6>
+      </div>
+      <div class="col-md-3 col-6 mb-4">
+        <img src="{% static 'img/rottweiler.jpg' %}" alt="Rottweiler" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+        <h6>Rottweiler</h6>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="bg-light py-5 text-center">
+  <div class="container">
+    <h2 class="fw-bold mb-4">How It Works</h2>
+    <div class="row align-items-center">
+      <div class="col-md-4">
+        <div class="p-3">
+          <span class="display-5 text-warning">1</span>
+          <h5 class="fw-bold mt-3">Browse or Post a Dog</h5>
+          <p>Check available dogs or log in to post your furry friend!</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3">
+          <span class="display-5 text-warning">2</span>
+          <h5 class="fw-bold mt-3">Get Matched</h5>
+          <p>Connect with buyers/sellers and ask about temperament, health, and training.</p>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="p-3">
+          <span class="display-5 text-warning">3</span>
+          <h5 class="fw-bold mt-3">Welcome Your New Best Friend</h5>
+          <p>Complete adoption and bring home your loyal canine companion!</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Dog Care Tips Section -->
+<section class="py-5">
+  <div class="container text-center">
+    <h2 class="fw-bold mb-4">Dog Care Essentials</h2>
+    <div class="row g-4">
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="text-warning mb-3">
+              <i class="fas fa-heart fa-3x"></i>
+            </div>
+            <h5 class="card-title">Health & Wellness</h5>
+            <p class="card-text">Regular vet checkups, vaccinations, and preventive care for a healthy pup.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="text-warning mb-3">
+              <i class="fas fa-graduation-cap fa-3x"></i>
+            </div>
+            <h5 class="card-title">Training & Behavior</h5>
+            <p class="card-text">Positive reinforcement training tips for obedience and socialization.</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-body">
+            <div class="text-warning mb-3">
+              <i class="fas fa-utensils fa-3x"></i>
+            </div>
+            <h5 class="card-title">Nutrition & Diet</h5>
+            <p class="card-text">Premium dog food recommendations and feeding guidelines by breed and age.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Newsletter -->
+<section class="cta text-white text-center py-5">
+  <div class="container">
+    <h3>Subscribe For Dog Care Tips & Offers</h3>
+    <p class="mb-4">Get weekly tips on dog training, health, and exclusive deals on dog accessories!</p>
+    <form class="row justify-content-center mt-4">
+      <div class="col-md-4">
+        <input type="email" class="form-control rounded-pill p-3" placeholder="Enter your email">
+      </div>
+      <div class="col-auto">
+        <button class="btn btn-warning rounded-pill px-4 py-3 fw-bold">Subscribe</button>
+      </div>
+    </form>
+  </div>
+</section>
+{% endblock %}

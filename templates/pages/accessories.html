@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.css">
+<link rel="stylesheet" href="{% static 'css/accessories.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-light">
+  <div class="container">
+    <h2 class="fw-bold text-center mb-4" style="font-size:2.2rem;letter-spacing:1px;">
+      <span style="vertical-align:middle;">🛒</span> Dog Accessories
+    </h2>
+
+    <!-- Category Pills -->
+    <div class="category-pills mb-4 d-flex flex-nowrap overflow-auto">
+      <a href="{% url 'accessories' %}" class="pill {% if not category_filter %}active{% endif %}">All</a>
+      {% for cat in categories %}
+      <a href="?category={{ cat }}" class="pill {% if category_filter == cat %}active{% endif %}">{{ cat }}</a>
+      {% endfor %}
+    </div>
+
+    <div class="row">
+      <!-- Sidebar Filter -->
+      <div class="col-lg-3 mb-4">
+        <form method="get" id="filterForm" class="filter-box p-4 rounded shadow-sm bg-white">
+          <div class="mb-3">
+            <input type="text" name="q" class="form-control" placeholder="🔍 Search accessories..." value="{{ search_query }}">
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Category</label>
+            <select name="category" class="form-select">
+              <option value="">All</option>
+              {% for cat in categories %}
+              <option value="{{ cat }}" {% if category_filter == cat %}selected{% endif %}>{{ cat }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-bold">Price</label>
+            <div class="mb-2">
+              <span class="price-range-label" id="slider-price-label" style="font-weight:bold;font-size:1.1rem;">
+                $<span id="min-price-slider">{{ price_min|default:min_price_db }}</span> – $<span id="max-price-slider">{{ price_max|default:max_price_db }}</span>
+              </span>
+            </div>
+            <div id="custom-slider-range"
+                 data-min="{{ min_price_db }}"
+                 data-max="{{ max_price_db }}">
+            </div>
+            <input type="hidden" name="price_min" id="price_min_input" value="{{ price_min|default:min_price_db }}">
+            <input type="hidden" name="price_max" id="price_max_input" value="{{ price_max|default:max_price_db }}">
+            <button type="submit" class="btn btn-outline-dark btn-sm w-100 mt-4">Go</button>
+          </div>
+        </form>
+      </div>
+      <!-- Product Grid -->
+      <div class="col-lg-9">
+        <div class="row g-4">
+          {% for item in accessories %}
+          <div class="col-12 col-sm-6 col-md-4 col-xl-3 d-flex">
+            <div class="product-card flex-fill d-flex flex-column shadow-sm">
+              <div class="product-img position-relative">
+                {% if item.is_discounted %}
+                  <span class="discount-badge">Sale</span>
+                {% endif %}
+                <img src="{{ item.image.url }}" alt="{{ item.name }}">
+              </div>
+              <div class="product-body text-center flex-fill d-flex flex-column p-3">
+                <h6 class="product-title mb-1">{{ item.name }}</h6>
+                <p class="text-muted small mb-2">{{ item.category|title }}</p>
+                {% if item.is_discounted %}
+                  <div class="price mb-2">
+                    <span class="old-price">${{ item.original_price }}</span>
+                    <span class="new-price text-danger">${{ item.price }}</span>
+                  </div>
+                {% else %}
+                  <div class="price fw-bold mb-2">${{ item.price }}</div>
+                {% endif %}
+                <button class="btn btn-outline-primary btn-sm w-100 mt-auto add-to-cart-btn">Add to Cart</button>
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <div class="col-12 text-center text-muted">No accessories found matching your filters.</div>
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
+<script src="{% static 'js/accessories.js' %}"></script>
+{% endblock %}

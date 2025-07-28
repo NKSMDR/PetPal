@@ -1,0 +1,29 @@
+<!-- ✅ Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top custom-navbar">
+  <div class="container">
+    <a class="navbar-brand fs-3 fw-bold" href="/">🐾 PetBuddy</a>
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarMain">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="navbarMain">
+      <ul class="navbar-nav ms-auto gap-lg-3 gap-2 align-items-center">
+        <li class="nav-item"><a class="nav-link" href="/">Home</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Browse Pets</a></li>
+        <li class="nav-item"><a class="nav-link" href="#">Accessories</a></li>
+        {% comment %} <li class="nav-item"><a class="nav-link" href="{% url 'breed_list' %}">Breeds Info</a></li> {% endcomment %}
+        <li class="nav-item"><a class="nav-link" href="#">Breeds</a></li>        
+        <li class="nav-item"><a class="nav-link" href="#">How It Works</a></li>
+        <li class="nav-item">
+          <a href="#" class="btn btn-outline-warning btn-sm rounded-pill fw-semibold px-3">Sell a Pet</a>
+        </li>
+        <li class="nav-item">
+          <a href="{%url 'login'%}" class="btn btn-outline-light btn-sm rounded-pill px-3">Login</a>
+        </li>
+        <li class="nav-item">
+          <a href="{%url 'register'%}" class="btn btn-warning btn-sm rounded-pill text-dark px-3">Register</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/detail.css' %}">
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/detail.js' %}"></script>
+{% endblock %}
+{% block content %}
+<section class="py-5 bg-light">
+  <div class="container">
+
+    <!-- Hero section -->
+    <div class="row mb-5 align-items-center">
+      <div class="col-md-6 mb-4 mb-md-0">
+        <img src="{{ breed.image.url }}" alt="{{ breed.name }}" class="img-fluid rounded shadow" style="max-height: 400px; object-fit: cover;">
+      </div>
+      <div class="col-md-6 text-center text-md-start">
+        <h1 class="fw-bold">{{ breed.name }}</h1>
+        <p class="text-muted">Learn about the {{ breed.name }} breed – temperament, grooming, and personality!</p>
+        <div class="d-flex flex-wrap gap-3 mt-2">
+          <span class="badge bg-primary">Size: {{ breed.size }}</span>
+          <span class="badge bg-success">Life Span: {{ breed.life_span }}</span>
+          <span class="badge bg-warning text-dark">Great with Kids: {% if breed.good_with_kids %}✔{% else %}✘{% endif %}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Overview -->
+    <div class="mb-5">
+      <h3 class="fw-bold">Breed Overview</h3>
+      <p>{{ breed.overview }}</p>
+    </div>
+
+    <!-- Trait Grid -->
+    <div class="row row-cols-1 row-cols-md-3 g-4 text-center mb-5">
+      <div class="col">
+        <div class="card h-100 p-3">
+          <h6>Energy Level</h6>
+          <p class="text-muted">{{ breed.energy_level }}</p>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100 p-3">
+          <h6>Ease of Training</h6>
+          <p class="text-muted">{{ breed.ease_of_training }}</p>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100 p-3">
+          <h6>Grooming Requirement</h6>
+          <p class="text-muted">{{ breed.grooming_requirement }}</p>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100 p-3">
+          <h6>Vocality</h6>
+          <p class="text-muted">{{ breed.vocality }}</p>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100 p-3">
+          <h6>Affection Needs</h6>
+          <p class="text-muted">{{ breed.affection_needs }}</p>
+        </div>
+      </div>
+      <div class="col">
+        <div class="card h-100 p-3">
+          <h6>Exercise Requirement</h6>
+          <p class="text-muted">{{ breed.exercise_requirement }}</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA Section -->
+    <div class="text-center my-5">
+      <h5 class="mb-3">Looking for a {{ breed.name }}?</h5>
+      <a href="/pets/?breed={{ breed.slug }}" class="btn btn-outline-primary px-4">Find One Today</a>
+    </div>
+
+  </div>
+</section>
+{% endblock %}

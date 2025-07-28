@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<section class="bg-light py-5">
+  <div class="container">
+    <h2 class="text-center fw-bold mb-4">🐾 Explore Dog Breeds</h2>
+
+    <!-- 🔍 Filter Form -->
+    <form method="get" class="mb-5 bg-white p-4 rounded shadow-sm border">
+      <div class="row g-4">
+
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Size</label>
+          <select name="size" class="form-select">    
+            <option value="">All</option>
+            {% for value in size_options %}
+            <option value="{{ value }}" {% if size == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+        </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Energy Level</label>
+          <select name="energy_level" class="form-select">
+            <option value="">Any</option>
+            {% for value in level_options%}
+            <option value="{{ value }}" {% if energy_level == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Ease of Training</label>
+          <select name="ease_of_training" class="form-select">
+            <option value="">Any</option>
+            {% for value in training_options %}
+            <option value="{{ value }}" {% if ease_of_training == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Grooming</label>
+          <select name="grooming_requirement" class="form-select">
+            <option value="">Any</option>
+            {% for value in grooming_options %}
+            <option value="{{ value }}" {% if grooming_requirement == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Vocality</label>
+          <select name="vocality" class="form-select">
+            <option value="">Any</option>
+            {% for value in vocality_options %}
+            <option value="{{ value }}" {% if vocality == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Affection Needs</label>
+          <select name="affection_needs" class="form-select">
+            <option value="">Any</option>
+            {% for value in affection_options  %}
+            <option value="{{ value }}" {% if affection_needs == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Exercise Requirement</label>
+          <select name="exercise_requirement" class="form-select">
+            <option value="">Any</option>
+            {% for value in level_options%}
+            <option value="{{ value }}" {% if exercise_requirement == value %}selected{% endif %}>{{ value }}</option>
+            {% endfor %}
+          </select>
+        </div>
+
+        <div class="col-md-3">
+          <label class="form-label fw-semibold">Good with Kids</label>
+          <select name="kid_friendly" class="form-select">
+            <option value="">Any</option>
+            <option value="yes" {% if kid_friendly == "yes" %}selected{% endif %}>Yes</option>
+            <option value="no" {% if kid_friendly == "no" %}selected{% endif %}>No</option>
+          </select>
+        </div>
+
+        <!-- 🎯 Buttons -->
+        <div class="col-12 text-end">
+          <button type="submit" class="btn btn-outline-primary px-4 me-2">Apply Filters</button>
+          <a href="{% url 'breed_list' %}" class="btn btn-secondary px-4">Reset</a>
+        </div>
+
+      </div>
+    </form>
+
+    <!-- 🔗 Breed Cards -->
+    <div class="row g-4">
+      {% for breed in breeds %}
+      <div class="col-md-4">
+        <div class="card h-100 shadow-sm border-0">
+          <img src="{{ breed.image.url }}" class="card-img-top" style="height: 230px; object-fit: cover;" alt="{{ breed.name }}">
+          <div class="card-body text-center">
+            <h5 class="card-title">{{ breed.name }}</h5>
+            <p class="small text-muted">Size: {{ breed.size }} | Lifespan: {{ breed.life_span }}</p>
+            <p class="card-text small">{{ breed.overview|truncatewords:20 }}</p>
+            <a href="{% url 'breed_detail' breed.slug %}" class="btn btn-sm btn-outline-primary rounded-pill">View Details</a>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <div class="col-12 text-center text-danger">
+        <p>No matching breeds found.</p>
+      </div>
+      {% endfor %}
+    </div>
+
+  </div>
+</section>
+{% endblock %}

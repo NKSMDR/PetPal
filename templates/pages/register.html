@@ -1,0 +1,145 @@
+<!-- register.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Register{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/register.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="register-wrapper">
+  <div class="register-container">
+    <div class="register-header">
+      <i class="fas fa-heart text-warning mb-3"></i>
+      <h2 class="fw-bold">Join PetBuddy!</h2>
+      <p class="text-muted">Create your account to start your pet journey</p>
+    </div>
+
+    <form class="register-form" method="post" action="">
+      {% csrf_token %}
+      
+      <div class="row">
+        <div class="col-md-6 mb-3">
+          <label for="firstName" class="form-label">First Name</label>
+          <div class="input-group">
+            <span class="input-icon">
+              <i class="fas fa-user"></i>
+            </span>
+            <input type="text" class="form-control" id="firstName" name="first_name" placeholder="Enter first name" required>
+          </div>
+        </div>
+        <div class="col-md-6 mb-3">
+          <label for="lastName" class="form-label">Last Name</label>
+          <div class="input-group">
+            <span class="input-icon">
+              <i class="fas fa-user"></i>
+            </span>
+            <input type="text" class="form-control" id="lastName" name="last_name" placeholder="Enter last name" required>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-group mb-3">
+        <label for="email" class="form-label">Email Address</label>
+        <div class="input-group">
+          <span class="input-icon">
+            <i class="fas fa-envelope"></i>
+          </span>
+          <input type="email" class="form-control" id="email" name="email" placeholder="Enter your email" required>
+        </div>
+      </div>
+
+      <div class="form-group mb-3">
+        <label for="phone" class="form-label">Phone Number</label>
+        <div class="input-group">
+          <span class="input-icon">
+            <i class="fas fa-phone"></i>
+          </span>
+          <input type="tel" class="form-control" id="phone" name="phone" placeholder="Enter phone number" required>
+        </div>
+      </div>
+
+      <div class="form-group mb-3">
+        <label for="password" class="form-label">Password</label>
+        <div class="input-group">
+          <span class="input-icon">
+            <i class="fas fa-lock"></i>
+          </span>
+          <input type="password" class="form-control" id="password" name="password" placeholder="Create password" required>
+          <span class="password-toggle" onclick="togglePassword('password', 'toggleIcon1')">
+            <i class="fas fa-eye" id="toggleIcon1"></i>
+          </span>
+        </div>
+        <small class="form-text text-muted">Password must be at least 8 characters long</small>
+      </div>
+
+      <div class="form-group mb-3">
+        <label for="confirmPassword" class="form-label">Confirm Password</label>
+        <div class="input-group">
+          <span class="input-icon">
+            <i class="fas fa-lock"></i>
+          </span>
+          <input type="password" class="form-control" id="confirmPassword" name="confirm_password" placeholder="Confirm password" required>
+          <span class="password-toggle" onclick="togglePassword('confirmPassword', 'toggleIcon2')">
+            <i class="fas fa-eye" id="toggleIcon2"></i>
+          </span>
+        </div>
+      </div>
+
+      <div class="form-group mb-3">
+        <label for="userType" class="form-label">I want to</label>
+        <select class="form-control" id="userType" name="user_type" required>
+          <option value="">Choose your main interest</option>
+          <option value="buyer">Buy/Adopt Pets</option>
+          <option value="seller">Sell/List Pets</option>
+          <option value="both">Both Buy and Sell</option>
+        </select>
+      </div>
+
+      <div class="form-check mb-4">
+        <input class="form-check-input" type="checkbox" id="terms" required>
+        <label class="form-check-label" for="terms">
+          I agree to the <a href="#" class="terms-link">Terms & Conditions</a> and <a href="#" class="terms-link">Privacy Policy</a>
+        </label>
+      </div>
+
+      <div class="form-check mb-4">
+        <input class="form-check-input" type="checkbox" id="newsletter">
+        <label class="form-check-label" for="newsletter">
+          Subscribe to pet care tips and special offers
+        </label>
+      </div>
+
+      <button type="submit" class="btn btn-warning w-100 register-btn">
+        <i class="fas fa-user-plus me-2"></i>Create Account
+      </button>
+    </form>
+
+    <div class="register-footer">
+      <p class="text-center mt-4">
+        Already have an account? 
+        <a href="{% url 'login' %}" class="login-link">Sign in here</a>
+      </p>
+      
+      <div class="divider">
+        <span>or</span>
+      </div>
+      
+      <div class="social-register">
+        <button class="btn btn-outline-secondary social-btn">
+          <i class="fab fa-google me-2"></i>Sign up with Google
+        </button>
+        <button class="btn btn-outline-secondary social-btn">
+          <i class="fab fa-facebook me-2"></i>Sign up with Facebook
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/register.js' %}"></script>
+{% endblock %}

@@ -1,0 +1,11 @@
+{
+    "python.terminal.activateEnvironment": true,  // For new terminals
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "extensions.experimental.deferredStartupFinishedActivation": true,
+    "terminal.integrated.stickyScroll.enabled": true,
+    "json.schemas": [
+
+    ],
+    "python-envs.pythonProjects": [],
+    "workbench.settings.editor": "ui" // For existing terminals
+}
