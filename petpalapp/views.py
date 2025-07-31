@@ -22,6 +22,8 @@ def Register(request):
 
 
 
+
+
 def breed_detail(request, slug):
     breed = get_object_or_404(Breed, slug=slug)
     return render(request, 'pages/breed_detail.html', {'breed': breed})
@@ -70,7 +72,7 @@ def breed_list(request):
         **filters,
     }
 
-    return render(request, 'breed_list.html', context)
+    return render(request, 'pages/breed_list.html', context)
 
 
 
@@ -106,7 +108,7 @@ def accessories(request):
     except (InvalidOperation, ValueError):
         pass
 
-    return render(request, 'accessories.html', {
+    return render(request, 'pages/accessories.html', {
         'accessories': accessories,
         'categories': categories,
         'search_query': search_query,
