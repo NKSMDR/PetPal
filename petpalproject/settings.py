@@ -33,6 +33,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'jazzmin',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -42,6 +43,57 @@ INSTALLED_APPS = [
     'petpalapp',
     "django_browser_reload",
 ]
+
+JAZZMIN_SETTINGS = {
+    "site_title": "My Admin",
+    "site_header": "My Administration",
+    "site_brand": "My Company",
+    "welcome_sign": "Welcome to My Admin Portal",
+    
+    # Color theme
+    "theme": "flatly",  # Options: default, cerulean, cosmo, flatly, etc.
+    
+    # Dark mode
+    "show_ui_builder": True,
+    
+    # Custom CSS
+    "custom_css": "admin/custom.css",
+    
+    # Dashboard customization
+    "changeform_format": "horizontal_tabs",
+    "related_modal_active": True,
+    
+    # Icons for models
+    "icons": {
+        "auth": "fas fa-users-cog",
+        "auth.user": "fas fa-user", 
+        "auth.Group": "fas fa-users",
+        "petpalapp.breed": "fas fa-dog",  # Replace 'your_app_name' with actual app name
+        "petpalapp.accessory": "fas fa-shopping-bag",
+},
+    
+    # Custom menu
+    "topmenu_links": [
+        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "Support", "url": "https://support.example.com", "new_window": True},
+    ],
+}
+
+JAZZMIN_UI_TWEAKS = {
+    "navbar_small_text": False,
+    "footer_small_text": False,
+    "body_small_text": False,
+    "brand_small_text": False,
+    "brand_colour": "navbar-navy",
+    "accent": "accent-teal",
+    "navbar": "navbar-navy navbar-dark",
+    "no_navbar_border": False,
+    "sidebar": "sidebar-dark-navy",
+    "sidebar_nav_small_text": False,
+    "sidebar_disable_expand": False,
+    "sidebar_nav_child_indent": False,
+    "sidebar_nav_compact_style": False,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -126,7 +178,10 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
+    
 ]
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field

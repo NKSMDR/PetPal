@@ -1,0 +1,49 @@
+/* -----------------------------
+🌐 Navbar
+------------------------------ */
+.custom-navbar {
+    background-color: #1e3a8a !important;
+    padding: 12px 0;
+}
+
+.custom-navbar .nav-link {
+    color: #ffffff !important;
+    font-weight: 500;
+    font-size: 1rem;
+    padding: 10px 14px;
+}
+
+.custom-navbar .nav-link:hover,
+.custom-navbar .nav-link:focus {
+    color: #facc15 !important;
+}
+
+.custom-navbar .btn-outline-warning {
+    border-color: #facc15;
+    color: #facc15;
+    font-weight: 600;
+}
+
+.custom-navbar .btn-outline-warning:hover {
+    background-color: #facc15;
+    color: #1e293b;
+}
+
+.custom-navbar .btn-warning {
+    background-color: #facc15;
+    color: #1e293b;
+    font-weight: 600;
+    border: none;
+}
+
+.custom-navbar .btn-warning:hover {
+    background-color: #eab308;
+    color: #0f172a;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+@media (max-width: 768px) {
+    .navbar-nav {
+        text-align: center;
+    }
+}

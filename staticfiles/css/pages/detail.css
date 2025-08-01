@@ -1,0 +1,82 @@
+/* detail.css */
+body {
+  background-color: #f8f9fa;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.filter-box {
+  background: #fff;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.05);
+  margin-bottom: 40px;
+}
+
+.breed-card {
+  transition: all 0.3s ease-in-out;
+  border: none;
+  border-radius: 15px;
+  overflow: hidden;
+}
+
+.breed-card:hover {
+  transform: translateY(-5px) scale(1.02);
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.1);
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: 1.2rem;
+}
+
+.card-text {
+  color: #555;
+  font-size: 0.9rem;
+}
+
+.btn-custom {
+  border-radius: 50px !important;
+  padding: 6px 16px !important;
+}
+
+.filter-form label {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.form-select {
+  font-size: 0.9rem;
+}
+
+/* Responsive tweaks */
+@media (max-width: 576px) {
+  .filter-form .form-label {
+    font-size: 0.85rem;
+  }
+
+  .filter-form .form-select {
+    font-size: 0.85rem;
+  }
+
+  .breed-card {
+    border-radius: 10px;
+  }
+}
+
+/* Animate trait cards using JS + CSS */
+.trait-card {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: all 0.6s ease;
+}
+
+.trait-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Highlighted filters */
+.form-select.active-filter {
+  border: 2px solid #0d6efd !important;
+  background-color: #e8f0fe;
+}
