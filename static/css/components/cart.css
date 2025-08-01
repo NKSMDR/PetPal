@@ -1,0 +1,66 @@
+.cart-table {
+  border-radius: 12px;
+  overflow: hidden;
+  border: none;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+.cart-table th {
+  background: #f8f9fa;
+  border: none;
+  font-weight: 600;
+  color: #495057;
+  padding: 1rem;
+}
+
+.cart-table td {
+  vertical-align: middle;
+  border: none;
+  padding: 1rem;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.cart-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.cart-table img {
+  border-radius: 8px;
+  background: #f9f9f9;
+  padding: 5px;
+  border: 1px solid #e9ecef;
+}
+
+.cart-table .btn-sm {
+  padding: 0.25rem 0.75rem;
+  font-size: 0.875rem;
+  border-radius: 6px;
+}
+
+.cart-table .form-control-sm {
+  border-radius: 6px;
+  border: 1px solid #ced4da;
+  text-align: center;
+}
+
+.cart-table tfoot td {
+  border-top: 2px solid #dee2e6;
+  font-size: 1.1rem;
+  padding: 1.25rem 1rem;
+}
+
+/* Empty cart styling */
+.empty-cart {
+  padding: 3rem 0;
+}
+
+.empty-cart h4 {
+  color: #6c757d;
+  margin-bottom: 1rem;
+}
+
+/* Cart badge in navbar */
+.nav-link .badge {
+  font-size: 0.65rem;
+  padding: 0.25em 0.4em;
+}

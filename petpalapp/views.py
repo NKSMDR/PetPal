@@ -1,33 +1,111 @@
-from django.shortcuts import render,HttpResponse,get_object_or_404
-
-from .models import Breed
-
+from django.shortcuts import render, HttpResponse, get_object_or_404, redirect,redirect
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.contrib import messages
+from django.db import IntegrityError
+from .models import Breed, Accessory, UserProfile
 from decimal import Decimal, InvalidOperation
-from django.db.models import DecimalField
-from .models import Accessory
 from django.db.models import Min, Max
+from django.contrib.auth.decorators import login_required
 
-
-# Create your views here.
 def Home(request):
-    return render(request ,'pages/home.html')
+    return render(request, 'pages/home.html')
 
 def Login(request):
-    return render(request,'pages/login.html')
+    if request.method == 'POST':
+        email = request.POST.get('email', '').strip()
+        password = request.POST.get('password', '')
+        
+        # Validate input
+        if not email or not password:
+            messages.error(request, 'Please enter both email and password')
+            return render(request, 'pages/login.html')
+        
+        try:
+            # Find user by email
+            user_obj = User.objects.get(email=email)
+            user = authenticate(request, username=user_obj.username, password=password)
+            
+            if user:
+                if user.is_active:
+                    login(request, user)
+                    messages.success(request, f'Welcome back, {user.first_name}!')
+                    return redirect('home')
+                else:
+                    messages.error(request, 'Your account is deactivated')
+            else:
+                messages.error(request, 'Invalid email or password')
+                
+        except User.DoesNotExist:
+            messages.error(request, 'No account found with this email address')
+    
+    return render(request, 'pages/login.html')
 
 def Register(request):
-    return render(request,'pages/register.html')
+    if request.method == 'POST':
+        # Get form data
+        first_name = request.POST.get('first_name', '').strip()
+        last_name = request.POST.get('last_name', '').strip()
+        email = request.POST.get('email', '').strip().lower()
+        phone = request.POST.get('phone', '').strip()
+        password = request.POST.get('password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+        user_type = request.POST.get('user_type', '')
+        
+        # Validation
+        errors = []
+        
+        if not all([first_name, last_name, email, phone, password, confirm_password, user_type]):
+            errors.append('All fields are required')
+        
+        if len(password) < 8:
+            errors.append('Password must be at least 8 characters long')
+            
+        if password != confirm_password:
+            errors.append('Passwords do not match')
+        
+        if User.objects.filter(email=email).exists():
+            errors.append('An account with this email already exists')
+        
+        # If there are errors, show them
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+            return render(request, 'pages/register.html')
+        
+        try:
+            # Create user
+            user = User.objects.create_user(
+                username=email,  # Use email as username
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+            
+            # Get or create user profile and save additional information
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            profile.phone = phone
+            profile.user_type = user_type
+            profile.save()
+            
+            messages.success(request, 'Account created successfully! Please log in.')
+            return redirect('login')
+            
+        except IntegrityError:
+            messages.error(request, 'An error occurred while creating your account')
+    
+    return render(request, 'pages/register.html')
 
+def Logout(request):
+    logout(request)
+    messages.success(request, 'You have been logged out successfully')
+    return redirect('home')
 
-
-
-
-
-
+# Your existing views
 def breed_detail(request, slug):
     breed = get_object_or_404(Breed, slug=slug)
     return render(request, 'pages/breed_detail.html', {'breed': breed})
-
 
 def breed_list(request):
     breeds = Breed.objects.all()
@@ -36,9 +114,8 @@ def breed_list(request):
     LEVEL_CHOICES = ['Low', 'Medium', 'High']
     TRAINING_CHOICES = ['Easy', 'Moderate', 'Difficult']
     GROOMING_CHOICES = ['Low', 'Moderate', 'High']
-    VOCALATY_CHOICE=['Low', 'Moderate', 'High']
-    AFFECTION_CHOICE=['independent', 'balance', 'cuddly']
-
+    VOCALATY_CHOICE = ['Low', 'Moderate', 'High']
+    AFFECTION_CHOICE = ['independent', 'balance', 'cuddly']
 
     filters = {
         "size": request.GET.get("size"),
@@ -67,14 +144,12 @@ def breed_list(request):
         'level_options': LEVEL_CHOICES,
         'training_options': TRAINING_CHOICES,
         'grooming_options': GROOMING_CHOICES,
-        'vocality_options':VOCALATY_CHOICE,
-        'affection_options':AFFECTION_CHOICE,
+        'vocality_options': VOCALATY_CHOICE,
+        'affection_options': AFFECTION_CHOICE,
         **filters,
     }
 
     return render(request, 'pages/breed_list.html', context)
-
-
 
 def accessories(request):
     all_accessories = Accessory.objects.all()
@@ -117,4 +192,83 @@ def accessories(request):
         'price_max': price_max,
         'min_price_db': min_price_db,
         'max_price_db': max_price_db,
+    })
+
+
+@login_required
+def profile(request):
+    # Get or create user profile to handle missing profile cases
+    try:
+        profile = request.user.userprofile
+    except UserProfile.DoesNotExist:
+        # Create profile if it doesn't exist
+        profile = UserProfile.objects.create(user=request.user)
+    
+    context = {
+        'user': request.user,
+        'profile': profile
+    }
+    return render(request, 'pages/profile.html', context)
+
+def get_cart(request):
+    return request.session.get('cart', [])
+
+def save_cart(request, cart):
+    request.session['cart'] = cart
+    request.session.modified = True
+
+def add_to_cart(request, product_type, product_id):
+    # Only allow 'accessory' type
+    if product_type != 'accessory':
+        return redirect('cart')
+    cart = get_cart(request)
+    found = False
+    for item in cart:
+        if item['product_type'] == product_type and item['product_id'] == product_id:
+            item['qty'] += 1
+            found = True
+            break
+    if not found:
+        cart.append({'product_type': product_type, 'product_id': product_id, 'qty': 1})
+    save_cart(request, cart)
+    return redirect('cart')
+def remove_from_cart(request, product_type, product_id):
+    cart = get_cart(request)
+    cart = [item for item in cart if not (item['product_type'] == product_type and item['product_id'] == product_id)]
+    save_cart(request, cart)
+    return redirect('cart')
+
+def update_cart(request, product_type, product_id):
+    cart = get_cart(request)
+    qty = int(request.POST.get('quantity', 1))
+    for item in cart:
+        if item['product_type'] == product_type and item['product_id'] == product_id:
+            if qty > 0:
+                item['qty'] = qty
+            else:
+                cart.remove(item)
+            break
+    save_cart(request, cart)
+    return redirect('cart')
+
+def cart(request):
+    cart = get_cart(request)
+    cart_items = []
+    total = 0
+    for item in cart:
+        if item['product_type'] == 'accessory':
+            product = get_object_or_404(Accessory, pk=item['product_id'])
+        else:
+            continue
+        subtotal = product.price * item['qty']
+        cart_items.append({
+            'product': product,
+            'qty': item['qty'],
+            'subtotal': subtotal,
+            'type': item['product_type'],
+        })
+        total += subtotal
+    return render(request, 'includes/cart.html', {
+        'cart_items': cart_items,
+        'total': total,
     })

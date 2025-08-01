@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/components/cart.css' %}">
+{% endblock %}
+
+{% block content %}
+<section class="py-5 bg-light">
+  <div class="container">
+    <h2 class="fw-bold text-center mb-4"><span style="vertical-align:middle;">🛒</span> Your Cart</h2>
+    {% if cart_items %}
+    <div class="table-responsive">
+      <table class="table align-middle cart-table bg-white rounded shadow-sm">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Product</th>
+            <th>Type</th>
+            <th>Price</th>
+            <th style="width:120px;">Quantity</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for item in cart_items %}
+          <tr>
+            <td>
+              <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width:60px;height:60px;object-fit:contain;">
+            </td>
+            <td>
+              <strong>{{ item.product.name }}</strong>
+              <div class="text-muted small">
+                {% if item.type == 'accessory' %}{{ item.product.category }}{% else %}Pet{% endif %}
+              </div>
+            </td>
+            <td class="text-capitalize">{{ item.type }}</td>
+            <td>${{ item.product.price }}</td>
+            <td>
+              <form method="post" action="{% url 'update_cart' item.type item.product.id %}">
+                {% csrf_token %}
+                <input type="number" name="quantity" value="{{ item.qty }}" min="1" class="form-control form-control-sm d-inline-block" style="width:60px;">
+                <button class="btn btn-sm btn-outline-secondary ms-1" type="submit">Update</button>
+              </form>
+            </td>
+            <td>${{ item.subtotal }}</td>
+            <td>
+              <a href="{% url 'remove_from_cart' item.type item.product.id %}" class="btn btn-sm btn-danger">Remove</a>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot>
+          <tr>
+            <td colspan="5" class="text-end fw-bold">Total:</td>
+            <td class="fw-bold">${{ total }}</td>
+            <td></td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+    <div class="text-end">
+      <a href="#" class="btn btn-success btn-lg mt-3">Proceed to Checkout</a>
+    </div>
+    {% else %}
+    <div class="text-center text-muted py-5">
+      <h4>Your cart is empty.</h4>
+      <a href="{% url 'accessories' %}" class="btn btn-primary mt-3">Shop Accessories</a>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}

@@ -17,12 +17,40 @@
         <li class="nav-item">
           <a href="#" class="btn btn-outline-warning btn-sm rounded-pill fw-semibold px-3">Sell a Pet</a>
         </li>
+
+        {% if user.is_authenticated %}
+          <li class="nav-item">
+            <span class="nav-link text-white">Welcome, {{ user.first_name }}!</span>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'logout' %}" class="btn btn-outline-danger btn-sm rounded-pill px-3">Logout</a>
+          </li>
+        {% else %}
+          <li class="nav-item">
+            <a href="{% url 'login' %}" class="btn btn-outline-light btn-sm rounded-pill px-3">Login</a>
+          </li>
+          <li class="nav-item">
+            <a href="{% url 'register' %}" class="btn btn-warning btn-sm rounded-pill text-dark px-3">Register</a>
+          </li>
+        {% endif %}
+
         <li class="nav-item">
-          <a href="{%url 'login'%}" class="btn btn-outline-light btn-sm rounded-pill px-3">Login</a>
+          <a href="{% url 'cart' %}" class="nav-link position-relative">
+            <i class="bi bi-cart"></i>
+            Cart
+            {% if cart_count and cart_count > 0 %}
+              <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+                {{ cart_count }}
+              </span>
+            {% endif %}
+          </a>
         </li>
-        <li class="nav-item">
-          <a href="{%url 'register'%}" class="btn btn-warning btn-sm rounded-pill text-dark px-3">Register</a>
-        </li>
+
+        {% if user.is_authenticated %}
+          <a class="nav-link me-2" href="{% url 'profile' %}">
+            <i class="bi bi-person-circle" style="font-size: 1.8rem; color: white;"></i>
+          </a>
+        {% endif %}
       </ul>
     </div>
   </div>

@@ -25,6 +25,12 @@ urlpatterns = [
     path('breeds/', views.breed_list, name='breed_list'),
     path('breeds/<slug:slug>/', views.breed_detail, name='breed_detail'),
     path('accessories/', views.accessories, name='accessories'),
+    path('logout/', views.Logout, name='logout'),
+    path('profile/', views.profile, name='profile'),
+    path('cart/', views.cart, name='cart'),
+    path('add-to-cart/<str:product_type>/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
+    path('remove-from-cart/<str:product_type>/<int:product_id>/', views.remove_from_cart, name='remove_from_cart'),
+    path('update-cart/<str:product_type>/<int:product_id>/', views.update_cart, name='update_cart'),
 ]
 
  

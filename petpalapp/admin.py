@@ -107,7 +107,6 @@ class AccessoryAdmin(admin.ModelAdmin):
     view_actions.short_description = "Actions"
 
 admin.site.register(Accessory, AccessoryAdmin)
-
 # Customize admin site headers
 admin.site.site_header = "PetPal Administration"
 admin.site.site_title = "PetPal Admin"
