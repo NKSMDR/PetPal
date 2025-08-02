@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ pet.name }} - Marketplace Pet{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/marketplace_pet_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'marketplace' %}">Marketplace</a></li>
+            <li class="breadcrumb-item active">{{ pet.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Pet Images -->
+        <div class="col-lg-6">
+            <div class="pet-images">
+                <div class="main-image mb-3">
+                    {% if pet.image %}
+                        <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="img-fluid rounded main-pet-image">
+                    {% else %}
+                        <img src="{% static 'images/default-pet.jpg' %}" alt="No image" class="img-fluid rounded main-pet-image">
+                    {% endif %}
+                </div>
+                
+                <!-- Additional Images -->
+                {% if pet.image2 or pet.image3 %}
+                <div class="additional-images d-flex gap-2">
+                    {% if pet.image2 %}
+                        <img src="{{ pet.image2.url }}" alt="{{ pet.name }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
+                    {% endif %}
+                    {% if pet.image3 %}
+                        <img src="{{ pet.image3.url }}" alt="{{ pet.name }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Pet Details -->
+        <div class="col-lg-6">
+            <div class="pet-info">
+                <!-- Marketplace Badge -->
+                <div class="marketplace-badge mb-3">
+                    <span class="badge bg-success">Community Marketplace</span>
+                </div>
+
+                <!-- Pet Name and Price -->
+                <h1 class="pet-name">{{ pet.name }}</h1>
+                <div class="pet-price mb-3">
+                    <span class="price">${{ pet.price }}</span>
+                </div>
+
+                <!-- Seller Information -->
+                <div class="seller-info card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-user"></i> Seller Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-6">
+                                <strong>Name:</strong> {{ pet.seller.get_full_name|default:pet.seller.username }}
+                            </div>
+                            <div class="col-sm-6">
+                                <strong>Location:</strong> {{ pet.city }}, {{ pet.state }}
+                            </div>
+                        </div>
+                        <div class="mt-2">
+                            <button class="btn btn-primary btn-sm" onclick="contactSeller()">
+                                <i class="fas fa-envelope"></i> Contact Seller
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pet Basic Info -->
+                <div class="pet-details card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-paw"></i> Pet Details</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-sm-6 mb-2">
+                                <strong>Breed:</strong> {{ pet.breed.name }}
+                            </div>
+                            <div class="col-sm-6 mb-2">
+                                <strong>Age:</strong> {{ pet.age }} months
+                            </div>
+                            <div class="col-sm-6 mb-2">
+                                <strong>Gender:</strong> {{ pet.get_gender_display }}
+                            </div>
+                            <div class="col-sm-6 mb-2">
+                                <strong>Weight:</strong> {{ pet.weight|default:"Not specified" }}
+                            </div>
+                            <div class="col-sm-6 mb-2">
+                                <strong>Color:</strong> {{ pet.color|default:"Not specified" }}
+                            </div>
+                            <div class="col-sm-6 mb-2">
+                                <strong>Vaccination:</strong> 
+                                <span class="badge bg-{{ pet.vaccination_status|yesno:'success,warning' }}">
+                                    {{ pet.vaccination_status|yesno:'Vaccinated,Not Vaccinated' }}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Health Information -->
+                {% if pet.health_certificate %}
+                <div class="health-info card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-heart"></i> Health Information</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="health-badge">
+                            <span class="badge bg-success"><i class="fas fa-check-circle"></i> Health Certificate Available</span>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Description -->
+                {% if pet.description %}
+                <div class="pet-description card mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0"><i class="fas fa-info-circle"></i> About {{ pet.name }}</h5>
+                    </div>
+                    <div class="card-body">
+                        <p>{{ pet.description|linebreaks }}</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Related Pets -->
+    {% if related_pets %}
+    <div class="related-pets mt-5">
+        <h3 class="mb-4">More {{ pet.breed.name }}s in Marketplace</h3>
+        <div class="row">
+            {% for related_pet in related_pets %}
+            <div class="col-md-3 mb-4">
+                <div class="card pet-card">
+                    <div class="card-img-container">
+                        {% if related_pet.image %}
+                            <img src="{{ related_pet.image.url }}" class="card-img-top" alt="{{ related_pet.name }}">
+                        {% else %}
+                            <img src="{% static 'images/default-pet.jpg' %}" class="card-img-top" alt="No image">
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <h6 class="card-title">{{ related_pet.name }}</h6>
+                        <p class="card-text">
+                            <small class="text-muted">{{ related_pet.age }} months • {{ related_pet.get_gender_display }}</small><br>
+                            <strong class="text-success">${{ related_pet.price }}</strong>
+                        </p>
+                        <a href="{% url 'marketplace_pet_detail' related_pet.pk %}" class="btn btn-sm btn-outline-primary">View Details</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function changeMainImage(src) {
+    document.querySelector('.main-pet-image').src = src;
+}
+
+function contactSeller() {
+    // You can implement contact functionality here
+    alert('Contact seller functionality - you can implement email/messaging here');
+}
+</script>
+{% endblock %}

@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Home{% endblock %}
+{% block title %}PetPal - Your Dog's Best Friend{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
@@ -11,10 +11,10 @@
 <!-- ✅ Hero Section -->
 <section class="hero-banner">
   <div>
-    <h1 class="mb-3">Find Your Perfect Pet 🐶🐱</h1>
-    <p class="lead mb-4">Buy. Sell. Love. Everything your pet needs in one place!</p>
-    <a href="#" class="btn btn-warning">Browse Pets</a>
-    <a href="#" class="btn btn-outline-light">Sell Now</a>
+    <h1 class="mb-3">Find Your Perfect Dog 🐶</h1>
+    <p class="lead mb-4">Buy. Sell. Love. Everything your dog needs in one place!</p>
+    <a href="{% url 'browse_pets' %}" class="btn btn-warning">Browse Dogs</a>
+    <a href="{% url 'marketplace' %}" class="btn btn-outline-light">Marketplace</a>
   </div>
 </section>
 
@@ -22,43 +22,76 @@
 <section class="parallax-section text-white d-flex align-items-center justify-content-center">
   <div class="text-center">
     <h2 class="display-5 fw-bold">Adopt. Love. Repeat. 🐾</h2>
-    <p class="lead">Every pet deserves a family. Yours might be just a scroll away.</p>
-    <a href="#" class="btn btn-warning rounded-pill px-4 py-2 mt-3">Explore Available Pets</a>
+    <p class="lead">Every dog deserves a family. Yours might be just a scroll away.</p>
+    <a href="{% url 'marketplace' %}" class="btn btn-warning rounded-pill px-4 py-2 mt-3">Explore Community Marketplace</a>
   </div>
 </section>
 
 <!-- Category Cards -->
 <section class="py-5 bg-light text-center">
   <div class="container">
-    <h2 class="mb-4 fw-bold">Shop By Category</h2>
+    <h2 class="mb-4 fw-bold">What We Offer</h2>
     <div class="row g-4">
       <div class="col-md-4">
-        <div class="card">
-          <img src="{% static 'img/dog.jpg' %}" class="card-img-top" alt="Dogs">
-          <div class="card-body">
-            <h5 class="card-title">Dogs</h5>
-            <p class="card-text">Find loyal, cute companions for your family.</p>
-            <a href="#" class="btn btn-outline-primary rounded-pill">View Dogs</a>
+        <div class="card h-100">
+          <img src="{% static 'img/dog.jpg' %}" class="card-img-top" alt="Professional Dogs">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">Professional Dogs</h5>
+            <p class="card-text flex-grow-1">Find healthy, well-bred dogs from trusted breeders and pet stores.</p>
+            <a href="{% url 'browse_pets' %}" class="btn btn-outline-primary rounded-pill mt-auto">Browse Dogs</a>
           </div>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="card">
-          <img src="{% static 'img/cat.jpg' %}" class="card-img-top" alt="Cats">
-          <div class="card-body">
-            <h5 class="card-title">Cats</h5>
-            <p class="card-text">Explore friendly kittens and adorable cats.</p>
-            <a href="#" class="btn btn-outline-primary rounded-pill">View Cats</a>
+        <div class="card h-100">
+          <img src="{% static 'img/marketplace.jpg' %}" class="card-img-top" alt="Community Marketplace">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">Community Marketplace</h5>
+            <p class="card-text flex-grow-1">Buy and sell dogs directly with other dog lovers in your community.</p>
+            <a href="{% url 'marketplace' %}" class="btn btn-outline-success rounded-pill mt-auto">Visit Marketplace</a>
           </div>
         </div>
       </div>
       <div class="col-md-4">
-        <div class="card">
-          <img src="{% static 'img/accessories.jpg' %}" class="card-img-top" alt="Accessories">
-          <div class="card-body">
-            <h5 class="card-title">Accessories</h5>
-            <p class="card-text">All pet essentials – food, toys, grooming and more.</p>
-            <a href="#" class="btn btn-outline-primary rounded-pill">Shop Now</a>
+        <div class="card h-100">
+          <img src="{% static 'img/accessories.jpg' %}" class="card-img-top" alt="Dog Accessories">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">Dog Accessories</h5>
+            <p class="card-text flex-grow-1">All dog essentials – food, toys, grooming supplies and more.</p>
+            <a href="{% url 'accessories' %}" class="btn btn-outline-primary rounded-pill mt-auto">Shop Now</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Quick Actions Section -->
+<section class="py-5">
+  <div class="container">
+    <div class="row text-center">
+      <div class="col-md-6 mb-4">
+        <div class="quick-action-card p-4 bg-primary text-white rounded">
+          <h4 class="fw-bold mb-3">🏪 Looking for a Dog?</h4>
+          <p class="mb-3">Browse our professional listings or check out community marketplace</p>
+          <div class="d-flex gap-2 justify-content-center">
+            <a href="{% url 'browse_pets' %}" class="btn btn-light">Professional Dogs</a>
+            <a href="{% url 'marketplace' %}" class="btn btn-outline-light">Marketplace</a>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-6 mb-4">
+        <div class="quick-action-card p-4 bg-success text-white rounded">
+          <h4 class="fw-bold mb-3">💰 Want to Sell Your Dog?</h4>
+          <p class="mb-3">List your dog on our community marketplace and find loving homes</p>
+          <div class="d-flex gap-2 justify-content-center">
+            {% if user.is_authenticated %}
+              <a href="{% url 'sell_pet' %}" class="btn btn-light">Sell Your Dog</a>
+              <a href="{% url 'my_pets' %}" class="btn btn-outline-light">My Listings</a>
+            {% else %}
+              <a href="{% url 'login' %}" class="btn btn-light">Login to Sell</a>
+              <a href="{% url 'register' %}" class="btn btn-outline-light">Sign Up</a>
+            {% endif %}
           </div>
         </div>
       </div>
@@ -67,7 +100,7 @@
 </section>
 
 <!-- Featured Testimonials -->
-<section class="py-5 text-center">
+<section class="py-5 text-center bg-light">
   <div class="container">
     <h2 class="mb-4 fw-bold">Our Happy Customers</h2>
     <div class="row g-4">
@@ -79,7 +112,7 @@
       </div>
       <div class="col-md-4">
         <div class="testimonial-card p-4 bg-white">
-          <p>"The accessories store has everything I need for my cat."</p>
+          <p>"The accessories store has everything I need for my dog."</p>
           <h6 class="mt-3">– Soham Patel</h6>
         </div>
       </div>
@@ -93,55 +126,76 @@
   </div>
 </section>
 
-
-
+<!-- Popular Dog Breeds -->
 <section class="py-5">
   <div class="container text-center">
-    <h2 class="fw-bold mb-4">Popular Breeds</h2>
+    <h2 class="fw-bold mb-4">Popular Dog Breeds</h2>
     <div class="row">
       <div class="col-md-3 col-6 mb-4">
-        <img src="{% static 'img/labrador.jpg' %}" alt="Labrador" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
-        <h6>Labrador</h6>
+        <div class="breed-card">
+          <img src="{% static 'img/labrador.jpg' %}" alt="Labrador" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+          <h6>Labrador Retriever</h6>
+          <small class="text-muted">Friendly & Active</small>
+        </div>
       </div>
       <div class="col-md-3 col-6 mb-4">
-        <img src="{% static 'img/golden.jpg' %}" alt="Golden Retriever" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
-        <h6>Golden Retriever</h6>
+        <div class="breed-card">
+          <img src="{% static 'img/golden.jpg' %}" alt="Golden Retriever" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+          <h6>Golden Retriever</h6>
+          <small class="text-muted">Gentle & Smart</small>
+        </div>
       </div>
       <div class="col-md-3 col-6 mb-4">
-        <img src="{% static 'img/persian-cat.jpg' %}" alt="Persian Cat" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
-        <h6>Persian Cat</h6>
+        <div class="breed-card">
+          <img src="{% static 'img/german-shepherd.jpg' %}" alt="German Shepherd" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+          <h6>German Shepherd</h6>
+          <small class="text-muted">Loyal & Brave</small>
+        </div>
       </div>
       <div class="col-md-3 col-6 mb-4">
-        <img src="{% static 'img/husky.jpg' %}" alt="Siberian Husky" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
-        <h6>Siberian Husky</h6>
+        <div class="breed-card">
+          <img src="{% static 'img/husky.jpg' %}" alt="Siberian Husky" class="img-fluid rounded-circle mb-2" style="height: 120px; width: 120px; object-fit: cover;">
+          <h6>Siberian Husky</h6>
+          <small class="text-muted">Energetic & Outgoing</small>
+        </div>
       </div>
+    </div>
+    <div class="mt-4">
+      <a href="{% url 'breed_list' %}" class="btn btn-outline-primary rounded-pill">View All Breeds</a>
     </div>
   </div>
 </section>
 
+<!-- How It Works -->
 <section class="bg-light py-5 text-center">
   <div class="container">
-    <h2 class="fw-bold mb-4">How It Works</h2>
+    <h2 class="fw-bold mb-4">How PetPal Works</h2>
     <div class="row align-items-center">
       <div class="col-md-4">
         <div class="p-3">
-          <span class="display-5 text-warning">1</span>
-          <h5 class="fw-bold mt-3">Browse or Post a Pet</h5>
-          <p>Check available pets or log in to post your own!</p>
+          <div class="step-icon mb-3">
+            <span class="display-5 text-warning">🔍</span>
+          </div>
+          <h5 class="fw-bold mt-3">Browse or Post</h5>
+          <p>Search professional listings or post your dog on our marketplace!</p>
         </div>
       </div>
       <div class="col-md-4">
         <div class="p-3">
-          <span class="display-5 text-warning">2</span>
-          <h5 class="fw-bold mt-3">Get Matched</h5>
-          <p>Connect with buyers/sellers and ask questions directly.</p>
+          <div class="step-icon mb-3">
+            <span class="display-5 text-warning">💬</span>
+          </div>
+          <h5 class="fw-bold mt-3">Connect</h5>
+          <p>Contact sellers directly and ask questions about the dogs.</p>
         </div>
       </div>
       <div class="col-md-4">
         <div class="p-3">
-          <span class="display-5 text-warning">3</span>
-          <h5 class="fw-bold mt-3">Take Home Happiness</h5>
-          <p>Complete purchase and welcome a lovely pet into your life!</p>
+          <div class="step-icon mb-3">
+            <span class="display-5 text-warning">🏠</span>
+          </div>
+          <h5 class="fw-bold mt-3">Take Home</h5>
+          <p>Complete the adoption and welcome your new furry family member!</p>
         </div>
       </div>
     </div>
@@ -151,7 +205,8 @@
 <!-- Newsletter -->
 <section class="cta text-white text-center py-5">
   <div class="container">
-    <h3>Subscribe For Pet Tips & Offers</h3>
+    <h3>Subscribe For Dog Care Tips & Special Offers</h3>
+    <p class="mb-4">Get the latest updates on dog care, training tips, and exclusive deals!</p>
     <form class="row justify-content-center mt-4">
       <div class="col-md-4">
         <input type="email" class="form-control rounded-pill p-3" placeholder="Enter your email">

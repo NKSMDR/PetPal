@@ -213,6 +213,259 @@
   color: #e74c3c;
 }
 
+/* Browse Pets - Professional Pet Cards (Admin Added) */
+.browse-pet-card {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+    border: 2px solid #e3f2fd;
+    border-radius: 20px;
+    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.1);
+    transition: all 0.3s ease;
+    overflow: hidden;
+    height: 100%;
+    position: relative;
+}
+
+.browse-pet-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(33, 150, 243, 0.2);
+    border-color: #2196f3;
+}
+
+.browse-pet-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, #2196f3, #21cbf3);
+    z-index: 1;
+}
+
+.browse-pet-image {
+    position: relative;
+    height: 280px;
+    overflow: hidden;
+}
+
+.browse-pet-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.browse-pet-card:hover .browse-pet-image img {
+    transform: scale(1.08);
+}
+
+.browse-pet-badges {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    z-index: 2;
+}
+
+.professional-badge {
+    background: linear-gradient(135deg, #2196f3, #1976d2) !important;
+    color: white !important;
+    font-weight: 600;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+}
+
+.featured-badge {
+    background: linear-gradient(135deg, #ff9800, #f57c00) !important;
+    color: white !important;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+}
+
+.urgent-badge {
+    background: linear-gradient(135deg, #f44336, #d32f2f) !important;
+    color: white !important;
+    border: 2px solid white;
+    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+}
+
+.browse-price-tag {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: linear-gradient(135deg, #4caf50, #388e3c);
+    color: white;
+    padding: 0.7rem 1.2rem;
+    border-radius: 25px;
+    font-weight: 700;
+    font-size: 1.2rem;
+    border: 3px solid white;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    z-index: 2;
+}
+
+.browse-pet-card .card-body {
+    padding: 2rem 1.5rem;
+    background: white;
+}
+
+.browse-pet-card .card-title {
+    font-weight: 700;
+    color: #1976d2;
+    margin-bottom: 0.5rem;
+    font-size: 1.3rem;
+}
+
+.browse-pet-card .breed-info {
+    color: #2196f3;
+    font-weight: 600;
+    margin-bottom: 1.2rem;
+    font-size: 1rem;
+}
+
+.browse-pet-card .pet-details {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.2rem;
+}
+
+.browse-pet-card .detail-item {
+    display: flex;
+    align-items: center;
+    color: #546e7a;
+    font-size: 0.9rem;
+    font-weight: 500;
+}
+
+.browse-pet-card .detail-item i {
+    color: #2196f3;
+    width: 18px;
+}
+
+.browse-pet-card .pet-health {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-bottom: 1.2rem;
+}
+
+.browse-pet-card .health-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border: 1px solid;
+}
+
+.browse-pet-card .health-badge.vaccinated {
+    background: #e8f5e8;
+    color: #2e7d32;
+    border-color: #4caf50;
+}
+
+.browse-pet-card .health-badge.certified {
+    background: #e3f2fd;
+    color: #1565c0;
+    border-color: #2196f3;
+}
+
+.browse-pet-card .pet-description {
+    color: #546e7a;
+    line-height: 1.6;
+    margin-bottom: 1.2rem;
+    font-size: 0.95rem;
+}
+
+.professional-info {
+    margin-bottom: 1.2rem;
+    padding: 0.8rem;
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    border-radius: 10px;
+    border-left: 4px solid #2196f3;
+}
+
+.professional-info small {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.browse-pet-card .card-actions {
+    display: flex;
+    gap: 0.8rem;
+}
+
+.browse-pet-card .card-actions .btn {
+    flex: 1;
+    border-radius: 25px;
+    font-weight: 600;
+    padding: 0.7rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.browse-pet-card .btn-primary {
+    background: linear-gradient(135deg, #2196f3, #1976d2);
+    border: none;
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+}
+
+.browse-pet-card .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
+}
+
+.browse-pet-card .btn-outline-primary {
+    border: 2px solid #2196f3;
+    color: #2196f3;
+    background: transparent;
+}
+
+.browse-pet-card .btn-outline-primary:hover {
+    background: #2196f3;
+    border-color: #2196f3;
+    transform: translateY(-2px);
+}
+
+/* No Image Placeholder for Browse Pets */
+.browse-pet-image .no-image {
+    height: 100%;
+    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #2196f3;
+}
+
+.browse-pet-image .no-image i {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+}
+
+/* Empty State for Browse Pets */
+.empty-state {
+    padding: 4rem 2rem;
+}
+
+.empty-icon {
+    font-size: 5rem;
+    color: #bbdefb;
+    margin-bottom: 2rem;
+}
+
+.empty-state h3 {
+    color: #1976d2;
+    margin-bottom: 1rem;
+}
+
+.empty-state p {
+    font-size: 1.1rem;
+    margin-bottom: 2rem;
+    color: #546e7a;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
   .hero-section h1 {
@@ -242,6 +495,31 @@
   
   .pet-actions {
     flex-direction: column;
+  }
+  
+  .browse-pet-image {
+    height: 220px;
+  }
+  
+  .browse-pet-card .card-body {
+    padding: 1.5rem 1rem;
+  }
+  
+  .browse-pet-card .pet-details {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .browse-pet-card .card-actions {
+    flex-direction: column;
+  }
+  
+  .empty-state {
+    padding: 2rem 1rem;
+  }
+  
+  .empty-icon {
+    font-size: 3rem;
   }
 }
 
@@ -280,17 +558,19 @@
   }
 }
 
-/* Empty State */
-.empty-state {
-  text-align: center;
-  padding: 4rem 2rem;
+/* Distinguish from Marketplace Cards */
+.browse-pet-card {
+    /* Blue theme for professional/admin pets */
+    --primary-color: #2196f3;
+    --secondary-color: #1976d2;
+    --accent-color: #e3f2fd;
 }
 
-.empty-state h4 {
-  color: #6c757d;
-  margin-bottom: 1rem;
+/* Override any marketplace styles */
+.browse-pet-card:not(.marketplace-card) {
+    border-color: #e3f2fd !important;
 }
 
-.empty-state p {
-  color: #adb5bd;
+.browse-pet-card:not(.marketplace-card):hover {
+    border-color: #2196f3 !important;
 }

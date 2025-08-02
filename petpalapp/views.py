@@ -5,7 +5,9 @@ from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Q, Min, Max
 from decimal import Decimal, InvalidOperation
+from django.utils import timezone
 from .models import Breed, Accessory, UserProfile, Pet
+from .forms import PetSubmissionForm
 
 def Home(request):
     return render(request, 'pages/home.html')
@@ -288,7 +290,8 @@ def cart(request):
     })
 
 def browse_pets(request):
-    pets = Pet.objects.all()
+    # Only show admin-added pets (not user-submitted ones)
+    pets = Pet.objects.filter(is_user_submitted=False, status='available')
     breed = request.GET.get('breed')
     age = request.GET.get('age')
     size = request.GET.get('size')
@@ -326,3 +329,114 @@ def pet_detail(request, pk):
         'related_pets': related_pets,
     }
     return render(request, 'pages/pet_detail.html', context)
+
+@login_required
+def sell_pet(request):
+    if request.method == 'POST':
+        form = PetSubmissionForm(request.POST, request.FILES)
+        if form.is_valid():
+            pet = form.save(commit=False)
+            pet.seller = request.user  # Ensure seller is the logged-in user
+            pet.is_user_submitted = True
+            pet.status = 'pending_review'
+            pet.save()
+            
+            messages.success(request, 'Your pet has been submitted for review! Our admin team will review it shortly.')
+            return redirect('my_pets')
+        else:
+            messages.error(request, 'Please correct the errors below.')
+    else:
+        form = PetSubmissionForm()
+    
+    context = {
+        'form': form,
+    }
+    return render(request, 'pages/sell_pet.html', context)
+
+@login_required
+def my_pets(request):
+    """Display user's submitted pets and their status"""
+    user_pets = Pet.objects.filter(seller=request.user, is_user_submitted=True).order_by('-created_at')
+    
+    context = {
+        'user_pets': user_pets,
+    }
+    return render(request, 'pages/my_pets.html', context)
+
+def marketplace(request):
+    """Display approved user-submitted pets only"""
+    pets = Pet.objects.filter(
+        status='available',
+        is_user_submitted=True
+    ).order_by('-created_at')
+    
+    # Filter options
+    breed = request.GET.get('breed')
+    age = request.GET.get('age')
+    city = request.GET.get('city')
+    search_query = request.GET.get('q')
+    min_price = request.GET.get('min_price')
+    max_price = request.GET.get('max_price')
+
+    if breed:
+        pets = pets.filter(breed__name__icontains=breed)
+    if age:
+        pets = pets.filter(age__icontains=age)
+    if city:
+        pets = pets.filter(city__icontains=city)
+    if search_query:
+        pets = pets.filter(
+            Q(name__icontains=search_query) | 
+            Q(description__icontains=search_query) |
+            Q(breed__name__icontains=search_query)
+        )
+    
+    # Price filtering
+    if min_price:
+        try:
+            pets = pets.filter(price__gte=Decimal(min_price))
+        except (ValueError, InvalidOperation):
+            pass
+    if max_price:
+        try:
+            pets = pets.filter(price__lte=Decimal(max_price))
+        except (ValueError, InvalidOperation):
+            pass
+
+    # Get unique values for filters
+    breeds = Breed.objects.all().order_by('name')
+    cities = Pet.objects.filter(
+        status='available', 
+        is_user_submitted=True
+    ).values_list('city', flat=True).distinct().order_by('city')
+
+    context = {
+        'pets': pets,
+        'breeds': breeds,
+        'cities': cities,
+        'breed': breed,
+        'age': age,
+        'city': city,
+        'search_query': search_query,
+        'min_price': min_price,
+        'max_price': max_price,
+    }
+    return render(request, 'pages/marketplace.html', context)
+
+def marketplace_pet_detail(request, pk):
+    # Only show approved user-submitted pets
+    pet = get_object_or_404(Pet, pk=pk, status='available', is_user_submitted=True)
+    
+    # Get related marketplace pets (same breed, different pet, available and user-submitted only)
+    related_pets = Pet.objects.filter(
+        breed=pet.breed, 
+        status='available',
+        is_user_submitted=True
+    ).exclude(id=pet.id)[:4]
+    
+    context = {
+        'pet': pet,
+        'related_pets': related_pets,
+        'is_marketplace': True,  # Flag to differentiate in template
+    }
+    return render(request, 'pages/marketplace_pet_detail.html', context)

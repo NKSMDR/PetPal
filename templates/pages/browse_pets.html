@@ -176,59 +176,132 @@
 {% endif %}
 
 <!-- All Pets Section -->
-<section class="py-5 bg-light">
+<section class="py-5">
   <div class="container">
     <div class="section-header text-center mb-5">
-      <h2 class="fw-bold">🐕 All Available Pets</h2>
-      <p class="text-muted">
-        {% if search_query or breed_filter or gender_filter or city_filter %}
-          Showing filtered results
-        {% else %}
-          Browse all our amazing pets
-        {% endif %}
-      </p>
+      <h2 class="fw-bold">🐾 Browse All Pets</h2>
+      <p class="text-muted">Professional pets from our trusted partners</p>
     </div>
     
     {% if pets %}
-    <div class="row g-4">
-      {% for pet in pets %}
-      <div class="col-lg-3 col-md-6">
-        <div class="pet-card">
-          <div class="pet-image-container">
-            {% if pet.is_featured %}
-            <span class="featured-badge">Featured</span>
-            {% endif %}
-            {% if pet.is_urgent %}
-            <span class="urgent-badge">Urgent</span>
-            {% endif %}
-            <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="pet-image">
-          </div>
-          <div class="pet-card-body">
-            <h6 class="pet-name">{{ pet.name }}</h6>
-            <p class="pet-breed">{{ pet.breed.name }}</p>
-            <div class="pet-details">
-              <span class="detail-item">📅 {{ pet.age }}</span>
-              <span class="detail-item">⚥ {{ pet.get_gender_display }}</span>
-              <span class="detail-item">📍 {{ pet.city }}</span>
+      <div class="row g-4">
+        {% for pet in pets %}
+        <div class="col-lg-4 col-md-6">
+          <div class="browse-pet-card">
+            <div class="browse-pet-image">
+              {% if pet.image %}
+                <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="card-img-top">
+              {% else %}
+                <div class="no-image">
+                  <i class="fas fa-paw"></i>
+                  <p>No Image</p>
+                </div>
+              {% endif %}
+              
+              <div class="browse-pet-badges">
+                {% if pet.is_featured %}
+                  <span class="badge featured-badge">
+                    <i class="fas fa-star me-1"></i>Featured
+                  </span>
+                {% endif %}
+                {% if pet.is_urgent %}
+                  <span class="badge urgent-badge">
+                    <i class="fas fa-exclamation me-1"></i>Urgent
+                  </span>
+                {% endif %}
+                <span class="badge professional-badge">
+                  <i class="fas fa-certificate me-1"></i>Professional
+                </span>
+              </div>
+              
+              <div class="browse-price-tag">
+                ${{ pet.price }}
+              </div>
             </div>
-            <div class="pet-price">${{ pet.price }}</div>
-            <div class="pet-actions">
-              <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-outline-primary btn-sm">View Details</a>
-              <button class="btn btn-outline-danger btn-sm">❤️</button>
+            
+            <div class="card-body">
+              <h5 class="card-title">{{ pet.name }}</h5>
+              <p class="breed-info">{{ pet.breed.name }}</p>
+              
+              <div class="pet-details">
+                <div class="detail-item">
+                  <i class="fas fa-birthday-cake me-1"></i>
+                  <span>{{ pet.age }}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-venus-mars me-1"></i>
+                  <span>{{ pet.get_gender_display }}</span>
+                </div>
+                <div class="detail-item">
+                  <i class="fas fa-map-marker-alt me-1"></i>
+                  <span>{{ pet.city }}, {{ pet.state }}</span>
+                </div>
+              </div>
+              
+              <div class="pet-health">
+                {% if pet.vaccination_status %}
+                  <span class="health-badge vaccinated">
+                    <i class="fas fa-shield-alt me-1"></i>Vaccinated
+                  </span>
+                {% endif %}
+                {% if pet.health_certificate %}
+                  <span class="health-badge certified">
+                    <i class="fas fa-certificate me-1"></i>Health Cert
+                  </span>
+                {% endif %}
+              </div>
+              
+              <p class="pet-description">
+                {{ pet.description|truncatewords:12 }}
+              </p>
+              
+              <div class="professional-info">
+                <small class="text-primary">
+                  <i class="fas fa-building me-1"></i>
+                  Professional Listing
+                </small>
+              </div>
+              
+              <div class="card-actions mt-3">
+                <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-primary">
+                  <i class="fas fa-eye me-1"></i>View Details
+                </a>
+                <button class="btn btn-outline-primary" onclick="addToFavorites({{ pet.id }})">
+                  <i class="fas fa-heart me-1"></i>Favorite
+                </button>
+              </div>
             </div>
           </div>
         </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
     {% else %}
-    <div class="text-center py-5">
-      <h4 class="text-muted">No pets found matching your criteria</h4>
-      <p>Try adjusting your search filters or <a href="{% url 'browse_pets' %}">browse all pets</a></p>
-    </div>
+      <div class="empty-state text-center">
+        <div class="empty-icon">
+          <i class="fas fa-search"></i>
+        </div>
+        <h3>No Pets Found</h3>
+        <p class="text-muted">
+          {% if search_query or breed or age or size %}
+            No pets match your search criteria. Try adjusting your filters.
+          {% else %}
+            No pets are currently available for browsing.
+          {% endif %}
+        </p>
+        <a href="{% url 'browse_pets' %}" class="btn btn-outline-primary">
+          <i class="fas fa-refresh me-1"></i>Clear Filters
+        </a>
+      </div>
     {% endif %}
   </div>
 </section>
+
+<script>
+function addToFavorites(petId) {
+    alert(`Added pet ${petId} to favorites! (Feature coming soon)`);
+}
+</script>
+
 {% endblock %}
 
 {% block extra_js %}

@@ -95,9 +95,11 @@ class Pet(models.Model):
     ]
     
     STATUS_CHOICES = [
+        ('pending_review', 'Pending Review'),
         ('available', 'Available'),
-        ('pending', 'Pending'),
+        ('pending', 'Pending Sale'),
         ('sold', 'Sold/Adopted'),
+        ('rejected', 'Rejected'),
     ]
     
     name = models.CharField(max_length=100)
@@ -125,9 +127,15 @@ class Pet(models.Model):
     state = models.CharField(max_length=50, help_text="State/Province")
     
     # Status and features
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='available')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_review')
     is_featured = models.BooleanField(default=False, help_text="Show in featured section")
     is_urgent = models.BooleanField(default=False, help_text="Urgent adoption/sale")
+    is_user_submitted = models.BooleanField(default=False, help_text="Submitted by user (not admin)")
+    
+    # Admin review fields
+    reviewed_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='reviewed_pets')
+    review_date = models.DateTimeField(null=True, blank=True)
+    admin_notes = models.TextField(blank=True, help_text="Admin notes for review")
     
     # Timestamps
     created_at = models.DateTimeField(auto_now_add=True)

@@ -1,0 +1,194 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Pet Marketplace - PetPal{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/marketplace.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="marketplace-container">
+    <div class="container">
+        <!-- Header -->
+        <div class="marketplace-header text-center mb-5">
+            <h1 class="display-4 text-primary">Pet Marketplace</h1>
+            <p class="lead text-muted">Find your perfect companion from our community of pet sellers</p>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters-section mb-5">
+            <div class="card">
+                <div class="card-body">
+                    <form method="get" class="row g-3">
+                        <div class="col-md-3">
+                            <label for="search" class="form-label">Search</label>
+                            <input type="text" class="form-control" id="search" name="q" value="{{ search_query }}" placeholder="Search pets...">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="breed" class="form-label">Breed</label>
+                            <select class="form-control" id="breed" name="breed">
+                                <option value="">All Breeds</option>
+                                {% for breed_obj in breeds %}
+                                    <option value="{{ breed_obj.name }}" {% if breed == breed_obj.name %}selected{% endif %}>
+                                        {{ breed_obj.name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label for="age" class="form-label">Age</label>
+                            <input type="text" class="form-control" id="age" name="age" value="{{ age }}" placeholder="e.g., 1 year">
+                        </div>
+                        <div class="col-md-2">
+                            <label for="city" class="form-label">City</label>
+                            <select class="form-control" id="city" name="city">
+                                <option value="">All Cities</option>
+                                {% for city_name in cities %}
+                                    <option value="{{ city_name }}" {% if city == city_name %}selected{% endif %}>
+                                        {{ city_name }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-1">
+                            <label for="min_price" class="form-label">Min $</label>
+                            <input type="number" class="form-control" id="min_price" name="min_price" value="{{ min_price }}" placeholder="0">
+                        </div>
+                        <div class="col-md-1">
+                            <label for="max_price" class="form-label">Max $</label>
+                            <input type="number" class="form-control" id="max_price" name="max_price" value="{{ max_price }}" placeholder="1000">
+                        </div>
+                        <div class="col-md-1 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results -->
+        <div class="results-section">
+            {% if pets %}
+                <div class="results-header mb-4">
+                    <h5 class="text-muted">{{ pets|length }} pet{{ pets|length|pluralize }} found</h5>
+                </div>
+                
+                <div class="row">
+                    {% for pet in pets %}
+                        <div class="col-lg-4 col-md-6 mb-4">
+                            <div class="pet-card">
+                                <div class="pet-image">
+                                    {% if pet.image %}
+                                        <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="card-img-top">
+                                    {% else %}
+                                        <div class="no-image">
+                                            <i class="fas fa-paw"></i>
+                                            <p>No Image</p>
+                                        </div>
+                                    {% endif %}
+                                    
+                                    <div class="pet-badges">
+                                        {% if pet.is_featured %}
+                                            <span class="badge featured-badge">
+                                                <i class="fas fa-star me-1"></i>Featured
+                                            </span>
+                                        {% endif %}
+                                        {% if pet.is_urgent %}
+                                            <span class="badge urgent-badge">
+                                                <i class="fas fa-exclamation me-1"></i>Urgent
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <div class="price-tag">
+                                        ${{ pet.price }}
+                                    </div>
+                                </div>
+                                
+                                <div class="card-body">
+                                    <h5 class="card-title">{{ pet.name }}</h5>
+                                    <p class="breed-info">{{ pet.breed.name }}</p>
+                                    
+                                    <div class="pet-details">
+                                        <div class="detail-item">
+                                            <i class="fas fa-birthday-cake me-1"></i>
+                                            <span>{{ pet.age }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-venus-mars me-1"></i>
+                                            <span>{{ pet.get_gender_display }}</span>
+                                        </div>
+                                        <div class="detail-item">
+                                            <i class="fas fa-map-marker-alt me-1"></i>
+                                            <span>{{ pet.city }}, {{ pet.state }}</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="pet-health">
+                                        {% if pet.vaccination_status %}
+                                            <span class="health-badge vaccinated">
+                                                <i class="fas fa-shield-alt me-1"></i>Vaccinated
+                                            </span>
+                                        {% endif %}
+                                        {% if pet.health_certificate %}
+                                            <span class="health-badge certified">
+                                                <i class="fas fa-certificate me-1"></i>Health Cert
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                    
+                                    <p class="pet-description">
+                                        {{ pet.description|truncatewords:15 }}
+                                    </p>
+                                    
+                                    <div class="seller-info">
+                                        <small class="text-muted">
+                                            <i class="fas fa-user me-1"></i>
+                                            Seller: {{ pet.seller.first_name }} {{ pet.seller.last_name|first }}.
+                                        </small>
+                                    </div>
+                                    
+                                    <div class="pet-card-actions">
+                                        <a href="{% url 'marketplace_pet_detail' pet.pk %}" class="btn btn-primary btn-sm">
+                                            <i class="fas fa-eye"></i> View Details
+                                        </a>
+                                        <button class="btn btn-outline-success" onclick="contactSeller('{{ pet.seller.first_name }}')">
+                                            <i class="fas fa-phone me-1"></i>Contact
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="empty-state text-center">
+                    <div class="empty-icon">
+                        <i class="fas fa-search"></i>
+                    </div>
+                    <h3>No Pets Found</h3>
+                    <p class="text-muted">
+                        {% if search_query or breed or age or city or min_price or max_price %}
+                            No pets match your search criteria. Try adjusting your filters.
+                        {% else %}
+                            No pets are currently available in the marketplace.
+                        {% endif %}
+                    </p>
+                    <a href="{% url 'marketplace' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-refresh me-1"></i>Clear Filters
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function contactSeller(sellerName) {
+    alert(`Contact feature coming soon! You can reach out to ${sellerName} through our messaging system.`);
+}
+</script>
+{% endblock %}
