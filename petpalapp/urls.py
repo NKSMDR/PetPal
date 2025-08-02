@@ -24,6 +24,8 @@ urlpatterns = [
     path('register/', views.Register, name='register'),
     path('breeds/', views.breed_list, name='breed_list'),
     path('breeds/<slug:slug>/', views.breed_detail, name='breed_detail'),
+    path('browse-pets/', views.browse_pets, name='browse_pets'),
+    path('pets/<int:pk>/', views.pet_detail, name='pet_detail'),
     path('accessories/', views.accessories, name='accessories'),
     path('logout/', views.Logout, name='logout'),
     path('profile/', views.profile, name='profile'),
@@ -32,5 +34,3 @@ urlpatterns = [
     path('remove-from-cart/<str:product_type>/<int:product_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('update-cart/<str:product_type>/<int:product_id>/', views.update_cart, name='update_cart'),
 ]
-
- 

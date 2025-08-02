@@ -1,12 +1,11 @@
-from django.shortcuts import render, HttpResponse, get_object_or_404, redirect,redirect
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
-from django.db import IntegrityError
-from .models import Breed, Accessory, UserProfile
+from django.db.models import Q, Min, Max
 from decimal import Decimal, InvalidOperation
-from django.db.models import Min, Max
-from django.contrib.auth.decorators import login_required
+from .models import Breed, Accessory, UserProfile, Pet
 
 def Home(request):
     return render(request, 'pages/home.html')
@@ -211,16 +210,22 @@ def profile(request):
     return render(request, 'pages/profile.html', context)
 
 def get_cart(request):
+    """Get cart items for both anonymous and authenticated users"""
     return request.session.get('cart', [])
 
-def save_cart(request, cart):
-    request.session['cart'] = cart
+def save_cart(request, cart_data):
+    """Save cart for anonymous users (logged-in users save automatically via ORM)"""
+    request.session['cart'] = cart_data
     request.session.modified = True
 
 def add_to_cart(request, product_type, product_id):
     # Only allow 'accessory' type
     if product_type != 'accessory':
         return redirect('cart')
+    
+    accessory = get_object_or_404(Accessory, pk=product_id)
+    
+    # Session cart for all users for now
     cart = get_cart(request)
     found = False
     for item in cart:
@@ -231,44 +236,93 @@ def add_to_cart(request, product_type, product_id):
     if not found:
         cart.append({'product_type': product_type, 'product_id': product_id, 'qty': 1})
     save_cart(request, cart)
+    
     return redirect('cart')
+
 def remove_from_cart(request, product_type, product_id):
+    if product_type != 'accessory':
+        return redirect('cart')
+    
+    # Session cart for all users for now
     cart = get_cart(request)
-    cart = [item for item in cart if not (item['product_type'] == product_type and item['product_id'] == product_id)]
+    cart[:] = [item for item in cart if not (item['product_type'] == product_type and item['product_id'] == product_id)]
     save_cart(request, cart)
+    
     return redirect('cart')
 
 def update_cart(request, product_type, product_id):
-    cart = get_cart(request)
-    qty = int(request.POST.get('quantity', 1))
-    for item in cart:
-        if item['product_type'] == product_type and item['product_id'] == product_id:
-            if qty > 0:
-                item['qty'] = qty
-            else:
-                cart.remove(item)
-            break
-    save_cart(request, cart)
+    if request.method == 'POST' and product_type == 'accessory':
+        quantity = int(request.POST.get('quantity', 1))
+        
+        # Session cart for all users for now
+        cart = get_cart(request)
+        for item in cart:
+            if item['product_type'] == product_type and item['product_id'] == product_id:
+                item['qty'] = quantity
+                break
+        save_cart(request, cart)
+    
     return redirect('cart')
 
 def cart(request):
-    cart = get_cart(request)
     cart_items = []
     total = 0
+    
+    # Session cart for all users for now
+    cart = get_cart(request)
     for item in cart:
         if item['product_type'] == 'accessory':
             product = get_object_or_404(Accessory, pk=item['product_id'])
-        else:
-            continue
-        subtotal = product.price * item['qty']
-        cart_items.append({
-            'product': product,
-            'qty': item['qty'],
-            'subtotal': subtotal,
-            'type': item['product_type'],
-        })
-        total += subtotal
+            subtotal = product.price * item['qty']
+            cart_items.append({
+                'product': product,
+                'qty': item['qty'],
+                'subtotal': subtotal,
+                'type': item['product_type'],
+            })
+            total += subtotal
+    
     return render(request, 'includes/cart.html', {
         'cart_items': cart_items,
         'total': total,
     })
+
+def browse_pets(request):
+    pets = Pet.objects.all()
+    breed = request.GET.get('breed')
+    age = request.GET.get('age')
+    size = request.GET.get('size')
+    search_query = request.GET.get('q')
+
+    if breed:
+        pets = pets.filter(breed__name__iexact=breed)
+    if age:
+        pets = pets.filter(age__iexact=age)
+    if size:
+        pets = pets.filter(size__iexact=size)
+    if search_query:
+        pets = pets.filter(Q(name__icontains=search_query) | Q(description__icontains=search_query))
+
+    context = {
+        'pets': pets,
+        'breed': breed,
+        'age': age,
+        'size': size,
+        'search_query': search_query,
+    }
+    return render(request, 'pages/browse_pets.html', context)
+
+def pet_detail(request, pk):
+    pet = get_object_or_404(Pet, pk=pk, status='available')
+    
+    # Get related pets (same breed, different pet, available only)
+    related_pets = Pet.objects.filter(
+        breed=pet.breed, 
+        status='available'
+    ).exclude(id=pet.id)[:4]
+    
+    context = {
+        'pet': pet,
+        'related_pets': related_pets,
+    }
+    return render(request, 'pages/pet_detail.html', context)

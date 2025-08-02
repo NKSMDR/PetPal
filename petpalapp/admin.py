@@ -5,7 +5,7 @@ from django.utils.safestring import mark_safe
 
 # Register your models here.
 from django.contrib import admin
-from .models import Breed, Accessory
+from .models import Breed, Accessory, Pet
 
 class BreedAdmin(admin.ModelAdmin):
     list_display = ['name', 'size', 'life_span', 'good_with_kids', 'energy_level', 'image_preview', 'view_detail']
@@ -107,6 +107,51 @@ class AccessoryAdmin(admin.ModelAdmin):
     view_actions.short_description = "Actions"
 
 admin.site.register(Accessory, AccessoryAdmin)
+
+
+class PetAdmin(admin.ModelAdmin):
+    list_display = ['name', 'breed', 'age', 'gender', 'price', 'status', 'is_featured', 'seller', 'city', 'image_preview', 'view_detail']
+    list_filter = ['breed', 'gender', 'status', 'is_featured', 'is_urgent', 'vaccination_status', 'city', 'created_at']
+    search_fields = ['name', 'breed__name', 'description', 'city', 'seller__username']
+    prepopulated_fields = {'slug': ('name',)}
+    readonly_fields = ['image_preview', 'created_at', 'updated_at']
+    list_editable = ['is_featured', 'status']
+    
+    fieldsets = (
+        ('Basic Information', {
+            'fields': ('name', 'slug', 'breed', 'age', 'gender', 'price', 'seller', 'description')
+        }),
+        ('Pet Details', {
+            'fields': ('weight', 'color', 'vaccination_status', 'health_certificate')
+        }),
+        ('Location', {
+            'fields': ('city', 'state')
+        }),
+        ('Media', {
+            'fields': ('image', 'image2', 'image3', 'image_preview')
+        }),
+        ('Status & Features', {
+            'fields': ('status', 'is_featured', 'is_urgent')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;" />', obj.image.url)
+        return "No Image"
+    image_preview.short_description = "Image Preview"
+    
+    def view_detail(self, obj):
+        # We'll create this URL later
+        return format_html('<a href="/pets/{}" target="_blank" class="button">View on Site</a>', obj.slug)
+    view_detail.short_description = "Actions"
+
+admin.site.register(Pet, PetAdmin)
+
 # Customize admin site headers
 admin.site.site_header = "PetPal Administration"
 admin.site.site_title = "PetPal Admin"

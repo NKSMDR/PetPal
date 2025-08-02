@@ -1,0 +1,236 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/browse_pets.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="hero-section py-5 bg-gradient-primary text-white">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-8">
+        <h1 class="display-4 fw-bold mb-3">🐾 Find Your Perfect Companion</h1>
+        <p class="lead mb-4">Discover amazing pets looking for their forever homes. Browse through our collection of adorable pets ready for adoption or purchase.</p>
+      </div>
+      <div class="col-lg-4 text-center">
+        <img src="{% static 'img/pet-hero.png' %}" alt="Happy pets" class="img-fluid" style="max-height: 300px;">
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Search & Filter Section -->
+<section class="py-4 bg-light">
+  <div class="container">
+    <form method="get" class="search-form">
+      <div class="row g-3 align-items-end">
+        <div class="col-md-4">
+          <input type="text" name="q" class="form-control" placeholder="🔍 Search pets..." value="{{ search_query }}">
+        </div>
+        <div class="col-md-2">
+          <select name="breed" class="form-select">
+            <option value="">All Breeds</option>
+            {% for breed in breeds %}
+            <option value="{{ breed.name }}" {% if breed_filter == breed.name %}selected{% endif %}>{{ breed.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select name="gender" class="form-select">
+            <option value="">Any Gender</option>
+            <option value="male" {% if gender_filter == 'male' %}selected{% endif %}>Male</option>
+            <option value="female" {% if gender_filter == 'female' %}selected{% endif %}>Female</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <select name="city" class="form-select">
+            <option value="">All Cities</option>
+            {% for city in cities %}
+            <option value="{{ city }}" {% if city_filter == city %}selected{% endif %}>{{ city }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="col-md-2">
+          <button type="submit" class="btn btn-primary w-100">Search</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</section>
+
+<!-- Featured Pets Section -->
+{% if featured_pets %}
+<section class="py-5">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="fw-bold">⭐ Featured Pets</h2>
+      <p class="text-muted">Our specially selected pets looking for loving homes</p>
+    </div>
+    <div class="row g-4">
+      {% for pet in featured_pets %}
+      <div class="col-lg-4 col-md-6">
+        <div class="pet-card featured-card">
+          <div class="pet-image-container">
+            <span class="featured-badge">Featured</span>
+            {% if pet.is_urgent %}
+            <span class="urgent-badge">Urgent</span>
+            {% endif %}
+            <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="pet-image">
+          </div>
+          <div class="pet-card-body">
+            <h5 class="pet-name">{{ pet.name }}</h5>
+            <p class="pet-breed">{{ pet.breed.name }}</p>
+            <div class="pet-details">
+              <span class="detail-item">📅 {{ pet.age }}</span>
+              <span class="detail-item">⚥ {{ pet.get_gender_display }}</span>
+              <span class="detail-item">📍 {{ pet.city }}</span>
+            </div>
+            <div class="pet-price">${{ pet.price }}</div>
+            <div class="pet-actions">
+              <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-primary btn-sm">View Details</a>
+              <button class="btn btn-outline-danger btn-sm">❤️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Recently Added Pets Section -->
+{% if recent_pets %}
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="fw-bold">🆕 Recently Added</h2>
+      <p class="text-muted">Fresh arrivals looking for their new families</p>
+    </div>
+    <div class="row g-4">
+      {% for pet in recent_pets %}
+      <div class="col-lg-3 col-md-6">
+        <div class="pet-card">
+          <div class="pet-image-container">
+            {% if pet.is_urgent %}
+            <span class="urgent-badge">Urgent</span>
+            {% endif %}
+            <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="pet-image">
+          </div>
+          <div class="pet-card-body">
+            <h6 class="pet-name">{{ pet.name }}</h6>
+            <p class="pet-breed">{{ pet.breed.name }}</p>
+            <div class="pet-details">
+              <span class="detail-item">📅 {{ pet.age }}</span>
+              <span class="detail-item">📍 {{ pet.city }}</span>
+            </div>
+            <div class="pet-price">${{ pet.price }}</div>
+            <div class="pet-actions">
+              <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-outline-primary btn-sm">View</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- Urgent Pets Section -->
+{% if urgent_pets %}
+<section class="py-5">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="fw-bold text-danger">🚨 Urgent Adoptions</h2>
+      <p class="text-muted">These pets need homes urgently - can you help?</p>
+    </div>
+    <div class="row g-4">
+      {% for pet in urgent_pets %}
+      <div class="col-lg-3 col-md-6">
+        <div class="pet-card urgent-card">
+          <div class="pet-image-container">
+            <span class="urgent-badge">Urgent</span>
+            <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="pet-image">
+          </div>
+          <div class="pet-card-body">
+            <h6 class="pet-name">{{ pet.name }}</h6>
+            <p class="pet-breed">{{ pet.breed.name }}</p>
+            <div class="pet-details">
+              <span class="detail-item">📅 {{ pet.age }}</span>
+              <span class="detail-item">📍 {{ pet.city }}</span>
+            </div>
+            <div class="pet-price">${{ pet.price }}</div>
+            <div class="pet-actions">
+              <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-danger btn-sm">Help Now</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+</section>
+{% endif %}
+
+<!-- All Pets Section -->
+<section class="py-5 bg-light">
+  <div class="container">
+    <div class="section-header text-center mb-5">
+      <h2 class="fw-bold">🐕 All Available Pets</h2>
+      <p class="text-muted">
+        {% if search_query or breed_filter or gender_filter or city_filter %}
+          Showing filtered results
+        {% else %}
+          Browse all our amazing pets
+        {% endif %}
+      </p>
+    </div>
+    
+    {% if pets %}
+    <div class="row g-4">
+      {% for pet in pets %}
+      <div class="col-lg-3 col-md-6">
+        <div class="pet-card">
+          <div class="pet-image-container">
+            {% if pet.is_featured %}
+            <span class="featured-badge">Featured</span>
+            {% endif %}
+            {% if pet.is_urgent %}
+            <span class="urgent-badge">Urgent</span>
+            {% endif %}
+            <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="pet-image">
+          </div>
+          <div class="pet-card-body">
+            <h6 class="pet-name">{{ pet.name }}</h6>
+            <p class="pet-breed">{{ pet.breed.name }}</p>
+            <div class="pet-details">
+              <span class="detail-item">📅 {{ pet.age }}</span>
+              <span class="detail-item">⚥ {{ pet.get_gender_display }}</span>
+              <span class="detail-item">📍 {{ pet.city }}</span>
+            </div>
+            <div class="pet-price">${{ pet.price }}</div>
+            <div class="pet-actions">
+              <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-outline-primary btn-sm">View Details</a>
+              <button class="btn btn-outline-danger btn-sm">❤️</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+      <h4 class="text-muted">No pets found matching your criteria</h4>
+      <p>Try adjusting your search filters or <a href="{% url 'browse_pets' %}">browse all pets</a></p>
+    </div>
+    {% endif %}
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/browse_pets.js' %}"></script>
+{% endblock %}

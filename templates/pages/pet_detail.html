@@ -1,0 +1,225 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ pet.name }} - Pet Details{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/pet_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Breadcrumb -->
+    <nav aria-label="breadcrumb" class="mb-4">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
+            <li class="breadcrumb-item"><a href="{% url 'browse_pets' %}">Browse Pets</a></li>
+            <li class="breadcrumb-item active">{{ pet.name }}</li>
+        </ol>
+    </nav>
+
+    <div class="row">
+        <!-- Pet Images -->
+        <div class="col-lg-6">
+            <div class="pet-images">
+                <div class="main-image mb-3">
+                    {% if pet.image %}
+                        <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="img-fluid rounded main-pet-image">
+                    {% else %}
+                        <img src="{% static 'images/default-pet.jpg' %}" alt="No image" class="img-fluid rounded main-pet-image">
+                    {% endif %}
+                </div>
+                
+                <!-- Additional Images -->
+                {% if pet.image2 or pet.image3 %}
+                <div class="additional-images d-flex gap-2">
+                    {% if pet.image2 %}
+                        <img src="{{ pet.image2.url }}" alt="{{ pet.name }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
+                    {% endif %}
+                    {% if pet.image3 %}
+                        <img src="{{ pet.image3.url }}" alt="{{ pet.name }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Pet Details -->
+        <div class="col-lg-6">
+            <div class="pet-info">
+                <!-- Pet Name and Status -->
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                    <h1 class="pet-name">{{ pet.name }}</h1>
+                    <div class="pet-badges">
+                        {% if pet.is_featured %}
+                            <span class="badge bg-warning text-dark">Featured</span>
+                        {% endif %}
+                        {% if pet.is_urgent %}
+                            <span class="badge bg-danger">Urgent</span>
+                        {% endif %}
+                        <span class="badge bg-success">{{ pet.get_status_display }}</span>
+                    </div>
+                </div>
+
+                <!-- Price -->
+                {% if pet.price %}
+                <div class="pet-price mb-3">
+                    <h3 class="text-primary">${{ pet.price }}</h3>
+                </div>
+                {% endif %}
+
+                <!-- Basic Info -->
+                <div class="pet-basic-info mb-4">
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-paw text-muted"></i>
+                                <span class="label">Breed:</span>
+                                <span class="value">{{ pet.breed.name }}</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-birthday-cake text-muted"></i>
+                                <span class="label">Age:</span>
+                                <span class="value">{{ pet.age }} years</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-venus-mars text-muted"></i>
+                                <span class="label">Gender:</span>
+                                <span class="value">{{ pet.get_gender_display }}</span>
+                            </div>
+                        </div>
+                        {% if pet.weight %}
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-weight text-muted"></i>
+                                <span class="label">Weight:</span>
+                                <span class="value">{{ pet.weight }} lbs</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        {% if pet.color %}
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-palette text-muted"></i>
+                                <span class="label">Color:</span>
+                                <span class="value">{{ pet.color }}</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-map-marker-alt text-muted"></i>
+                                <span class="label">Location:</span>
+                                <span class="value">{{ pet.city }}{% if pet.state %}, {{ pet.state }}{% endif %}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Health Info -->
+                <div class="pet-health-info mb-4">
+                    <h5>Health Information</h5>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-syringe text-muted"></i>
+                                <span class="label">Vaccination:</span>
+                                <span class="value">{{ pet.get_vaccination_status_display }}</span>
+                            </div>
+                        </div>
+                        {% if pet.health_certificate %}
+                        <div class="col-6">
+                            <div class="info-item">
+                                <i class="fas fa-certificate text-muted"></i>
+                                <span class="label">Health Certificate:</span>
+                                <span class="value text-success">Available</span>
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Contact Seller -->
+                <div class="contact-seller mb-4">
+                    <h5>Contact Seller</h5>
+                    <div class="seller-info">
+                        <i class="fas fa-user text-muted"></i>
+                        <span class="seller-name">{{ pet.seller.get_full_name|default:pet.seller.username }}</span>
+                    </div>
+                    <div class="contact-buttons mt-3">
+                        <button class="btn btn-primary btn-lg me-2">
+                            <i class="fas fa-phone"></i> Contact Seller
+                        </button>
+                        <button class="btn btn-outline-primary btn-lg">
+                            <i class="fas fa-envelope"></i> Send Message
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pet Description -->
+    {% if pet.description %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <div class="pet-description">
+                <h4>About {{ pet.name }}</h4>
+                <p class="description-text">{{ pet.description|linebreaks }}</p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Related Pets -->
+    {% if related_pets %}
+    <div class="row mt-5">
+        <div class="col-12">
+            <h4 class="mb-4">More {{ pet.breed.name }} Pets</h4>
+            <div class="row">
+                {% for related_pet in related_pets %}
+                <div class="col-md-3 mb-4">
+                    <div class="card pet-card h-100">
+                        <div class="card-img-container">
+                            {% if related_pet.image %}
+                                <img src="{{ related_pet.image.url }}" class="card-img-top" alt="{{ related_pet.name }}">
+                            {% else %}
+                                <img src="{% static 'images/default-pet.jpg' %}" class="card-img-top" alt="No image">
+                            {% endif %}
+                            {% if related_pet.is_featured %}
+                                <span class="badge bg-warning position-absolute top-0 start-0 m-2">Featured</span>
+                            {% endif %}
+                            {% if related_pet.is_urgent %}
+                                <span class="badge bg-danger position-absolute top-0 end-0 m-2">Urgent</span>
+                            {% endif %}
+                        </div>
+                        <div class="card-body">
+                            <h5 class="card-title">{{ related_pet.name }}</h5>
+                            <p class="card-text text-muted">{{ related_pet.breed.name }} • {{ related_pet.age }} years</p>
+                            {% if related_pet.price %}
+                                <p class="card-text"><strong class="text-primary">${{ related_pet.price }}</strong></p>
+                            {% endif %}
+                            <p class="card-text"><small class="text-muted">{{ related_pet.city }}{% if related_pet.state %}, {{ related_pet.state }}{% endif %}</small></p>
+                        </div>
+                        <div class="card-footer bg-transparent">
+                            <a href="{% url 'pet_detail' related_pet.pk %}" class="btn btn-outline-primary btn-sm w-100">View Details</a>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function changeMainImage(src) {
+    document.querySelector('.main-pet-image').src = src;
+}
+</script>
+{% endblock %}
