@@ -440,3 +440,7 @@ def marketplace_pet_detail(request, pk):
         'is_marketplace': True,  # Flag to differentiate in template
     }
     return render(request, 'pages/marketplace_pet_detail.html', context)
+
+def about_us(request):
+    """Render the About Us page with company information and store location."""
+    return render(request, 'pages/about_us.html')
