@@ -1,8 +1,9 @@
 /* 🎯 Hero Section with Dog-themed Background */
 .hero-banner {
-    background: linear-gradient(135deg, rgba(52, 152, 219, 0.9), rgba(155, 89, 182, 0.9)), 
-                url('/static/img/hero-dogs.jpg') center/cover;
-    height: 70vh;
+    /* background: linear-gradient(135deg, rgba(52, 152, 219, 0.9), rgba(155, 89, 182, 0.9)), 
+                url('/static/img/hero-bg.jpg') center/cover; */
+                 background: url('/static/img/hero-bg.jpg') center/cover fixed;
+    height: 95vh;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -21,6 +22,8 @@
     background: rgba(0, 0, 0, 0.3);
     z-index: 1;
 }
+
+
 
 .hero-banner > div {
     position: relative;
@@ -58,8 +61,10 @@
 
 /* Parallax Section */
 .parallax-section {
-    background: linear-gradient(135deg, rgba(46, 204, 113, 0.9), rgba(26, 188, 156, 0.9)), 
-                url('/static/img/dogs-playing.jpg') center/cover fixed;
+    /* background: linear-gradient(135deg, rgba(46, 204, 113, 0.9), rgba(26, 188, 156, 0.9)), 
+                url('/static/img/dog.jpg') center/cover fixed; */
+                background: url('/static/img/husky.jpg') center/cover fixed;
+
     height: 50vh;
     position: relative;
 }
