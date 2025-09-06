@@ -127,21 +127,21 @@ admin.site.register(Accessory, AccessoryAdmin)
 
 # Separate admin for Browse Pets (Admin-added pets only)
 class BrowsePetAdmin(admin.ModelAdmin):
-    list_display = ['name', 'breed', 'age', 'gender', 'price', 'status', 'is_featured', 'city', 'image_preview', 'view_detail']
+    list_display = ['breed', 'age', 'gender', 'price', 'status', 'is_featured', 'city', 'image_preview', 'view_detail']
     list_filter = ['breed', 'gender', 'status', 'is_featured', 'is_urgent', 'vaccination_status', 'city', 'created_at']
-    search_fields = ['name', 'breed__name', 'description', 'city', 'seller__username', 'seller__first_name', 'seller__last_name']
-    prepopulated_fields = {'slug': ('name',)}
+    search_fields = ['breed__name', 'description', 'city', 'seller__username', 'seller__first_name', 'seller__last_name']
     readonly_fields = ['image_preview', 'created_at', 'updated_at', 'is_user_submitted']
     list_editable = ['is_featured', 'status']
     
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        # Only show admin-added pets (not user-submitted)
-        return qs.filter(is_user_submitted=False)
+        return super().get_queryset(request).filter(is_user_submitted=False)
+    
+    def has_add_permission(self, request):
+        return True  # Admins can add pets
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('name', 'slug', 'breed', 'age', 'gender', 'price', 'seller', 'description')
+            'fields': ('slug', 'breed', 'age', 'gender', 'price', 'seller', 'description')
         }),
         ('Pet Details', {
             'fields': ('weight', 'color', 'vaccination_status', 'health_certificate')
@@ -183,20 +183,21 @@ admin.site.register(BrowsePet, BrowsePetAdmin)
 
 # Separate admin for Marketplace Review (User-submitted pets only)
 class MarketplacePetAdmin(admin.ModelAdmin):
-    list_display = ['name', 'breed', 'age', 'gender', 'price', 'status_badge', 'seller_info', 'city', 'submission_date', 'image_preview', 'review_actions']
+    list_display = ['breed', 'age', 'gender', 'price', 'status_badge', 'seller_info', 'city', 'submission_date', 'image_preview', 'review_actions']
     list_filter = ['breed', 'gender', 'status', 'vaccination_status', 'city', 'created_at']
-    search_fields = ['name', 'breed__name', 'description', 'city', 'seller__username', 'seller__first_name', 'seller__last_name']
+    search_fields = ['breed__name', 'description', 'city', 'seller__username', 'seller__first_name', 'seller__last_name']
     readonly_fields = ['image_preview', 'created_at', 'updated_at', 'seller', 'is_user_submitted', 'slug']
     actions = ['approve_selected_pets', 'reject_selected_pets']
     
     def get_queryset(self, request):
-        qs = super().get_queryset(request)
-        # Only show user-submitted pets
-        return qs.filter(is_user_submitted=True).order_by('status', '-created_at')
+        return super().get_queryset(request).filter(is_user_submitted=True)
+    
+    def has_add_permission(self, request):
+        return False  # Users add pets via frontend, not admin
     
     fieldsets = (
         ('Pet Information', {
-            'fields': ('name', 'slug', 'breed', 'age', 'gender', 'price', 'description')
+            'fields': ('slug', 'breed', 'age', 'gender', 'price', 'description')
         }),
         ('Seller Information', {
             'fields': ('seller',)
@@ -281,10 +282,6 @@ class MarketplacePetAdmin(admin.ModelAdmin):
         )
         self.message_user(request, f'{updated} pets rejected.')
     reject_selected_pets.short_description = "Reject selected pets"
-    
-    def has_add_permission(self, request):
-        # Disable adding pets from marketplace admin (users add via frontend)
-        return False
 
 admin.site.register(MarketplacePet, MarketplacePetAdmin)
 

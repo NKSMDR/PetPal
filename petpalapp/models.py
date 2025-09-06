@@ -102,7 +102,6 @@ class Pet(models.Model):
         ('rejected', 'Rejected'),
     ]
     
-    name = models.CharField(max_length=100)
     slug = models.SlugField(unique=True, blank=True)
     breed = models.ForeignKey(Breed, on_delete=models.CASCADE, related_name='pets')
     age = models.CharField(max_length=20, help_text="e.g., '2 months', '1 year', '3 years'")
@@ -146,11 +145,13 @@ class Pet(models.Model):
         
     def save(self, *args, **kwargs):
         if not self.slug:
-            self.slug = slugify(f"{self.name}-{self.breed.name}")
+            # Generate slug using breed name and timestamp to ensure uniqueness
+            import uuid
+            self.slug = slugify(f"{self.breed.name}-{uuid.uuid4().hex[:8]}")
         super().save(*args, **kwargs)
     
     def __str__(self):
-        return f"{self.name} - {self.breed.name}"
+        return f"{self.breed.name} - {self.get_gender_display()} - ${self.price}"
     
     @property
     def is_available(self):

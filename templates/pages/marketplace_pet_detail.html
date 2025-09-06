@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}{{ pet.name }} - Marketplace Pet{% endblock %}
+{% block title %}{{ pet.breed.name }} - {{ pet.get_gender_display }} - Marketplace Pet{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/marketplace_pet_detail.css' %}">
@@ -14,7 +14,7 @@
         <ol class="breadcrumb">
             <li class="breadcrumb-item"><a href="{% url 'home' %}">Home</a></li>
             <li class="breadcrumb-item"><a href="{% url 'marketplace' %}">Marketplace</a></li>
-            <li class="breadcrumb-item active">{{ pet.name }}</li>
+            <li class="breadcrumb-item active">{{ pet.breed.name }} - {{ pet.get_gender_display }}</li>
         </ol>
     </nav>
 
@@ -24,7 +24,7 @@
             <div class="pet-images">
                 <div class="main-image mb-3">
                     {% if pet.image %}
-                        <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="img-fluid rounded main-pet-image">
+                        <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }} - {{ pet.get_gender_display }}" class="img-fluid rounded main-pet-image">
                     {% else %}
                         <img src="{% static 'images/default-pet.jpg' %}" alt="No image" class="img-fluid rounded main-pet-image">
                     {% endif %}
@@ -34,10 +34,10 @@
                 {% if pet.image2 or pet.image3 %}
                 <div class="additional-images d-flex gap-2">
                     {% if pet.image2 %}
-                        <img src="{{ pet.image2.url }}" alt="{{ pet.name }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
+                        <img src="{{ pet.image2.url }}" alt="{{ pet.breed.name }} - {{ pet.get_gender_display }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
                     {% endif %}
                     {% if pet.image3 %}
-                        <img src="{{ pet.image3.url }}" alt="{{ pet.name }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
+                        <img src="{{ pet.image3.url }}" alt="{{ pet.breed.name }} - {{ pet.get_gender_display }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
                     {% endif %}
                 </div>
                 {% endif %}
@@ -53,7 +53,7 @@
                 </div>
 
                 <!-- Pet Name and Price -->
-                <h1 class="pet-name">{{ pet.name }}</h1>
+                <h1 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h1>
                 <div class="pet-price mb-3">
                     <span class="price">${{ pet.price }}</span>
                 </div>
@@ -130,7 +130,7 @@
                 {% if pet.description %}
                 <div class="pet-description card mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0"><i class="fas fa-info-circle"></i> About {{ pet.name }}</h5>
+                        <h5 class="mb-0"><i class="fas fa-info-circle"></i> About this {{ pet.breed.name }}</h5>
                     </div>
                     <div class="card-body">
                         <p>{{ pet.description|linebreaks }}</p>
@@ -151,13 +151,13 @@
                 <div class="card pet-card">
                     <div class="card-img-container">
                         {% if related_pet.image %}
-                            <img src="{{ related_pet.image.url }}" class="card-img-top" alt="{{ related_pet.name }}">
+                            <img src="{{ related_pet.image.url }}" class="card-img-top" alt="{{ related_pet.breed.name }} - {{ related_pet.get_gender_display }}">
                         {% else %}
                             <img src="{% static 'images/default-pet.jpg' %}" class="card-img-top" alt="No image">
                         {% endif %}
                     </div>
                     <div class="card-body">
-                        <h6 class="card-title">{{ related_pet.name }}</h6>
+                        <h6 class="card-title">{{ related_pet.breed.name }} - {{ related_pet.get_gender_display }}</h6>
                         <p class="card-text">
                             <small class="text-muted">{{ related_pet.age }} months • {{ related_pet.get_gender_display }}</small><br>
                             <strong class="text-success">${{ related_pet.price }}</strong>

@@ -5,15 +5,11 @@ class PetSubmissionForm(forms.ModelForm):
     class Meta:
         model = Pet
         fields = [
-            'name', 'breed', 'age', 'gender', 'price', 'description',
+            'breed', 'age', 'gender', 'price', 'description',
             'image', 'image2', 'image3', 'weight', 'color',
             'vaccination_status', 'health_certificate', 'city', 'state'
         ]
         widgets = {
-            'name': forms.TextInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Enter pet name'
-            }),
             'breed': forms.Select(attrs={
                 'class': 'form-control'
             }),
@@ -77,6 +73,6 @@ class PetSubmissionForm(forms.ModelForm):
         self.fields['breed'].empty_label = "Select a breed"
         
         # Set required fields
-        required_fields = ['name', 'breed', 'age', 'gender', 'price', 'description', 'image', 'city', 'state']
+        required_fields = ['breed', 'age', 'gender', 'price', 'description', 'image', 'city', 'state']
         for field_name in required_fields:
             self.fields[field_name].required = True

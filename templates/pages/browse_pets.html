@@ -77,10 +77,10 @@
             {% if pet.is_urgent %}
             <span class="urgent-badge">Urgent</span>
             {% endif %}
-            <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="pet-image">
+            <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="pet-image">
           </div>
           <div class="pet-card-body">
-            <h5 class="pet-name">{{ pet.name }}</h5>
+            <h5 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h5>
             <p class="pet-breed">{{ pet.breed.name }}</p>
             <div class="pet-details">
               <span class="detail-item">📅 {{ pet.age }}</span>
@@ -117,10 +117,10 @@
             {% if pet.is_urgent %}
             <span class="urgent-badge">Urgent</span>
             {% endif %}
-            <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="pet-image">
+            <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="pet-image">
           </div>
           <div class="pet-card-body">
-            <h6 class="pet-name">{{ pet.name }}</h6>
+            <h6 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h6>
             <p class="pet-breed">{{ pet.breed.name }}</p>
             <div class="pet-details">
               <span class="detail-item">📅 {{ pet.age }}</span>
@@ -153,10 +153,10 @@
         <div class="pet-card urgent-card">
           <div class="pet-image-container">
             <span class="urgent-badge">Urgent</span>
-            <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="pet-image">
+            <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="pet-image">
           </div>
           <div class="pet-card-body">
-            <h6 class="pet-name">{{ pet.name }}</h6>
+            <h6 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h6>
             <p class="pet-breed">{{ pet.breed.name }}</p>
             <div class="pet-details">
               <span class="detail-item">📅 {{ pet.age }}</span>
@@ -190,7 +190,7 @@
           <div class="browse-pet-card">
             <div class="browse-pet-image">
               {% if pet.image %}
-                <img src="{{ pet.image.url }}" alt="{{ pet.name }}" class="card-img-top">
+                <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="card-img-top">
               {% else %}
                 <div class="no-image">
                   <i class="fas fa-paw"></i>
@@ -220,7 +220,7 @@
             </div>
             
             <div class="card-body">
-              <h5 class="card-title">{{ pet.name }}</h5>
+              <h5 class="card-title">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h5>
               <p class="breed-info">{{ pet.breed.name }}</p>
               
               <div class="pet-details">
