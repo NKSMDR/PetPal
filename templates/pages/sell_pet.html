@@ -5,6 +5,106 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/sell_pet.css' %}">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<style>
+/* Inline Map Styles */
+.map-section {
+    border-bottom: 1px solid #e9ecef;
+    padding-bottom: 2rem;
+    margin-bottom: 2rem;
+}
+
+.map-container {
+    position: relative;
+    height: 400px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    border: 2px solid #e9ecef;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.map-container:hover {
+    box-shadow: 0 12px 35px rgba(0, 123, 255, 0.2);
+    border-color: #007bff;
+}
+
+#sell-pet-map {
+    height: 100%;
+    width: 100%;
+    border-radius: 13px;
+}
+
+.map-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 123, 255, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    z-index: 1000;
+}
+
+.map-container:hover .map-overlay {
+    opacity: 1;
+}
+
+.map-overlay-content {
+    text-align: center;
+    color: #007bff;
+    background: rgba(255, 255, 255, 0.95);
+    padding: 1.5rem;
+    border-radius: 10px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.map-info-card {
+    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+    border-radius: 15px;
+    padding: 2rem;
+    border: 2px solid #e9ecef;
+    margin-bottom: 1rem;
+}
+
+.location-detail {
+    display: flex;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding: 0.75rem;
+    background: white;
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.location-detail i {
+    font-size: 1.2rem;
+    margin-right: 1rem;
+    width: 20px;
+    text-align: center;
+}
+
+.btn-map {
+    background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+    border: none;
+    border-radius: 50px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.btn-map:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+    color: white;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -159,6 +259,26 @@
                                 </div>
                             </div>
 
+                            <!-- Map Section -->
+                            <div class="map-section">
+                                <h3 class="section-title">Location Map</h3>
+                                <p class="text-muted mb-4">Interactive map showing general area (for reference only)</p>
+                                
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="map-container" onclick="focusMap()">
+                                            <div id="sell-pet-map"></div>
+                                            <div class="map-overlay">
+                                                <div class="map-overlay-content">
+                                                    <i class="fas fa-search-plus fa-2x mb-2"></i>
+                                                    <p class="mb-0 fw-bold">Click to interact with map</p>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <!-- Submit Button -->
                             <div class="text-center">
                                 <button type="submit" class="btn btn-primary btn-lg px-5" id="submit-btn">
@@ -181,4 +301,91 @@
 
 {% block extra_js %}
 <script src="{% static 'js/sell_pet.js' %}"></script>
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+<script>
+    // Global map variable
+    var map;
+
+    // Initialize map after everything is loaded
+    function initializeMap() {
+        try {
+            console.log('Initializing map...');
+            
+            // Check if Leaflet is available
+            if (typeof L === 'undefined') {
+                console.error('Leaflet library not loaded');
+                return;
+            }
+
+            // Check if container exists
+            const container = document.getElementById('sell-pet-map');
+            if (!container) {
+                console.error('Map container not found');
+                return;
+            }
+
+            console.log('Container found, creating map...');
+            
+            // Initialize map
+            map = L.map('sell-pet-map').setView([37.7749, -122.4194], 13);
+            
+            console.log('Map created, adding tile layer...');
+            
+            // Add tile layer
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
+                subdomains: ['a', 'b', 'c']
+            }).addTo(map);
+
+            // Add a marker for testing
+            L.marker([37.7749, -122.4194])
+                .addTo(map)
+                .bindPopup('Sample Location')
+                .openPopup();
+
+            console.log('Map initialized successfully');
+            
+            // Force map to resize after initialization
+            setTimeout(function() {
+                if (map) {
+                    map.invalidateSize();
+                    console.log('Map size invalidated');
+                }
+            }, 100);
+
+        } catch (error) {
+            console.error('Error initializing map:', error);
+        }
+    }
+
+    // Wait for both DOM and Leaflet to be ready
+    document.addEventListener('DOMContentLoaded', function() {
+        // Small delay to ensure all resources are loaded
+        setTimeout(function() {
+            initializeMap();
+        }, 500);
+    });
+
+    // Map functions
+    function focusMap() {
+        console.log('focusMap called');
+        if (map) {
+            map.invalidateSize();
+            console.log('Map size invalidated');
+        }
+    }
+
+    function centerMap() {
+        console.log('centerMap called');
+        if (map) {
+            map.setView([37.7749, -122.4194], 13);
+            console.log('Map centered');
+        }
+    }
+
+    // Error handling
+    window.addEventListener('error', function(e) {
+        console.error('JavaScript error:', e.error);
+    });
+</script>
 {% endblock %}

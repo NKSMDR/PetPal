@@ -1,0 +1,228 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Select Location - PetPal{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+     integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+     crossorigin=""/>
+<style>
+    .map-container {
+        background: #f8f9fa;
+        min-height: 80vh;
+        padding: 2rem 0;
+    }
+    
+    #map {
+        height: 500px;
+        width: 100%;
+        border: 2px solid #dee2e6;
+        border-radius: 10px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .map-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+    
+    .map-header h2 {
+        color: #007bff;
+        font-weight: 600;
+    }
+    
+    .map-controls {
+        text-align: center;
+        margin-top: 1.5rem;
+    }
+    
+    .btn-confirm {
+        background: #28a745;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-right: 15px;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-confirm:hover {
+        background: #218838;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(40, 167, 69, 0.3);
+    }
+    
+    .btn-confirm:disabled {
+        background: #6c757d;
+        cursor: not-allowed;
+        transform: none;
+        box-shadow: none;
+    }
+    
+    .btn-cancel {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 30px;
+        border-radius: 25px;
+        font-size: 16px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-cancel:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+    }
+    
+    .coordinates-display {
+        font-family: 'Courier New', monospace;
+        background: #e9ecef;
+        padding: 8px 15px;
+        border-radius: 20px;
+        margin: 15px auto;
+        display: inline-block;
+        color: #495057;
+        font-weight: 600;
+    }
+    
+    .instruction {
+        background: #d4edda;
+        border: 1px solid #c3e6cb;
+        color: #155724;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    /* Ensure Leaflet images display correctly */
+    .leaflet-container img {
+        max-width: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="map-container">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <div class="map-header">
+                    <h2><i class="fas fa-map-marker-alt me-2"></i>Select Your Pet's Location</h2>
+                    <p class="lead text-muted">Click anywhere on the map to place a marker for your pet's location</p>
+                </div>
+
+                <div class="instruction">
+                    <i class="fas fa-info-circle me-2"></i>
+                    <strong>Instructions:</strong> Click on the map where your pet is located. You can zoom and move the map to find the exact location.
+                </div>
+
+                <div class="card shadow">
+                    <div class="card-body p-0">
+                        <div id="map"></div>
+                    </div>
+                </div>
+
+                <div class="map-controls">
+                    <button id="confirm-btn" class="btn-confirm" disabled>
+                        <i class="fas fa-check me-2"></i>Confirm Location
+                    </button>
+                    <button id="cancel-btn" class="btn-cancel">
+                        <i class="fas fa-times me-2"></i>Cancel
+                    </button>
+                    <div id="coordinates-display" class="coordinates-display" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+     integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+     crossorigin=""></script>
+
+<script>
+    // Initialize map
+    var map = L.map('map').setView([39.8283, -98.5795], 4);
+    
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        maxZoom: 19,
+        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }).addTo(map);
+    
+    var marker = null;
+    var selectedCoords = null;
+    
+    // Add click event to map
+    map.on('click', function(e) {
+        // Remove existing marker
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        
+        // Add new marker
+        marker = L.marker(e.latlng).addTo(map);
+        selectedCoords = e.latlng;
+        
+        // Update coordinates display
+        document.getElementById('coordinates-display').style.display = 'inline-block';
+        document.getElementById('coordinates-display').innerHTML = 
+            '<i class="fas fa-map-pin me-2"></i>Selected: ' + 
+            e.latlng.lat.toFixed(6) + ', ' + e.latlng.lng.toFixed(6);
+        
+        // Enable confirm button
+        document.getElementById('confirm-btn').disabled = false;
+    });
+    
+    // Confirm location
+    document.getElementById('confirm-btn').addEventListener('click', function() {
+        if (selectedCoords && window.opener) {
+            // Send coordinates to parent window
+            window.opener.postMessage({
+                type: 'locationSelected',
+                lat: selectedCoords.lat,
+                lng: selectedCoords.lng
+            }, '*');
+            window.close();
+        }
+    });
+    
+    // Cancel selection
+    document.getElementById('cancel-btn').addEventListener('click', function() {
+        window.close();
+    });
+    
+    // Try to get user's current location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(function(position) {
+            var userLat = position.coords.latitude;
+            var userLng = position.coords.longitude;
+            map.setView([userLat, userLng], 12);
+            
+            // Add a blue marker for current location
+            L.marker([userLat, userLng], {
+                icon: L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/0.7.7/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                })
+            }).addTo(map).bindPopup('<b>Your current location</b><br>Click elsewhere to select your pet\'s location');
+        }, function(error) {
+            console.log('Geolocation error:', error);
+        });
+    }
+</script>
+{% endblock %}
