@@ -147,7 +147,7 @@ class BrowsePetAdmin(admin.ModelAdmin):
             'fields': ('weight', 'color', 'vaccination_status', 'health_certificate')
         }),
         ('Location', {
-            'fields': ('city', 'state')
+            'fields': ('city', 'state', 'address', 'latitude', 'longitude', 'location_map')
         }),
         ('Media', {
             'fields': ('image', 'image2', 'image3', 'image_preview')

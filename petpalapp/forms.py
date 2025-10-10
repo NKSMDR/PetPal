@@ -7,7 +7,8 @@ class PetSubmissionForm(forms.ModelForm):
         fields = [
             'breed', 'age', 'gender', 'price', 'description',
             'image', 'image2', 'image3', 'weight', 'color',
-            'vaccination_status', 'health_certificate', 'city', 'state'
+            'vaccination_status', 'health_certificate', 'city', 'state',
+            'address', 'latitude', 'longitude'
         ]
         widgets = {
             'breed': forms.Select(attrs={
@@ -64,6 +65,20 @@ class PetSubmissionForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'State/Province'
             }),
+            'address': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Full address'
+            }),
+            'latitude': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Latitude',
+                'step': '0.000001'
+            }),
+            'longitude': forms.NumberInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Longitude',
+                'step': '0.000001'
+            }),
         }
         
     def __init__(self, *args, **kwargs):
@@ -73,6 +88,6 @@ class PetSubmissionForm(forms.ModelForm):
         self.fields['breed'].empty_label = "Select a breed"
         
         # Set required fields
-        required_fields = ['breed', 'age', 'gender', 'price', 'description', 'image', 'city', 'state']
+        required_fields = ['breed', 'age', 'gender', 'price', 'description', 'image', 'city', 'state', 'address']
         for field_name in required_fields:
             self.fields[field_name].required = True
