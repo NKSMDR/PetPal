@@ -69,16 +69,8 @@ class PetSubmissionForm(forms.ModelForm):
                 'class': 'form-control',
                 'placeholder': 'Full address'
             }),
-            'latitude': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Latitude',
-                'step': '0.000001'
-            }),
-            'longitude': forms.NumberInput(attrs={
-                'class': 'form-control',
-                'placeholder': 'Longitude',
-                'step': '0.000001'
-            }),
+            'latitude': forms.HiddenInput(),
+            'longitude': forms.HiddenInput(),
         }
         
     def __init__(self, *args, **kwargs):

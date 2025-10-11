@@ -12,7 +12,7 @@
 }
 
 .location-map-container {
-    height: 300px;
+    height: 450px;
     border-radius: 10px;
     overflow: hidden;
     box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
@@ -178,14 +178,36 @@
 
     <!-- Location Map Section -->
     <div class="location-map-section">
-        <h3 class="mb-3">Location</h3>
+        <h3 class="mb-3">Location & Route</h3>
+        <div class="mb-2">
+            <button class="btn btn-sm btn-primary" onclick="showRoute()">
+                <i class="fas fa-route"></i> Show Route from My Location
+            </button>
+            <button class="btn btn-sm btn-outline-secondary" onclick="clearRoute()">
+                <i class="fas fa-times"></i> Clear Route
+            </button>
+        </div>
         <div class="location-map-container">
             <div id="location-map" style="width: 100%; height: 100%;"></div>
         </div>
         <div class="location-info-card">
             <div class="location-detail">
-                <i class="fas fa-map-marker-alt"></i>
-                <span>{{ pet.city }}, {{ pet.state }}</span>
+                <i class="fas fa-map-marker-alt text-danger"></i>
+                <span><strong>Pet Location:</strong> {{ pet.city }}, {{ pet.state }}</span>
+            </div>
+            {% if pet.address %}
+            <div class="location-detail">
+                <i class="fas fa-home"></i>
+                <span>{{ pet.address }}</span>
+            </div>
+            {% endif %}
+            <div id="distance-info" class="location-detail" style="display: none;">
+                <i class="fas fa-ruler"></i>
+                <span id="distance-text"></span>
+            </div>
+            <div id="duration-info" class="location-detail" style="display: none;">
+                <i class="fas fa-clock"></i>
+                <span id="duration-text"></span>
             </div>
         </div>
     </div>
@@ -223,6 +245,17 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
+// Global variables
+var map;
+var petMarker;
+var userMarker;
+var routeLine;
+var userLocation = null;
+
+// Pet location
+const petLat = {{ pet.latitude|default:"27.7172" }};
+const petLng = {{ pet.longitude|default:"85.3240" }};
+
 function changeMainImage(src) {
     document.querySelector('.main-pet-image').src = src;
 }
@@ -232,12 +265,255 @@ function contactSeller() {
     alert('Contact seller functionality - you can implement email/messaging here');
 }
 
+// Calculate distance between two points (Haversine formula)
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; // Radius of the Earth in km
+    const dLat = (lat2 - lat1) * Math.PI / 180;
+    const dLon = (lon2 - lon1) * Math.PI / 180;
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    const distance = R * c;
+    return distance;
+}
+
+// Show route from user location to pet location using OSRM
+function showRoute() {
+    if (navigator.geolocation) {
+        showMessage('Getting your location...', 'info');
+        
+        navigator.geolocation.getCurrentPosition(
+            function(position) {
+                userLocation = {
+                    lat: position.coords.latitude,
+                    lng: position.coords.longitude
+                };
+                
+                // Remove existing user marker and route if any
+                if (userMarker) {
+                    map.removeLayer(userMarker);
+                }
+                if (routeLine) {
+                    map.removeLayer(routeLine);
+                }
+                
+                // Add user location marker (blue)
+                var userIcon = L.icon({
+                    iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-blue.png',
+                    shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+                    iconSize: [25, 41],
+                    iconAnchor: [12, 41],
+                    popupAnchor: [1, -34],
+                    shadowSize: [41, 41]
+                });
+                
+                userMarker = L.marker([userLocation.lat, userLocation.lng], {icon: userIcon})
+                    .addTo(map)
+                    .bindPopup('<strong>Your Location</strong>')
+                    .openPopup();
+                
+                // Fetch route from OSRM API
+                showMessage('Calculating route...', 'info');
+                
+                const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${userLocation.lng},${userLocation.lat};${petLng},${petLat}?overview=full&geometries=geojson&steps=true`;
+                
+                fetch(osrmUrl)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.code === 'Ok' && data.routes && data.routes.length > 0) {
+                            const route = data.routes[0];
+                            const coordinates = route.geometry.coordinates;
+                            
+                            // Convert coordinates from [lng, lat] to [lat, lng] for Leaflet
+                            const latlngs = coordinates.map(coord => [coord[1], coord[0]]);
+                            
+                            // Draw the route line following actual roads
+                            routeLine = L.polyline(latlngs, {
+                                color: '#007bff',
+                                weight: 5,
+                                opacity: 0.8,
+                                lineJoin: 'round',
+                                lineCap: 'round'
+                            }).addTo(map);
+                            
+                            // Add a subtle outline for better visibility
+                            var routeOutline = L.polyline(latlngs, {
+                                color: '#ffffff',
+                                weight: 7,
+                                opacity: 0.5,
+                                lineJoin: 'round',
+                                lineCap: 'round'
+                            }).addTo(map);
+                            
+                            // Move outline behind the main route
+                            routeOutline.bringToBack();
+                            
+                            // Fit map to show the entire route
+                            map.fitBounds(routeLine.getBounds(), {padding: [50, 50]});
+                            
+                            // Display distance and duration
+                            const distanceKm = (route.distance / 1000).toFixed(2);
+                            const distanceMiles = (distanceKm * 0.621371).toFixed(2);
+                            const durationMinutes = Math.round(route.duration / 60);
+                            const durationHours = Math.floor(durationMinutes / 60);
+                            const durationMins = durationMinutes % 60;
+                            
+                            const distanceInfo = document.getElementById('distance-info');
+                            const distanceText = document.getElementById('distance-text');
+                            const durationInfo = document.getElementById('duration-info');
+                            const durationText = document.getElementById('duration-text');
+                            
+                            if (distanceInfo && distanceText) {
+                                distanceText.innerHTML = '<strong>Distance:</strong> ' + distanceKm + ' km (' + distanceMiles + ' miles)';
+                                distanceInfo.style.display = 'flex';
+                            }
+                            
+                            if (durationInfo && durationText) {
+                                let durationStr = '<strong>Duration:</strong> ';
+                                if (durationHours > 0) {
+                                    durationStr += durationHours + ' hr ' + durationMins + ' min';
+                                } else {
+                                    durationStr += durationMins + ' min';
+                                }
+                                durationText.innerHTML = durationStr;
+                                durationInfo.style.display = 'flex';
+                            }
+                            
+                            showMessage('Route calculated successfully!', 'success');
+                        } else {
+                            // Fallback to straight line if routing fails
+                            console.warn('OSRM routing failed, using straight line');
+                            drawStraightLine(userLocation.lat, userLocation.lng);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Routing error:', error);
+                        showMessage('Could not calculate route. Showing straight line.', 'warning');
+                        drawStraightLine(userLocation.lat, userLocation.lng);
+                    });
+            },
+            function(error) {
+                console.error('Geolocation error:', error);
+                showMessage('Could not get your location. Please enable location services.', 'error');
+            }
+        );
+    } else {
+        showMessage('Geolocation is not supported by your browser', 'error');
+    }
+}
+
+// Fallback function to draw straight line
+function drawStraightLine(lat, lng) {
+    var latlngs = [
+        [lat, lng],
+        [petLat, petLng]
+    ];
+    
+    routeLine = L.polyline(latlngs, {
+        color: '#007bff',
+        weight: 4,
+        opacity: 0.7,
+        dashArray: '10, 10',
+        lineJoin: 'round'
+    }).addTo(map);
+    
+    // Fit map to show both markers
+    var bounds = L.latLngBounds([
+        [lat, lng],
+        [petLat, petLng]
+    ]);
+    map.fitBounds(bounds, {padding: [50, 50]});
+    
+    // Calculate and display straight-line distance
+    var distance = calculateDistance(lat, lng, petLat, petLng);
+    var distanceInfo = document.getElementById('distance-info');
+    var distanceText = document.getElementById('distance-text');
+    
+    if (distanceInfo && distanceText) {
+        distanceText.innerHTML = '<strong>Straight-line Distance:</strong> ' + distance.toFixed(2) + ' km (' + (distance * 0.621371).toFixed(2) + ' miles)';
+        distanceInfo.style.display = 'flex';
+    }
+}
+
+// Clear route and user marker
+function clearRoute() {
+    if (userMarker) {
+        map.removeLayer(userMarker);
+        userMarker = null;
+    }
+    if (routeLine) {
+        map.removeLayer(routeLine);
+        routeLine = null;
+    }
+    
+    // Remove all polylines (including outline)
+    map.eachLayer(function(layer) {
+        if (layer instanceof L.Polyline && layer !== routeLine) {
+            map.removeLayer(layer);
+        }
+    });
+    
+    // Hide distance and duration info
+    var distanceInfo = document.getElementById('distance-info');
+    var durationInfo = document.getElementById('duration-info');
+    
+    if (distanceInfo) {
+        distanceInfo.style.display = 'none';
+    }
+    if (durationInfo) {
+        durationInfo.style.display = 'none';
+    }
+    
+    // Reset map view to pet location
+    map.setView([petLat, petLng], 13);
+    
+    showMessage('Route cleared', 'info');
+}
+
+// Show message to user
+function showMessage(message, type) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show`;
+    alertDiv.style.position = 'fixed';
+    alertDiv.style.top = '20px';
+    alertDiv.style.right = '20px';
+    alertDiv.style.zIndex = '9999';
+    alertDiv.style.minWidth = '300px';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(alertDiv);
+    
+    setTimeout(() => {
+        alertDiv.remove();
+    }, 3000);
+}
+
 // Initialize location map
-var map = L.map('location-map').setView([{{ pet.latitude }}, {{ pet.longitude }}], 13);
-L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
-    subdomains: ['a', 'b', 'c']
-}).addTo(map);
-L.marker([{{ pet.latitude }}, {{ pet.longitude }}]).addTo(map);
+document.addEventListener('DOMContentLoaded', function() {
+    map = L.map('location-map').setView([petLat, petLng], 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
+        subdomains: ['a', 'b', 'c']
+    }).addTo(map);
+    
+    // Add pet location marker (red)
+    var petIcon = L.icon({
+        iconUrl: 'https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-2x-red.png',
+        shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+        iconSize: [25, 41],
+        iconAnchor: [12, 41],
+        popupAnchor: [1, -34],
+        shadowSize: [41, 41]
+    });
+    
+    petMarker = L.marker([petLat, petLng], {icon: petIcon})
+        .addTo(map)
+        .bindPopup('<strong>Pet Location</strong><br>{{ pet.city }}, {{ pet.state }}');
+});
 </script>
 {% endblock %}
