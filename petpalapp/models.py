@@ -77,6 +77,9 @@ class Accessory(models.Model):
     price = models.DecimalField(max_digits=6, decimal_places=2)
     original_price = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
     image = models.ImageField(upload_to='accessories/')
+    image2 = models.ImageField(upload_to='accessories/', blank=True, null=True)
+    image3 = models.ImageField(upload_to='accessories/', blank=True, null=True)
+    image4 = models.ImageField(upload_to='accessories/', blank=True, null=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -84,6 +87,20 @@ class Accessory(models.Model):
         super().save(*args, **kwargs)
     def is_discounted(self):
         return self.original_price and self.original_price > self.price
+    
+    def get_all_images(self):
+        """Return list of all available images for this accessory"""
+        images = []
+        if self.image:
+            images.append(self.image)
+        if self.image2:
+            images.append(self.image2)
+        if self.image3:
+            images.append(self.image3)
+        if self.image4:
+            images.append(self.image4)
+        return images
+    
     def __str__(self):
         return self.name
 

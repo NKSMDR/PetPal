@@ -1,0 +1,706 @@
+/* Breed Detail Page Styling */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+body {
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  min-height: 100vh;
+}
+
+/* Back Button Styling */
+.btn-outline-secondary {
+  border: 2px solid #667eea;
+  color: #667eea;
+  background: white;
+  border-radius: 25px;
+  padding: 8px 20px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 10px rgba(102, 126, 234, 0.1);
+}
+
+.btn-outline-secondary:hover {
+  background: #667eea;
+  color: white;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+/* Enhanced Hero Section */
+.breed-detail-hero {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 40px 0;
+  margin-bottom: 0;
+  position: relative;
+}
+
+.breed-detail-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.1);
+  z-index: 1;
+}
+
+.breed-detail-hero .container {
+  position: relative;
+  z-index: 2;
+}
+
+.breed-hero-image {
+  border-radius: 20px;
+  box-shadow: 0 15px 35px rgba(0,0,0,0.3);
+  transition: transform 0.3s ease;
+}
+
+.breed-hero-image:hover {
+  transform: scale(1.02);
+}
+
+.breed-hero-title {
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.breed-hero-subtitle {
+  font-size: 1.1rem;
+  opacity: 0.9;
+  margin-bottom: 20px;
+}
+
+.breed-hero-badges .badge {
+  background: rgba(255,255,255,0.2) !important;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white !important;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  margin: 5px;
+}
+
+/* New Trait Badge Styling */
+.trait-badge {
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.4);
+  border-radius: 15px;
+  padding: 12px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 120px;
+  transition: all 0.3s ease;
+}
+
+.trait-badge:hover {
+  background: rgba(255,255,255,0.35);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.trait-badge i {
+  font-size: 1.5rem;
+  margin-bottom: 4px;
+}
+
+.trait-badge .trait-label {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.9);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.trait-badge .trait-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: white;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+}
+
+/* Main Content Styling */
+.breed-main-content {
+  background: white;
+  border-radius: 30px 30px 0 0;
+  margin-top: -20px;
+  position: relative;
+  z-index: 3;
+  box-shadow: 0 -5px 20px rgba(0,0,0,0.1);
+}
+
+.breed-overview-section {
+  margin-bottom: 40px;
+}
+
+.breed-overview-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 20px;
+  position: relative;
+  display: inline-block;
+}
+
+.breed-overview-title::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px;
+}
+
+.breed-overview-text {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #4a5568;
+}
+
+/* Enhanced Trait Cards */
+.breed-trait-card {
+  background: white;
+  border: none;
+  border-radius: 20px;
+  padding: 25px 20px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.breed-trait-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.breed-trait-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+.breed-trait-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 10px;
+}
+
+.breed-trait-value {
+  font-size: 1rem;
+  color: #667eea;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* CTA Section */
+.breed-cta-section {
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-radius: 25px;
+  padding: 40px 30px;
+  text-align: center;
+  margin: 40px 0;
+  border: 1px solid #e2e8f0;
+}
+
+.breed-cta-title {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 15px;
+}
+
+.breed-cta-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 12px 30px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 1rem;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.breed-cta-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+  color: white;
+  text-decoration: none;
+}
+
+.breed-hero::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><defs><pattern id="grain" width="100" height="100" patternUnits="userSpaceOnUse"><circle cx="25" cy="25" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="75" cy="75" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="50" cy="10" r="0.5" fill="rgba(255,255,255,0.1)"/></pattern></defs><rect width="100" height="100" fill="url(%23grain)"/></svg>');
+  opacity: 0.3;
+}
+
+.hero-content {
+  position: relative;
+  z-index: 2;
+}
+
+.breed-image-container {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+  transform: translateY(20px);
+}
+
+.breed-image {
+  width: 100%;
+  height: 400px;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+  background: white;
+}
+
+.breed-image:hover {
+  transform: scale(1.05);
+}
+
+.breed-title {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.breed-subtitle {
+  font-size: 1.2rem;
+  opacity: 0.9;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+/* Badge Styling */
+.breed-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.breed-badge {
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.3);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  transition: all 0.3s ease;
+}
+
+.breed-badge:hover {
+  background: rgba(255,255,255,0.3);
+  transform: translateY(-2px);
+}
+
+/* Main Content */
+.breed-content {
+  background: white;
+  border-radius: 30px 30px 0 0;
+  padding: 60px 0;
+  margin-top: 40px;
+  position: relative;
+  z-index: 3;
+  box-shadow: 0 -10px 30px rgba(0,0,0,0.1);
+}
+
+/* Overview Section */
+.overview-section {
+  margin-bottom: 60px;
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 20px;
+  position: relative;
+  display: inline-block;
+}
+
+.section-title::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 0;
+  width: 50px;
+  height: 3px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 2px;
+}
+
+.overview-text {
+  font-size: 1.1rem;
+  line-height: 1.8;
+  color: #4a5568;
+  max-width: 800px;
+}
+
+/* Breed Info Section */
+.breed-info-section {
+  margin-bottom: 60px;
+}
+
+.info-card {
+  background: white;
+  border-radius: 20px;
+  padding: 30px;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+  border-left: 4px solid transparent;
+  background-image: linear-gradient(white, white), linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background-origin: border-box;
+  background-clip: content-box, border-box;
+}
+
+.info-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+.info-title {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+}
+
+.info-title i {
+  color: #667eea;
+  font-size: 1.1rem;
+}
+
+.info-details {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.info-item:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-weight: 600;
+  color: #4a5568;
+  font-size: 0.95rem;
+}
+
+.info-value {
+  font-weight: 500;
+  color: #667eea;
+  text-transform: capitalize;
+  font-size: 0.95rem;
+}
+
+/* Traits Grid */
+.traits-grid {
+  margin-bottom: 60px;
+}
+
+.trait-card {
+  background: white;
+  border: none;
+  border-radius: 20px;
+  padding: 30px 20px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+  transition: all 0.3s ease;
+  height: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.trait-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.trait-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+
+.trait-icon {
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  color: white;
+  font-size: 1.5rem;
+}
+
+.trait-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #2d3748;
+  margin-bottom: 10px;
+}
+
+.trait-value {
+  font-size: 1rem;
+  color: #667eea;
+  font-weight: 600;
+  text-transform: capitalize;
+}
+
+/* CTA Section */
+.cta-section {
+  background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+  border-radius: 25px;
+  padding: 50px 30px;
+  text-align: center;
+  margin: 60px 0;
+  border: 1px solid #e2e8f0;
+}
+
+.cta-title {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #2d3748;
+  margin-bottom: 15px;
+}
+
+.cta-subtitle {
+  font-size: 1.1rem;
+  color: #718096;
+  margin-bottom: 30px;
+  max-width: 500px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.cta-button {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border: none;
+  color: white;
+  padding: 15px 40px;
+  border-radius: 25px;
+  font-weight: 600;
+  font-size: 1.1rem;
+  text-decoration: none;
+  display: inline-block;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+}
+
+.cta-button:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 8px 25px rgba(102, 126, 234, 0.4);
+  color: white;
+  text-decoration: none;
+}
+
+/* Back Button */
+.back-button {
+  position: fixed;
+  top: 100px;
+  left: 30px;
+  background: rgba(255,255,255,0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(0,0,0,0.1);
+  color: #4a5568;
+  padding: 12px 20px;
+  border-radius: 25px;
+  text-decoration: none;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+}
+
+.back-button:hover {
+  background: white;
+  color: #667eea;
+  transform: translateX(-5px);
+  text-decoration: none;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .breed-detail-hero {
+    padding: 40px 0;
+  }
+  
+  .breed-hero-title {
+    font-size: 2rem;
+  }
+  
+  .breed-hero-subtitle {
+    font-size: 1rem;
+  }
+  
+  .breed-hero-image {
+    margin-bottom: 20px;
+  }
+  
+  .breed-main-content {
+    margin-top: -10px;
+    border-radius: 20px 20px 0 0;
+  }
+  
+  .breed-overview-title {
+    font-size: 1.6rem;
+  }
+  
+  .breed-overview-text {
+    font-size: 1rem;
+  }
+  
+  .breed-trait-card {
+    padding: 20px 15px;
+  }
+  
+  .breed-cta-section {
+    padding: 30px 20px;
+    margin: 30px 0;
+  }
+  
+  .breed-cta-title {
+    font-size: 1.4rem;
+  }
+  
+  .trait-badge {
+    min-width: 100px;
+    padding: 10px 15px;
+  }
+  
+  .trait-badge i {
+    font-size: 1.2rem;
+  }
+  
+  .trait-badge .trait-label {
+    font-size: 0.7rem;
+  }
+  
+  .trait-badge .trait-value {
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 576px) {
+  .breed-detail-hero {
+    padding: 30px 0;
+  }
+  
+  .breed-hero-title {
+    font-size: 1.8rem;
+  }
+  
+  .breed-hero-image {
+    max-height: 250px !important;
+  }
+  
+  .breed-main-content {
+    padding: 30px 0 !important;
+  }
+  
+  .breed-overview-title {
+    font-size: 1.4rem;
+  }
+  
+  .breed-trait-card {
+    padding: 15px 10px;
+  }
+  
+  .breed-cta-section {
+    padding: 25px 15px;
+  }
+  
+  .breed-cta-button {
+    padding: 10px 25px;
+    font-size: 0.9rem;
+  }
+}
+
+/* Loading Animation */
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* Scroll Animations */
+.fade-in {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: all 0.6s ease;
+}
+
+.fade-in.visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
+}

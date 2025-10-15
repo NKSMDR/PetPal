@@ -23,6 +23,24 @@ class MarketplacePet(Pet):
         verbose_name = "Marketplace Pet (User Submitted)"
         verbose_name_plural = "Marketplace Pets (User Submitted)"
 
+class PendingPet(Pet):
+    class Meta:
+        proxy = True
+        verbose_name = "Marketplace - Pending Review"
+        verbose_name_plural = "Marketplace → 📋 Pending Review"
+
+class ApprovedPet(Pet):
+    class Meta:
+        proxy = True
+        verbose_name = "Marketplace - Approved"
+        verbose_name_plural = "Marketplace → ✅ Approved Pets"
+
+class RejectedPet(Pet):
+    class Meta:
+        proxy = True
+        verbose_name = "Marketplace - Rejected"
+        verbose_name_plural = "Marketplace → ❌ Rejected Pets"
+
 class BreedAdmin(admin.ModelAdmin):
     list_display = ['name', 'size', 'life_span', 'good_with_kids', 'energy_level', 'image_preview', 'view_detail']
     list_filter = ['size', 'good_with_kids', 'energy_level', 'ease_of_training', 'grooming_requirement']
@@ -130,10 +148,12 @@ class BrowsePetAdmin(admin.ModelAdmin):
     list_display = ['breed', 'age', 'gender', 'price', 'status', 'is_featured', 'city', 'image_preview', 'view_detail']
     list_filter = ['breed', 'gender', 'status', 'is_featured', 'is_urgent', 'vaccination_status', 'city', 'created_at']
     search_fields = ['breed__name', 'description', 'city', 'seller__username', 'seller__first_name', 'seller__last_name']
+    prepopulated_fields = {'slug': ('breed',)}
     readonly_fields = ['image_preview', 'created_at', 'updated_at', 'is_user_submitted']
     list_editable = ['is_featured', 'status']
     
     def get_queryset(self, request):
+        
         return super().get_queryset(request).filter(is_user_submitted=False)
     
     def has_add_permission(self, request):
@@ -181,16 +201,13 @@ class BrowsePetAdmin(admin.ModelAdmin):
 admin.site.register(BrowsePet, BrowsePetAdmin)
 
 
-# Separate admin for Marketplace Review (User-submitted pets only)
-class MarketplacePetAdmin(admin.ModelAdmin):
-    list_display = ['breed', 'age', 'gender', 'price', 'status_badge', 'seller_info', 'city', 'submission_date', 'image_preview', 'review_actions']
-    list_filter = ['breed', 'gender', 'status', 'vaccination_status', 'city', 'created_at']
+# Base admin class for marketplace pets
+class BaseMarketplacePetAdmin(admin.ModelAdmin):
+    list_display = ['breed', 'age', 'gender', 'price', 'status_badge', 'seller_info', 'city', 'submission_date', 'image_preview', 'quick_actions']
+    list_filter = ['breed', 'gender', 'vaccination_status', 'city', 'created_at']
     search_fields = ['breed__name', 'description', 'city', 'seller__username', 'seller__first_name', 'seller__last_name']
     readonly_fields = ['image_preview', 'created_at', 'updated_at', 'seller', 'is_user_submitted', 'slug']
-    actions = ['approve_selected_pets', 'reject_selected_pets']
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).filter(is_user_submitted=True)
+    list_per_page = 25
     
     def has_add_permission(self, request):
         return False  # Users add pets via frontend, not admin
@@ -253,37 +270,76 @@ class MarketplacePetAdmin(admin.ModelAdmin):
         return "No Image"
     image_preview.short_description = "Image Preview"
     
-    def review_actions(self, obj):
+    def quick_actions(self, obj):
         if obj.status == 'pending_review':
             return format_html(
-                '<span style="color: #ffc107; font-weight: bold;">⏳ Pending Review</span>'
+                '<span style="color: #ffc107; font-weight: bold;">⏳ Awaiting Review</span>'
             )
         elif obj.status == 'available':
             return format_html('<a href="/marketplace/pet/{}" target="_blank" class="button">View on Site</a>', obj.pk)
         elif obj.status == 'rejected':
             return format_html('<span style="color: #dc3545; font-weight: bold;">❌ Rejected</span>')
         return "-"
-    review_actions.short_description = "Actions"
+    quick_actions.short_description = "Actions"
     
     def approve_selected_pets(self, request, queryset):
-        updated = queryset.filter(status='pending_review').update(
+        updated = queryset.update(
             status='available',
             reviewed_by=request.user,
             review_date=timezone.now()
         )
-        self.message_user(request, f'{updated} pets approved successfully.')
-    approve_selected_pets.short_description = "Approve selected pets"
+        self.message_user(request, f'{updated} pets approved successfully.', messages.SUCCESS)
+    approve_selected_pets.short_description = "✅ Approve selected pets"
     
     def reject_selected_pets(self, request, queryset):
-        updated = queryset.filter(status='pending_review').update(
+        updated = queryset.update(
             status='rejected',
             reviewed_by=request.user,
             review_date=timezone.now()
         )
-        self.message_user(request, f'{updated} pets rejected.')
-    reject_selected_pets.short_description = "Reject selected pets"
+        self.message_user(request, f'{updated} pets rejected.', messages.WARNING)
+    reject_selected_pets.short_description = "❌ Reject selected pets"
 
-admin.site.register(MarketplacePet, MarketplacePetAdmin)
+
+# Admin for Pending Review Pets
+class PendingPetAdmin(BaseMarketplacePetAdmin):
+    actions = ['approve_selected_pets', 'reject_selected_pets']
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(is_user_submitted=True, status='pending_review')
+
+
+# Admin for Approved Pets
+class ApprovedPetAdmin(BaseMarketplacePetAdmin):
+    actions = ['reject_selected_pets']
+    list_display = ['breed', 'age', 'gender', 'price', 'seller_info', 'city', 'submission_date', 'image_preview', 'quick_actions']
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(is_user_submitted=True, status='available')
+
+
+# Admin for Rejected Pets
+class RejectedPetAdmin(BaseMarketplacePetAdmin):
+    actions = ['approve_selected_pets']
+    list_display = ['breed', 'age', 'gender', 'price', 'seller_info', 'city', 'submission_date', 'image_preview', 'rejection_info']
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).filter(is_user_submitted=True, status='rejected')
+    
+    def rejection_info(self, obj):
+        if obj.admin_notes:
+            return format_html(
+                '<span style="color: #dc3545;">📝 {}</span>',
+                obj.admin_notes[:50] + '...' if len(obj.admin_notes) > 50 else obj.admin_notes
+            )
+        return '-'
+    rejection_info.short_description = "Rejection Reason"
+
+
+# Register all marketplace pet admins
+admin.site.register(PendingPet, PendingPetAdmin)
+admin.site.register(ApprovedPet, ApprovedPetAdmin)
+admin.site.register(RejectedPet, RejectedPetAdmin)
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):

@@ -45,19 +45,16 @@ INSTALLED_APPS = [
 ]
 
 JAZZMIN_SETTINGS = {
-    "site_title": "My Admin",
-    "site_header": "My Administration",
-    "site_brand": "My Company",
-    "welcome_sign": "Welcome to My Admin Portal",
+    "site_title": "PetPal Admin",
+    "site_header": "PetPal Administration",
+    "site_brand": "PetPal",
+    "welcome_sign": "Welcome to PetPal Admin Portal",
     
     # Color theme
-    "theme": "flatly",  # Options: default, cerulean, cosmo, flatly, etc.
+    "theme": "flatly",
     
     # Dark mode
     "show_ui_builder": True,
-    
-    # Custom CSS
-    "custom_css": "admin/custom.css",
     
     # Dashboard customization
     "changeform_format": "horizontal_tabs",
@@ -68,15 +65,21 @@ JAZZMIN_SETTINGS = {
         "auth": "fas fa-users-cog",
         "auth.user": "fas fa-user", 
         "auth.Group": "fas fa-users",
-        "petpalapp.breed": "fas fa-dog",  # Replace 'your_app_name' with actual app name
+        "petpalapp.breed": "fas fa-dog",
         "petpalapp.accessory": "fas fa-shopping-bag",
-},
+        "petpalapp.browsepet": "fas fa-paw",
+        "petpalapp.pendingpet": "fas fa-clock",
+        "petpalapp.approvedpet": "fas fa-check-circle",
+        "petpalapp.rejectedpet": "fas fa-times-circle",
+        "petpalapp.userprofile": "fas fa-user-circle",
+    },
     
     # Custom menu
     "topmenu_links": [
         {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "Support", "url": "https://support.example.com", "new_window": True},
+        {"name": "View Site", "url": "/", "new_window": True},
     ],
+    
 }
 
 JAZZMIN_UI_TWEAKS = {

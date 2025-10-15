@@ -1,82 +1,106 @@
 {% extends 'base.html' %}
 {% load static %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/detail.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/breed_detail.css' %}">
 {% endblock %}
 
 {% block extra_js %}
 <script src="{% static 'js/detail.js' %}"></script>
 {% endblock %}
 {% block content %}
-<section class="py-5 bg-light">
-  <div class="container">
+<!-- Back to List Button -->
+<div class="container mt-3">
+  <a href="{% url 'breed_list' %}" class="btn btn-outline-secondary mb-3">
+    <i class="fas fa-arrow-left me-2"></i>Back to Breed List
+  </a>
+</div>
 
-    <!-- Hero section -->
-    <div class="row mb-5 align-items-center">
-      <div class="col-md-6 mb-4 mb-md-0">
-        <img src="{{ breed.image.url }}" alt="{{ breed.name }}" class="img-fluid rounded shadow" style="max-height: 400px; object-fit: cover;">
+<!-- Enhanced Hero Section -->
+<section class="breed-detail-hero">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <img src="{{ breed.image.url }}" alt="{{ breed.name }}" class="breed-hero-image img-fluid" style="max-height: 400px; object-fit: cover; width: 100%;">
       </div>
-      <div class="col-md-6 text-center text-md-start">
-        <h1 class="fw-bold">{{ breed.name }}</h1>
-        <p class="text-muted">Learn about the {{ breed.name }} breed – temperament, grooming, and personality!</p>
-        <div class="d-flex flex-wrap gap-3 mt-2">
-          <span class="badge bg-primary">Size: {{ breed.size }}</span>
-          <span class="badge bg-success">Life Span: {{ breed.life_span }}</span>
-          <span class="badge bg-warning text-dark">Great with Kids: {% if breed.good_with_kids %}✔{% else %}✘{% endif %}</span>
+      <div class="col-lg-6 text-center text-lg-start">
+        <h1 class="breed-hero-title">{{ breed.name }}</h1>
+        <p class="breed-hero-subtitle">Learn about the {{ breed.name }} breed – temperament, grooming, and personality!</p>
+        <div class="breed-hero-badges d-flex flex-wrap justify-content-center justify-content-lg-start gap-3 mt-3">
+          <div class="trait-badge">
+            <i class="fas fa-ruler-combined text-primary"></i>
+            <span class="trait-label">Size</span>
+            <span class="trait-value">{{ breed.size }}</span>
+          </div>
+          <div class="trait-badge">
+            <i class="fas fa-heartbeat text-danger"></i>
+            <span class="trait-label">Life Span</span>
+            <span class="trait-value">{{ breed.life_span }}</span>
+          </div>
+          <div class="trait-badge">
+            <i class="fas fa-child text-success"></i>
+            <span class="trait-label">Good with Kids</span>
+            <span class="trait-value">{% if breed.good_with_kids %}Yes{% else %}No{% endif %}</span>
+          </div>
         </div>
       </div>
     </div>
+  </div>
+</section>
+
+<!-- Main Content -->
+<section class="breed-main-content py-5">
+  <div class="container">
 
     <!-- Overview -->
-    <div class="mb-5">
-      <h3 class="fw-bold">Breed Overview</h3>
-      <p>{{ breed.overview }}</p>
+    <div class="breed-overview-section">
+      <h3 class="breed-overview-title">Breed Overview</h3>
+      <p class="breed-overview-text">{{ breed.overview }}</p>
     </div>
 
     <!-- Trait Grid -->
-    <div class="row row-cols-1 row-cols-md-3 g-4 text-center mb-5">
+    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
       <div class="col">
-        <div class="card h-100 p-3">
-          <h6>Energy Level</h6>
-          <p class="text-muted">{{ breed.energy_level }}</p>
+        <div class="breed-trait-card">
+          <h6 class="breed-trait-title">Energy Level</h6>
+          <p class="breed-trait-value">{{ breed.energy_level }}</p>
         </div>
       </div>
       <div class="col">
-        <div class="card h-100 p-3">
-          <h6>Ease of Training</h6>
-          <p class="text-muted">{{ breed.ease_of_training }}</p>
+        <div class="breed-trait-card">
+          <h6 class="breed-trait-title">Ease of Training</h6>
+          <p class="breed-trait-value">{{ breed.ease_of_training }}</p>
         </div>
       </div>
       <div class="col">
-        <div class="card h-100 p-3">
-          <h6>Grooming Requirement</h6>
-          <p class="text-muted">{{ breed.grooming_requirement }}</p>
+        <div class="breed-trait-card">
+          <h6 class="breed-trait-title">Grooming Requirement</h6>
+          <p class="breed-trait-value">{{ breed.grooming_requirement }}</p>
         </div>
       </div>
       <div class="col">
-        <div class="card h-100 p-3">
-          <h6>Vocality</h6>
-          <p class="text-muted">{{ breed.vocality }}</p>
+        <div class="breed-trait-card">
+          <h6 class="breed-trait-title">Vocality</h6>
+          <p class="breed-trait-value">{{ breed.vocality }}</p>
         </div>
       </div>
       <div class="col">
-        <div class="card h-100 p-3">
-          <h6>Affection Needs</h6>
-          <p class="text-muted">{{ breed.affection_needs }}</p>
+        <div class="breed-trait-card">
+          <h6 class="breed-trait-title">Affection Needs</h6>
+          <p class="breed-trait-value">{{ breed.affection_needs }}</p>
         </div>
       </div>
       <div class="col">
-        <div class="card h-100 p-3">
-          <h6>Exercise Requirement</h6>
-          <p class="text-muted">{{ breed.exercise_requirement }}</p>
+        <div class="breed-trait-card">
+          <h6 class="breed-trait-title">Exercise Requirement</h6>
+          <p class="breed-trait-value">{{ breed.exercise_requirement }}</p>
         </div>
       </div>
     </div>
 
     <!-- CTA Section -->
-    <div class="text-center my-5">
-      <h5 class="mb-3">Looking for a {{ breed.name }}?</h5>
-      <a href="/pets/?breed={{ breed.slug }}" class="btn btn-outline-primary px-4">Find One Today</a>
+    <div class="breed-cta-section">
+      <h5 class="breed-cta-title">Looking for a {{ breed.name }}?</h5>
+      <a href="/pets/?breed={{ breed.slug }}" class="breed-cta-button">Find One Today</a>
     </div>
 
   </div>

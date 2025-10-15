@@ -31,6 +31,7 @@ urlpatterns = [
     path('marketplace/', views.marketplace, name='marketplace'),
     path('marketplace/pet/<int:pk>/', views.marketplace_pet_detail, name='marketplace_pet_detail'),
     path('accessories/', views.accessories, name='accessories'),
+     path('accessories/<slug:slug>/', views.accessory_detail, name='accessory_detail'),
     path('about-us/', views.about_us, name='about_us'),
     path('logout/', views.Logout, name='logout'),
     path('profile/', views.profile, name='profile'),

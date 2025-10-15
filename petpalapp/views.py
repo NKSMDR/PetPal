@@ -118,6 +118,11 @@ def breed_list(request):
     VOCALATY_CHOICE = ['Low', 'Moderate', 'High']
     AFFECTION_CHOICE = ['independent', 'balance', 'cuddly']
 
+    # Handle search query
+    search_query = request.GET.get('search', '').strip()
+    if search_query:
+        breeds = breeds.filter(name__icontains=search_query)
+
     filters = {
         "size": request.GET.get("size"),
         "energy_level": request.GET.get("energy_level"),
@@ -140,6 +145,7 @@ def breed_list(request):
 
     context = {
         'breeds': breeds,
+        'search_query': search_query,
         'kid_friendly': kid_friendly,
         'size_options': SIZE_CHOICES,
         'level_options': LEVEL_CHOICES,
@@ -152,7 +158,23 @@ def breed_list(request):
 
     return render(request, 'pages/breed_list.html', context)
 
+def accessory_detail(request, slug):
+    accessory = get_object_or_404(Accessory, slug=slug)
+    
+    # Get related accessories from the same category
+    related_accessories = Accessory.objects.filter(
+        category=accessory.category
+    ).exclude(id=accessory.id)[:4]
+    
+    context = {
+        'accessory': accessory,
+        'related_accessories': related_accessories,
+    }
+    return render(request, 'pages/accessory_detail.html', context)
+
 def accessories(request):
+    from django.core.paginator import Paginator
+    
     all_accessories = Accessory.objects.all()
     categories = all_accessories.values_list('category', flat=True).distinct()
     min_price_db = all_accessories.aggregate(Min('price'))['price__min'] or 0
@@ -160,32 +182,45 @@ def accessories(request):
 
     accessories = all_accessories
 
-    search_query = request.GET.get('q')
-    category_filter = request.GET.get('category')
-    price_min = request.GET.get('price_min') or min_price_db
-    price_max = request.GET.get('price_max') or max_price_db
+    search_query = request.GET.get('q', '').strip()
+    category_filter = request.GET.get('category', '').strip()
+    price_min = request.GET.get('price_min', '')
+    price_max = request.GET.get('price_max', '')
 
+    # Apply search filter
     if search_query:
         accessories = accessories.filter(name__icontains=search_query)
+    
+    # Apply category filter
     if category_filter:
         accessories = accessories.filter(category__iexact=category_filter)
 
+    # Apply price filters with better logic
     try:
-        if price_min not in [None, '', 'null']:
-            price_min_val = Decimal(int(float(price_min)))
+        if price_min and price_min not in ['', 'null', 'undefined']:
+            price_min_val = Decimal(str(price_min))
             accessories = accessories.filter(price__gte=price_min_val)
-    except (InvalidOperation, ValueError):
-        pass
+        else:
+            price_min = min_price_db
+    except (InvalidOperation, ValueError, TypeError):
+        price_min = min_price_db
 
     try:
-        if price_max not in [None, '', 'null']:
-            price_max_val = Decimal(int(float(price_max)))
+        if price_max and price_max not in ['', 'null', 'undefined']:
+            price_max_val = Decimal(str(price_max))
             accessories = accessories.filter(price__lte=price_max_val)
-    except (InvalidOperation, ValueError):
-        pass
+        else:
+            price_max = max_price_db
+    except (InvalidOperation, ValueError, TypeError):
+        price_max = max_price_db
+
+    # Pagination - 8 products per page (2 rows x 4 columns)
+    paginator = Paginator(accessories, 8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
 
     return render(request, 'pages/accessories.html', {
-        'accessories': accessories,
+        'accessories': page_obj,
         'categories': categories,
         'search_query': search_query,
         'category_filter': category_filter,
@@ -193,8 +228,9 @@ def accessories(request):
         'price_max': price_max,
         'min_price_db': min_price_db,
         'max_price_db': max_price_db,
+        'page_obj': page_obj,
+        'paginator': paginator,
     })
-
 
 @login_required
 def profile(request):

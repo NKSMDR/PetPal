@@ -1,0 +1,353 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/accessory_detail.css' %}">
+<script>
+function switchMainImage(imageUrl, clickedThumbnail) {
+    var mainImage = document.getElementById('mainImage');
+    if (mainImage && imageUrl) {
+        mainImage.src = imageUrl;
+        
+        // Update active thumbnail
+        var thumbnails = document.querySelectorAll('.thumbnail-item');
+        for (var i = 0; i < thumbnails.length; i++) {
+            thumbnails[i].classList.remove('active');
+        }
+        if (clickedThumbnail) {
+            clickedThumbnail.classList.add('active');
+        }
+    }
+}
+
+// Quantity controls functionality
+function initializeQuantityControls() {
+    var quantityInput = document.getElementById('quantity');
+    var minusBtn = document.querySelector('.qty-btn.minus');
+    var plusBtn = document.querySelector('.qty-btn.plus');
+    
+    if (minusBtn && plusBtn && quantityInput) {
+        minusBtn.addEventListener('click', function() {
+            var currentValue = parseInt(quantityInput.value) || 1;
+            if (currentValue > 1) {
+                quantityInput.value = currentValue - 1;
+            }
+        });
+        
+        plusBtn.addEventListener('click', function() {
+            var currentValue = parseInt(quantityInput.value) || 1;
+            if (currentValue < 99) {
+                quantityInput.value = currentValue + 1;
+            }
+        });
+        
+        // Validate quantity input
+        quantityInput.addEventListener('input', function() {
+            var value = parseInt(this.value);
+            if (isNaN(value) || value < 1) {
+                this.value = 1;
+            } else if (value > 99) {
+                this.value = 99;
+            }
+        });
+    }
+}
+
+// Add to cart functionality
+function addToCart(productType, productId) {
+    if (typeof CartManager === 'undefined') {
+        showNotification('Cart system not available. Please refresh the page.', 'error');
+        return;
+    }
+    
+    var quantityInput = document.getElementById('quantity');
+    var quantity = parseInt(quantityInput ? quantityInput.value : 1) || 1;
+    var button = document.querySelector('.add-to-cart-btn');
+    
+    if (!button) {
+        showNotification('Button not found', 'error');
+        return;
+    }
+    
+    // Validate quantity
+    if (quantity < 1 || quantity > 99) {
+        showNotification('Quantity must be between 1 and 99', 'error');
+        return;
+    }
+    
+    try {
+        // Get product details from the page
+        var productName = document.querySelector('.product-title').textContent.trim();
+        var productPrice = document.querySelector('.current-price').textContent.replace('$', '').trim();
+        var productImage = document.getElementById('mainImage').src;
+        
+        // Validate product data
+        if (!productName || !productPrice || !productImage) {
+            showNotification('Missing product information', 'error');
+            return;
+        }
+        
+        // Show loading state
+        var originalText = button.innerHTML;
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
+        button.disabled = true;
+        
+        // Add to cart using CartManager
+        setTimeout(function() {
+            var item = {
+                id: String(productId),
+                type: String(productType),
+                name: productName,
+                price: parseFloat(productPrice),
+                image: productImage,
+                quantity: quantity
+            };
+            
+            var success = CartManager.addItem(item);
+            
+            if (success) {
+                // Success feedback
+                button.innerHTML = '<i class="fas fa-check me-2"></i>Added to Cart!';
+                button.style.background = '#48bb78';
+                
+                // Show success notification
+                showNotification('Added ' + quantity + ' item(s) to cart successfully!', 'success');
+            } else {
+                // Error feedback
+                button.innerHTML = '<i class="fas fa-times me-2"></i>Error';
+                button.style.background = '#dc3545';
+                
+                showNotification('Failed to add item to cart', 'error');
+            }
+            
+            // Reset button after 2 seconds
+            setTimeout(function() {
+                button.innerHTML = originalText;
+                button.style.background = '#ffd700';
+                button.disabled = false;
+            }, 2000);
+        }, 300);
+    } catch (e) {
+        console.error('Error adding to cart:', e);
+        showNotification('An error occurred. Please try again.', 'error');
+        
+        if (button) {
+            button.disabled = false;
+        }
+    }
+}
+
+// Notification system
+function showNotification(message, type) {
+    var notification = document.createElement('div');
+    notification.className = 'notification notification-' + type;
+    notification.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'info-circle') + ' me-2"></i>' + message;
+    
+    notification.style.cssText = 
+        'position: fixed; top: 20px; right: 20px; z-index: 9999; ' +
+        'background: ' + (type === 'success' ? '#48bb78' : '#667eea') + '; ' +
+        'color: white; padding: 15px 20px; border-radius: 10px; ' +
+        'box-shadow: 0 4px 15px rgba(0,0,0,0.2); ' +
+        'transform: translateX(100%); transition: transform 0.3s ease;';
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(function() {
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(function() {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(function() {
+            if (notification.parentNode) {
+                document.body.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+
+// Initialize when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeQuantityControls();
+});
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- Back to Accessories Button -->
+<div class="container mt-3">
+  <a href="{% url 'accessories' %}" class="btn btn-outline-secondary mb-3">
+    <i class="fas fa-arrow-left me-2"></i>Back to Accessories
+  </a>
+</div>
+
+<!-- Product Detail Hero Section -->
+<section class="accessory-detail-hero">
+  <div class="container">
+    <div class="row align-items-center">
+      <div class="col-lg-6 mb-4 mb-lg-0">
+        <div class="product-gallery">
+          <!-- Main Image Display -->
+          <div class="main-image-container">
+            <img id="mainImage" src="{{ accessory.image.url }}" alt="{{ accessory.name }}" class="main-product-image" style="cursor: pointer;">
+            {% if accessory.is_discounted %}
+            <div class="discount-badge">
+              <span>SALE</span>
+            </div>
+            {% endif %}
+          </div>
+          
+          <!-- Thumbnail Gallery -->
+          <div class="thumbnail-gallery">
+            {% if accessory.image %}
+            <div class="thumbnail-item active" data-image="{{ accessory.image.url }}" onclick="switchMainImage('{{ accessory.image.url }}', this)" style="cursor: pointer;">
+              <img src="{{ accessory.image.url }}" alt="{{ accessory.name }}" loading="lazy">
+            </div>
+            {% endif %}
+            {% if accessory.image2 %}
+            <div class="thumbnail-item" data-image="{{ accessory.image2.url }}" onclick="switchMainImage('{{ accessory.image2.url }}', this)" style="cursor: pointer;">
+              <img src="{{ accessory.image2.url }}" alt="{{ accessory.name }}" loading="lazy">
+            </div>
+            {% endif %}
+            {% if accessory.image3 %}
+            <div class="thumbnail-item" data-image="{{ accessory.image3.url }}" onclick="switchMainImage('{{ accessory.image3.url }}', this)" style="cursor: pointer;">
+              <img src="{{ accessory.image3.url }}" alt="{{ accessory.name }}" loading="lazy">
+            </div>
+            {% endif %}
+            {% if accessory.image4 %}
+            <div class="thumbnail-item" data-image="{{ accessory.image4.url }}" onclick="switchMainImage('{{ accessory.image4.url }}', this)" style="cursor: pointer;">
+              <img src="{{ accessory.image4.url }}" alt="{{ accessory.name }}" loading="lazy">
+            </div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-6">
+        <div class="product-info">
+          <div class="product-category">{{ accessory.category }}</div>
+          <h1 class="product-title">{{ accessory.name }}</h1>
+          
+          <div class="product-pricing">
+            {% if accessory.is_discounted %}
+            <span class="original-price">${{ accessory.original_price }}</span>
+            <span class="current-price">${{ accessory.price }}</span>
+            <span class="discount-percent">
+              {% widthratio accessory.original_price|floatformat:0|add:0 accessory.price|floatformat:0|add:0 100 as discount_ratio %}
+              {{ discount_ratio|floatformat:0 }}% OFF
+            </span>
+            {% else %}
+            <span class="current-price">${{ accessory.price }}</span>
+            {% endif %}
+          </div>
+
+          <div class="product-actions">
+            <div class="quantity-selector">
+              <label for="quantity">Quantity:</label>
+              <div class="quantity-controls">
+                <button type="button" class="qty-btn minus">-</button>
+                <input type="number" id="quantity" value="1" min="1" max="10">
+                <button type="button" class="qty-btn plus">+</button>
+              </div>
+            </div>
+            
+            <button class="add-to-cart-btn" onclick="addToCart('accessory', {{ accessory.id }})">
+              <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+            </button>
+          </div>
+
+          <div class="product-features">
+            <div class="feature-item">
+              <i class="fas fa-shipping-fast"></i>
+              <span>Free Shipping on orders over $50</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-undo"></i>
+              <span>30-day return policy</span>
+            </div>
+            <div class="feature-item">
+              <i class="fas fa-shield-alt"></i>
+              <span>Quality guaranteed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Product Details Section -->
+<section class="product-details-section py-5">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8">
+        <div class="details-card">
+          <h3 class="details-title">Product Description</h3>
+          <div class="product-description">
+            {{ accessory.description|linebreaks }}
+          </div>
+        </div>
+
+        <div class="details-card">
+          <h3 class="details-title">Product Specifications</h3>
+          <div class="specifications">
+            <div class="spec-item">
+              <span class="spec-label">Category:</span>
+              <span class="spec-value">{{ accessory.category }}</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Product ID:</span>
+              <span class="spec-value">#{{ accessory.id }}</span>
+            </div>
+            <div class="spec-item">
+              <span class="spec-label">Availability:</span>
+              <span class="spec-value in-stock">In Stock</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-lg-4">
+        <div class="sidebar-card">
+          <h4 class="sidebar-title">Related Products</h4>
+          <div class="related-products">
+            {% for related in related_accessories %}
+            <div class="related-item">
+              <a href="{% url 'accessory_detail' related.slug %}">
+                <img src="{{ related.image.url }}" alt="{{ related.name }}" class="related-image">
+                <div class="related-info">
+                  <h6>{{ related.name|truncatechars:30 }}</h6>
+                  <span class="related-price">${{ related.price }}</span>
+                </div>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+
+        <div class="sidebar-card">
+          <h4 class="sidebar-title">Customer Reviews</h4>
+          <div class="reviews-summary">
+            <div class="rating-display">
+              <div class="stars">
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star"></i>
+                <i class="fas fa-star-half-alt"></i>
+              </div>
+              <span class="rating-text">4.5 out of 5 stars</span>
+            </div>
+            <p class="review-count">Based on 24 customer reviews</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/accessory_detail.js' %}"></script>
+{% endblock %}
