@@ -95,7 +95,7 @@ class AccessoryAdmin(admin.ModelAdmin):
             'fields': ('price', 'original_price', 'discount_info')
         }),
         ('Media', {
-            'fields': ('image', 'image_preview')
+            'fields': ('image', 'image2', 'image3', 'image4', 'image_preview')
         })
     )
     
@@ -145,9 +145,9 @@ admin.site.register(Accessory, AccessoryAdmin)
 
 # Separate admin for Browse Pets (Admin-added pets only)
 class BrowsePetAdmin(admin.ModelAdmin):
-    list_display = ['breed', 'age', 'gender', 'price', 'status', 'is_featured', 'city', 'image_preview', 'view_detail']
-    list_filter = ['breed', 'gender', 'status', 'is_featured', 'is_urgent', 'vaccination_status', 'city', 'created_at']
-    search_fields = ['breed__name', 'description', 'city', 'seller__username', 'seller__first_name', 'seller__last_name']
+    list_display = ['breed', 'age', 'gender', 'price', 'status', 'is_featured', 'image_preview', 'view_detail']
+    list_filter = ['breed', 'gender', 'status', 'is_featured', 'is_urgent', 'vaccination_status', 'created_at']
+    search_fields = ['breed__name', 'description', 'seller__username', 'seller__first_name', 'seller__last_name']
     prepopulated_fields = {'slug': ('breed',)}
     readonly_fields = ['image_preview', 'created_at', 'updated_at', 'is_user_submitted']
     list_editable = ['is_featured', 'status']
@@ -165,9 +165,6 @@ class BrowsePetAdmin(admin.ModelAdmin):
         }),
         ('Pet Details', {
             'fields': ('weight', 'color', 'vaccination_status', 'health_certificate')
-        }),
-        ('Location', {
-            'fields': ('city', 'state', 'address', 'latitude', 'longitude', 'location_map')
         }),
         ('Media', {
             'fields': ('image', 'image2', 'image3', 'image_preview')

@@ -196,65 +196,40 @@
     
     var isInitialized = false;
     
-    // Notification system
     function showNotification(message, type) {
         var notification = document.createElement('div');
         notification.className = 'notification notification-' + type;
         notification.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + ' me-2"></i>' + message;
-        
-        notification.style.cssText = 
+        notification.style.cssText =
             'position: fixed; top: 20px; right: 20px; z-index: 9999; ' +
             'background: ' + (type === 'success' ? '#48bb78' : '#dc3545') + '; ' +
             'color: white; padding: 15px 20px; border-radius: 10px; ' +
             'box-shadow: 0 4px 15px rgba(0,0,0,0.2); ' +
             'transform: translateX(100%); transition: transform 0.3s ease;';
-        
         document.body.appendChild(notification);
-        
-        // Animate in
-        setTimeout(function() {
-            notification.style.transform = 'translateX(0)';
-        }, 100);
-        
-        // Remove after 3 seconds
+        setTimeout(function() { notification.style.transform = 'translateX(0)'; }, 100);
         setTimeout(function() {
             notification.style.transform = 'translateX(100%)';
-            setTimeout(function() {
-                if (notification.parentNode) {
-                    document.body.removeChild(notification);
-                }
-            }, 300);
+            setTimeout(function() { if (notification.parentNode) { document.body.removeChild(notification); } }, 300);
         }, 3000);
     }
     
-    // Handle add to cart click
     function handleAddToCart(button) {
         if (typeof CartManager === 'undefined') {
-            console.error('CartManager not available');
             showNotification('Cart system not available. Please refresh the page.', 'error');
             return;
         }
-        
         var productId = button.getAttribute('data-item-id');
         var productName = button.getAttribute('data-item-name');
         var productPrice = button.getAttribute('data-item-price');
         var productImage = button.getAttribute('data-item-image');
-        
-        console.log('Add to cart clicked:', {productId, productName, productPrice, productImage});
-        
-        // Validate data
         if (!productId || !productName || !productPrice) {
-            console.error('Missing product data');
             showNotification('Missing product information', 'error');
             return;
         }
-        
-        // Show loading state
         var originalText = button.innerHTML;
         button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding...';
         button.disabled = true;
-        
-        // Add to cart using CartManager
         setTimeout(function() {
             var item = {
                 id: String(productId),
@@ -264,21 +239,13 @@
                 image: productImage,
                 quantity: 1
             };
-            
-            console.log('Adding item:', item);
             var success = CartManager.addItem(item);
-            console.log('Add result:', success);
-            
             if (success) {
-                // Success state
                 button.innerHTML = '<i class="fas fa-check me-1"></i>Added!';
                 button.style.backgroundColor = '#28a745';
                 button.style.borderColor = '#28a745';
                 button.style.color = 'white';
-                
                 showNotification('Added ' + productName + ' to cart!', 'success');
-                
-                // Reset button after 2 seconds
                 setTimeout(function() {
                     button.innerHTML = originalText;
                     button.style.backgroundColor = '';
@@ -287,15 +254,11 @@
                     button.disabled = false;
                 }, 2000);
             } else {
-                // Error state
                 button.innerHTML = '<i class="fas fa-times me-1"></i>Error';
                 button.style.backgroundColor = '#dc3545';
                 button.style.borderColor = '#dc3545';
                 button.style.color = 'white';
-                
                 showNotification('Failed to add item to cart', 'error');
-                
-                // Reset after 2 seconds
                 setTimeout(function() {
                     button.innerHTML = originalText;
                     button.style.backgroundColor = '';
@@ -307,57 +270,24 @@
         }, 300);
     }
     
-    // Initialize cart buttons using event delegation
     function initializeCartButtons() {
-        if (isInitialized) {
-            console.log('Already initialized, skipping');
-            return;
-        }
-        
-        console.log('Initializing cart buttons with event delegation');
-        
-        // Use event delegation on document body for maximum compatibility
+        if (isInitialized) { return; }
         document.body.addEventListener('click', function(e) {
-            // Check if clicked element is or is inside an add-to-cart button
             var button = e.target.closest('.add-to-cart-btn');
             if (button && !button.disabled) {
                 e.preventDefault();
                 e.stopPropagation();
-                console.log('Button clicked via delegation');
                 handleAddToCart(button);
             }
         });
-        
         isInitialized = true;
-        console.log('Cart buttons initialized successfully');
-        
-        // Log button count for debugging
-        var buttons = document.querySelectorAll('.add-to-cart-btn');
-        console.log('Found', buttons.length, 'add-to-cart buttons');
-        
-        // Log first button details for debugging
-        if (buttons.length > 0) {
-            console.log('First button data:', {
-                id: buttons[0].getAttribute('data-item-id'),
-                name: buttons[0].getAttribute('data-item-name'),
-                price: buttons[0].getAttribute('data-item-price'),
-                image: buttons[0].getAttribute('data-item-image')
-            });
-        }
     }
     
-    // Initialize immediately when DOM is ready
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM loaded, initializing cart');
-            initializeCartButtons();
-        });
+        document.addEventListener('DOMContentLoaded', function() { initializeCartButtons(); });
     } else {
-        // DOM already loaded
-        console.log('DOM already loaded, initializing cart immediately');
         initializeCartButtons();
     }
-    
 })();
 </script>
 {% endblock %}

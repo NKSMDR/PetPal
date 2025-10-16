@@ -6,69 +6,440 @@
 {% endblock %}
 
 {% block content %}
-<section class="py-5 bg-light">
+<div class="cart-page">
   <div class="container">
-    <h2 class="fw-bold text-center mb-4"><span style="vertical-align:middle;">🛒</span> Your Cart</h2>
-    {% if cart_items %}
-    <div class="table-responsive">
-      <table class="table align-middle cart-table bg-white rounded shadow-sm">
-        <thead>
-          <tr>
-            <th></th>
-            <th>Product</th>
-            <th>Type</th>
-            <th>Price</th>
-            <th style="width:120px;">Quantity</th>
-            <th>Subtotal</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for item in cart_items %}
-          <tr>
-            <td>
-              <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" style="width:60px;height:60px;object-fit:contain;">
-            </td>
-            <td>
-              <strong>{{ item.product.name }}</strong>
-              <div class="text-muted small">
-                {% if item.type == 'accessory' %}{{ item.product.category }}{% else %}Pet{% endif %}
-              </div>
-            </td>
-            <td class="text-capitalize">{{ item.type }}</td>
-            <td>${{ item.product.price }}</td>
-            <td>
-              <form method="post" action="{% url 'update_cart' item.type item.product.id %}">
-                {% csrf_token %}
-                <input type="number" name="quantity" value="{{ item.qty }}" min="1" class="form-control form-control-sm d-inline-block" style="width:60px;">
-                <button class="btn btn-sm btn-outline-secondary ms-1" type="submit">Update</button>
-              </form>
-            </td>
-            <td>${{ item.subtotal }}</td>
-            <td>
-              <a href="{% url 'remove_from_cart' item.type item.product.id %}" class="btn btn-sm btn-danger">Remove</a>
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-        <tfoot>
-          <tr>
-            <td colspan="5" class="text-end fw-bold">Total:</td>
-            <td class="fw-bold">${{ total }}</td>
-            <td></td>
-          </tr>
-        </tfoot>
-      </table>
+    <!-- Cart Header -->
+    <div class="cart-header">
+      <h2><i class="fas fa-shopping-cart me-2"></i>Your Shopping Cart</h2>
+      <div class="cart-summary" id="cart-summary">
+        <span id="items-count">0</span> items in your cart
+      </div>
     </div>
-    <div class="text-end">
-      <a href="#" class="btn btn-success btn-lg mt-3">Proceed to Checkout</a>
+    
+    <!-- Cart Content -->
+    <div id="cart-container">
+      <!-- Loading state -->
+      <div id="cart-loading" class="cart-loading">
+        <div class="loading-spinner">
+          <i class="fas fa-spinner fa-spin"></i>
+        </div>
+        <p>Loading your cart...</p>
+      </div>
+      
+      <!-- Cart items section (hidden initially) -->
+      <div id="cart-items-section" style="display: none;">
+        <div class="cart-table-container">
+          <table class="table cart-table">
+            <thead>
+              <tr>
+                <th>Product</th>
+                <th>Details</th>
+                <th>Price</th>
+                <th>Quantity</th>
+                <th>Subtotal</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="cart-items-tbody">
+              <!-- Items will be populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Cart Footer with Totals and Actions -->
+        <div class="cart-footer">
+          <!-- Cart Totals -->
+          <div class="cart-total-section">
+            <div class="total-row">
+              <span>Subtotal:</span>
+              <span id="cart-subtotal">$0.00</span>
+            </div>
+            <div class="total-row">
+              <span>Shipping:</span>
+              <span id="cart-shipping">Free</span>
+            </div>
+            <div class="total-row">
+              <span>Tax:</span>
+              <span id="cart-tax">$0.00</span>
+            </div>
+            <div class="total-row">
+              <span>Total:</span>
+              <span id="cart-total">$0.00</span>
+            </div>
+          </div>
+          
+          <!-- Action Buttons -->
+          <div class="cart-actions">
+            <div>
+              <a href="{% url 'accessories' %}" class="continue-shopping">
+                <i class="fas fa-arrow-left"></i>
+                Continue Shopping
+              </a>
+              <button class="clear-cart-btn ms-3" onclick="clearCart()">
+                <i class="fas fa-trash"></i>
+                Clear Cart
+              </button>
+            </div>
+            <button class="checkout-btn" onclick="proceedToCheckout()">
+              <i class="fas fa-credit-card"></i>
+              Proceed to Checkout
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Empty cart message (hidden initially) -->
+      <div id="empty-cart" class="empty-cart" style="display: none;">
+        <div class="empty-cart-icon">
+          <i class="fas fa-shopping-cart"></i>
+        </div>
+        <h4>Your cart is empty</h4>
+        <p>Looks like you haven't added any items to your cart yet. Start shopping to fill it up!</p>
+        <a href="{% url 'accessories' %}" class="shop-now-btn">
+          <i class="fas fa-shopping-bag"></i>
+          Start Shopping
+        </a>
+      </div>
     </div>
-    {% else %}
-    <div class="text-center text-muted py-5">
-      <h4>Your cart is empty.</h4>
-      <a href="{% url 'accessories' %}" class="btn btn-primary mt-3">Shop Accessories</a>
-    </div>
-    {% endif %}
   </div>
-</section>
+</div>
+
+<script>
+// Cart page functionality
+(function() {
+    'use strict';
+    
+    // Initialize cart page
+    function initCartPage() {
+        if (typeof CartManager === 'undefined') {
+            console.error('CartManager not available');
+            document.getElementById('cart-loading').style.display = 'none';
+            showError('Cart system not available. Please refresh the page.');
+            return;
+        }
+        
+        loadCartItems();
+    }
+    
+    // Show error message
+    function showError(message) {
+        var container = document.getElementById('cart-container');
+        container.innerHTML = '<div class="alert alert-danger text-center p-5"><i class="fas fa-exclamation-triangle fa-3x mb-3"></i><h4>' + message + '</h4><button class="btn btn-primary mt-3" onclick="location.reload()">Refresh Page</button></div>';
+    }
+    
+    // Load cart items
+    window.loadCartItems = function() {
+        setTimeout(function() {
+            document.getElementById('cart-loading').style.display = 'none';
+            
+            try {
+                var cart = CartManager.getCart();
+                displayCartItems(cart);
+            } catch (e) {
+                console.error('Error loading cart:', e);
+                showError('Failed to load cart. Please try again.');
+            }
+        }, 300);
+    };
+    
+    // Initialize on DOM ready
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initCartPage);
+    } else {
+        initCartPage();
+    }
+})();
+
+function displayCartItems(cart) {
+    var tbody = document.getElementById('cart-items-tbody');
+    var cartItemsSection = document.getElementById('cart-items-section');
+    var emptyCart = document.getElementById('empty-cart');
+    var itemsCount = document.getElementById('items-count');
+    
+    if (!cart || cart.length === 0) {
+        showEmptyCart();
+        return;
+    }
+    
+    // Clear existing items
+    tbody.innerHTML = '';
+    
+    var subtotal = 0;
+    var totalItems = 0;
+    
+    cart.forEach(function(item, index) {
+        var itemSubtotal = item.price * item.quantity;
+        subtotal += itemSubtotal;
+        totalItems += item.quantity;
+        
+        var row = document.createElement('tr');
+        row.className = 'cart-item-row';
+        row.innerHTML = `
+            <td>
+                <img src="${item.image}" alt="${item.name}" class="product-image">
+            </td>
+            <td>
+                <div class="product-name">${item.name}</div>
+                <div class="product-type">${item.type}</div>
+            </td>
+            <td class="price-display">$${item.price.toFixed(2)}</td>
+            <td>
+                <div class="quantity-controls">
+                    <button class="quantity-btn" onclick="updateQuantity('${item.id}', '${item.type}', ${item.quantity - 1})" type="button">
+                        <i class="fas fa-minus"></i>
+                    </button>
+                    <input type="number" value="${item.quantity}" min="1" max="99" 
+                           class="quantity-input" id="qty-${item.id}-${item.type}"
+                           onchange="updateQuantity('${item.id}', '${item.type}', parseInt(this.value) || 1)"
+                           data-item-id="${item.id}" data-item-type="${item.type}">
+                    <button class="quantity-btn" onclick="updateQuantity('${item.id}', '${item.type}', ${item.quantity + 1})" type="button">
+                        <i class="fas fa-plus"></i>
+                    </button>
+                </div>
+            </td>
+            <td class="price-display">$${itemSubtotal.toFixed(2)}</td>
+            <td>
+                <button class="remove-btn" onclick="removeItem('${item.id}', '${item.type}')">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </td>
+        `;
+        tbody.appendChild(row);
+    });
+    
+    // Calculate tax (8% for example)
+    var tax = subtotal * 0.08;
+    var total = subtotal + tax;
+    
+    // Update all totals
+    document.getElementById('cart-subtotal').textContent = '$' + subtotal.toFixed(2);
+    document.getElementById('cart-tax').textContent = '$' + tax.toFixed(2);
+    document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
+    itemsCount.textContent = totalItems;
+    
+    // Show cart sections
+    cartItemsSection.style.display = 'block';
+    emptyCart.style.display = 'none';
+}
+
+function showEmptyCart() {
+    document.getElementById('cart-items-section').style.display = 'none';
+    document.getElementById('empty-cart').style.display = 'block';
+    document.getElementById('items-count').textContent = '0';
+}
+
+function updateQuantity(itemId, itemType, newQuantity) {
+    // Validate quantity
+    newQuantity = parseInt(newQuantity);
+    
+    if (isNaN(newQuantity)) {
+        showNotification('Invalid quantity', 'error');
+        loadCartItems(); // Reload to restore correct state
+        return;
+    }
+    
+    if (newQuantity < 1) {
+        removeItem(itemId, itemType);
+        return;
+    }
+    
+    if (newQuantity > 99) {
+        newQuantity = 99;
+        showNotification('Maximum quantity is 99', 'error');
+    }
+    
+    if (typeof CartManager === 'undefined') {
+        showNotification('Cart system not available. Please refresh the page.', 'error');
+        return;
+    }
+    
+    try {
+        var success = CartManager.updateQuantity(itemId, itemType, newQuantity);
+        
+        if (success) {
+            // Immediately update totals without full refresh for better UX
+            updateCartTotals();
+        } else {
+            // Reload cart to restore correct state
+            loadCartItems();
+            showNotification('Failed to update quantity. Please try again.', 'error');
+        }
+    } catch (e) {
+        console.error('Error updating quantity:', e);
+        loadCartItems();
+        showNotification('An error occurred. Please try again.', 'error');
+    }
+}
+
+// Function to update cart totals without full refresh
+function updateCartTotals() {
+    if (typeof CartManager !== 'undefined') {
+        var cart = CartManager.getCart();
+        var subtotal = 0;
+        var totalItems = 0;
+        
+        cart.forEach(function(item) {
+            subtotal += item.price * item.quantity;
+            totalItems += item.quantity;
+        });
+        
+        var tax = subtotal * 0.08;
+        var total = subtotal + tax;
+        
+        // Update display elements
+        document.getElementById('cart-subtotal').textContent = '$' + subtotal.toFixed(2);
+        document.getElementById('cart-tax').textContent = '$' + tax.toFixed(2);
+        document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
+        document.getElementById('items-count').textContent = totalItems;
+        
+        // Update individual row subtotals
+        cart.forEach(function(item) {
+            var rowSubtotal = item.price * item.quantity;
+            var subtotalElements = document.querySelectorAll(`[data-item-id="${item.id}"][data-item-type="${item.type}"]`);
+            subtotalElements.forEach(function(element) {
+                var row = element.closest('tr');
+                if (row) {
+                    var subtotalCell = row.querySelector('td:nth-child(5)');
+                    if (subtotalCell) {
+                        subtotalCell.textContent = '$' + rowSubtotal.toFixed(2);
+                    }
+                    var quantityInput = row.querySelector('.quantity-input');
+                    if (quantityInput) {
+                        quantityInput.value = item.quantity;
+                    }
+                }
+            });
+        });
+    }
+}
+
+function removeItem(itemId, itemType) {
+    if (!itemId || !itemType) {
+        showNotification('Invalid item', 'error');
+        return;
+    }
+    
+    if (!confirm('Are you sure you want to remove this item from your cart?')) {
+        return;
+    }
+    
+    if (typeof CartManager === 'undefined') {
+        showNotification('Cart system not available. Please refresh the page.', 'error');
+        return;
+    }
+    
+    try {
+        var success = CartManager.removeItem(itemId, itemType);
+        if (success) {
+            loadCartItems(); // Refresh display
+            showNotification('Item removed from cart', 'success');
+        } else {
+            showNotification('Failed to remove item', 'error');
+        }
+    } catch (e) {
+        console.error('Error removing item:', e);
+        showNotification('An error occurred. Please try again.', 'error');
+    }
+}
+
+function clearCart() {
+    if (!confirm('Are you sure you want to clear your entire cart? This action cannot be undone.')) {
+        return;
+    }
+    
+    if (typeof CartManager === 'undefined') {
+        showNotification('Cart system not available. Please refresh the page.', 'error');
+        return;
+    }
+    
+    try {
+        var success = CartManager.clearCart();
+        if (success) {
+            loadCartItems(); // Refresh display
+            showNotification('Cart cleared successfully!', 'success');
+        } else {
+            showNotification('Failed to clear cart', 'error');
+        }
+    } catch (e) {
+        console.error('Error clearing cart:', e);
+        showNotification('An error occurred. Please try again.', 'error');
+    }
+}
+
+function proceedToCheckout() {
+    if (typeof CartManager === 'undefined') {
+        showNotification('Cart system not available. Please refresh the page.', 'error');
+        return;
+    }
+    
+    try {
+        var cart = CartManager.getCart();
+        
+        if (!cart || cart.length === 0) {
+            showNotification('Your cart is empty!', 'error');
+            return;
+        }
+        
+        // Calculate totals
+        var subtotal = CartManager.getTotalPrice();
+        var tax = subtotal * 0.08;
+        var total = subtotal + tax;
+        var totalItems = CartManager.getTotalItems();
+        
+        // Show checkout summary
+        var checkoutMessage = '🛒 CHECKOUT SUMMARY\n\n';
+        checkoutMessage += 'Items: ' + totalItems + '\n';
+        checkoutMessage += 'Subtotal: $' + subtotal.toFixed(2) + '\n';
+        checkoutMessage += 'Tax (8%): $' + tax.toFixed(2) + '\n';
+        checkoutMessage += 'Total: $' + total.toFixed(2) + '\n\n';
+        checkoutMessage += 'Proceeding to secure checkout...';
+        
+        alert(checkoutMessage);
+        
+        // In a real app, this would redirect to checkout page
+        // window.location.href = '/checkout/';
+    } catch (e) {
+        console.error('Error during checkout:', e);
+        showNotification('An error occurred. Please try again.', 'error');
+    }
+}
+
+// Notification system for cart page
+function showNotification(message, type) {
+    var notification = document.createElement('div');
+    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
+    notification.style.cssText = `
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        min-width: 300px;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease;
+    `;
+    notification.innerHTML = `
+        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
+        ${message}
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Animate in
+    setTimeout(function() {
+        notification.style.opacity = '1';
+        notification.style.transform = 'translateX(0)';
+    }, 100);
+    
+    // Remove after 3 seconds
+    setTimeout(function() {
+        notification.style.opacity = '0';
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(function() {
+            if (notification.parentNode) {
+                document.body.removeChild(notification);
+            }
+        }, 300);
+    }, 3000);
+}
+</script>
 {% endblock %}

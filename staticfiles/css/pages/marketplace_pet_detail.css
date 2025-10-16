@@ -1,0 +1,296 @@
+/* Marketplace Pet Detail Styles */
+
+.marketplace-badge {
+    text-align: left;
+}
+
+.marketplace-badge .badge {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    border-radius: 20px;
+    background: linear-gradient(135deg, #28a745, #20c997);
+}
+
+.pet-name {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.pet-price {
+    margin-bottom: 1.5rem;
+}
+
+.pet-price .price {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #28a745;
+    background: linear-gradient(135deg, #28a745, #20c997);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Pet Images */
+.pet-images {
+    position: sticky;
+    top: 20px;
+}
+
+.main-pet-image {
+    width: 100%;
+    height: 400px;
+    object-fit: cover;
+    border-radius: 15px;
+    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    transition: transform 0.3s ease;
+}
+
+.main-pet-image:hover {
+    transform: scale(1.02);
+}
+
+.additional-images {
+    gap: 10px;
+}
+
+.additional-image {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    cursor: pointer;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    border: 2px solid transparent;
+}
+
+.additional-image:hover {
+    border-color: #28a745;
+    transform: scale(1.1);
+}
+
+/* Seller Information Card */
+.seller-info {
+    border: none;
+    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.1);
+    border-radius: 15px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+}
+
+.seller-info .card-header {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    border: none;
+    padding: 15px 20px;
+}
+
+.seller-info .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.seller-info .card-header i {
+    margin-right: 8px;
+}
+
+.seller-info .card-body {
+    padding: 20px;
+}
+
+.seller-info .btn-primary {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border: none;
+    border-radius: 20px;
+    padding: 8px 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.seller-info .btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(0, 123, 255, 0.3);
+}
+
+/* Pet Details Cards */
+.pet-details, .health-info, .pet-description {
+    border: none;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    border-radius: 15px;
+    transition: transform 0.3s ease;
+}
+
+.pet-details:hover, .health-info:hover, .pet-description:hover {
+    transform: translateY(-2px);
+}
+
+.pet-details .card-header,
+.health-info .card-header,
+.pet-description .card-header {
+    background: linear-gradient(135deg, #6c757d, #495057);
+    color: white;
+    border-radius: 15px 15px 0 0;
+    border: none;
+    padding: 15px 20px;
+}
+
+.pet-details .card-header h5,
+.health-info .card-header h5,
+.pet-description .card-header h5 {
+    margin: 0;
+    font-weight: 600;
+}
+
+.pet-details .card-header i,
+.health-info .card-header i,
+.pet-description .card-header i {
+    margin-right: 8px;
+}
+
+.pet-details .card-body,
+.health-info .card-body,
+.pet-description .card-body {
+    padding: 20px;
+}
+
+/* Health Badge */
+.health-badge .badge {
+    font-size: 0.9rem;
+    padding: 10px 15px;
+    border-radius: 20px;
+}
+
+/* Related Pets Section */
+.related-pets {
+    padding-top: 2rem;
+    border-top: 2px solid #e9ecef;
+}
+
+.related-pets h3 {
+    color: #2c3e50;
+    font-weight: 700;
+    margin-bottom: 2rem;
+    text-align: center;
+}
+
+.pet-card {
+    border: none;
+    border-radius: 15px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    height: 100%;
+}
+
+.pet-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+.card-img-container {
+    position: relative;
+    overflow: hidden;
+    height: 200px;
+}
+
+.pet-card .card-img-top {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s ease;
+}
+
+.pet-card:hover .card-img-top {
+    transform: scale(1.1);
+}
+
+.pet-card .card-body {
+    padding: 15px;
+    text-align: center;
+}
+
+.pet-card .card-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 8px;
+}
+
+.pet-card .btn {
+    border-radius: 20px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.pet-card .btn:hover {
+    transform: translateY(-2px);
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .pet-name {
+        font-size: 2rem;
+    }
+    
+    .pet-price .price {
+        font-size: 1.5rem;
+    }
+    
+    .main-pet-image {
+        height: 300px;
+    }
+    
+    .additional-image {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .seller-info .card-body,
+    .pet-details .card-body,
+    .health-info .card-body,
+    .pet-description .card-body {
+        padding: 15px;
+    }
+}
+
+@media (max-width: 576px) {
+    .pet-name {
+        font-size: 1.8rem;
+    }
+    
+    .pet-price .price {
+        font-size: 1.3rem;
+    }
+    
+    .main-pet-image {
+        height: 250px;
+    }
+    
+    .marketplace-badge .badge {
+        font-size: 0.8rem;
+        padding: 6px 12px;
+    }
+}
+
+/* Animation for page load */
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.pet-info > * {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+.pet-info > *:nth-child(1) { animation-delay: 0.1s; }
+.pet-info > *:nth-child(2) { animation-delay: 0.2s; }
+.pet-info > *:nth-child(3) { animation-delay: 0.3s; }
+.pet-info > *:nth-child(4) { animation-delay: 0.4s; }
+.pet-info > *:nth-child(5) { animation-delay: 0.5s; }
+.pet-info > *:nth-child(6) { animation-delay: 0.6s; }

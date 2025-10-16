@@ -252,9 +252,9 @@ document.addEventListener('DOMContentLoaded', function() {
               </div>
             </div>
             
-            <button class="add-to-cart-btn" onclick="addToCart('accessory', {{ accessory.id }})">
+            <a href="{% url 'add_to_cart' 'accessory' accessory.id %}" class="add-to-cart-btn">
               <i class="fas fa-shopping-cart me-2"></i>Add to Cart
-            </button>
+            </a>
           </div>
 
           <div class="product-features">
