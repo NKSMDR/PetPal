@@ -167,6 +167,8 @@
                 cart.push(normalizedItem);
             }
             
+            // Also sync with Django backend
+            this.syncWithBackend();
             return this.saveCart(cart);
         },
         
@@ -189,6 +191,8 @@
                 return false;
             }
             
+            // Also sync with Django backend
+            this.syncWithBackend();
             return this.saveCart(cart);
         },
         
@@ -230,6 +234,8 @@
                 cart[itemIndex].quantity = newQuantity;
             }
             
+            // Also sync with Django backend
+            this.syncWithBackend();
             return this.saveCart(cart);
         },
         
@@ -260,6 +266,8 @@
             
             try {
                 localStorage.removeItem(CART_STORAGE_KEY);
+                // Also sync with Django backend
+                this.syncWithBackend();
                 this.updateCartCounter();
                 return true;
             } catch (e) {
@@ -279,6 +287,53 @@
         // Check if item exists in cart
         hasItem: function(itemId, itemType) {
             return this.getItem(itemId, itemType) !== undefined;
+        },
+        
+        // Sync cart with Django backend
+        syncWithBackend: function() {
+            var cart = this.getCart();
+            var self = this;
+            
+            // Convert cart to Django session format
+            var djangoCart = cart.map(function(item) {
+                return {
+                    product_type: item.type,
+                    product_id: parseInt(item.id),
+                    qty: parseInt(item.quantity)
+                };
+            });
+            
+            // Send to Django backend via AJAX
+            if (typeof fetch !== 'undefined') {
+                fetch('/sync-cart/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.getCSRFToken()
+                    },
+                    body: JSON.stringify({
+                        cart: djangoCart
+                    })
+                }).then(function(response) {
+                    if (!response.ok) {
+                        console.warn('Failed to sync cart with backend');
+                    }
+                }).catch(function(error) {
+                    console.error('Error syncing cart with backend:', error);
+                });
+            }
+        },
+        
+        // Get CSRF token for Django
+        getCSRFToken: function() {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = cookies[i].trim();
+                if (cookie.indexOf('csrftoken=') === 0) {
+                    return cookie.substring('csrftoken='.length);
+                }
+            }
+            return '';
         },
         
         // Update cart counter in navbar
@@ -323,6 +378,52 @@
                     console.error('Error dispatching cartUpdated event:', e);
                 }
             }
+        },
+        
+        // Load cart from Django backend
+        loadFromBackend: function() {
+            var self = this;
+            if (typeof fetch !== 'undefined') {
+                fetch('/cart/', {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': this.getCSRFToken()
+                    }
+                }).then(function(response) {
+                    if (response.ok) {
+                        return response.text();
+                    }
+                    throw new Error('Failed to load cart');
+                }).then(function(html) {
+                    // Parse cart data from Django response
+                    var parser = new DOMParser();
+                    var doc = parser.parseFromString(html, 'text/html');
+                    var cartItems = doc.querySelectorAll('.cart-item-row');
+                    var backendCart = [];
+                    
+                    cartItems.forEach(function(item) {
+                        var productId = item.querySelector('[data-product-id]');
+                        var productType = item.querySelector('[data-product-type]');
+                        var quantity = item.querySelector('.quantity-input');
+                        
+                        if (productId && productType && quantity) {
+                            backendCart.push({
+                                id: productId.getAttribute('data-product-id'),
+                                type: productType.getAttribute('data-product-type'),
+                                quantity: parseInt(quantity.value) || 1
+                            });
+                        }
+                    });
+                    
+                    // Convert to our format and save
+                    if (backendCart.length > 0) {
+                        self.saveCart(backendCart);
+                    }
+                }).catch(function(error) {
+                    console.error('Error loading cart from backend:', error);
+                });
+            }
         }
     };
     
@@ -330,10 +431,18 @@
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', function() {
             CartManager.updateCartCounter();
+            // Try to load from backend if cart is empty
+            if (CartManager.getCart().length === 0) {
+                CartManager.loadFromBackend();
+            }
         });
     } else {
         // DOM already loaded
         CartManager.updateCartCounter();
+        // Try to load from backend if cart is empty
+        if (CartManager.getCart().length === 0) {
+            CartManager.loadFromBackend();
+        }
     }
     
     // Update cart counter when page becomes visible (for cross-tab sync)

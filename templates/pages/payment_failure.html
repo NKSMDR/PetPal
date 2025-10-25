@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Failed - PetPal{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white text-center">
+                    <h3><i class="fas fa-times-circle"></i> Payment Failed</h3>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-times-circle text-danger" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h4 class="text-danger mb-3">Sorry, your payment could not be processed</h4>
+                    
+                    <div class="alert alert-danger">
+                        <h5>Transaction Details</h5>
+                        <p><strong>Order ID:</strong> {{ order.order_id }}</p>
+                        <p><strong>Transaction ID:</strong> {{ transaction.transaction_uuid }}</p>
+                        <p><strong>Amount:</strong> ${{ transaction.transaction_amount }}</p>
+                        <p><strong>Status:</strong> <span class="badge bg-danger">{{ transaction.get_transaction_status_display }}</span></p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6>What can you do?</h6>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-credit-card text-primary"></i> Try again with a different payment method</li>
+                            <li><i class="fas fa-phone text-info"></i> Contact your bank if the issue persists</li>
+                            <li><i class="fas fa-envelope text-warning"></i> Contact our support team for assistance</li>
+                            <li><i class="fas fa-shopping-cart text-success"></i> Your cart items are still saved</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'checkout' %}" class="btn btn-primary">
+                            <i class="fas fa-redo"></i> Try Again
+                        </a>
+                        <a href="{% url 'cart' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-shopping-cart"></i> Back to Cart
+                        </a>
+                        <a href="{% url 'home' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-home"></i> Continue Shopping
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

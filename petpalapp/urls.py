@@ -39,4 +39,12 @@ urlpatterns = [
     path('add-to-cart/<str:product_type>/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
     path('remove-from-cart/<str:product_type>/<int:product_id>/', views.remove_from_cart, name='remove_from_cart'),
     path('update-cart/<str:product_type>/<int:product_id>/', views.update_cart, name='update_cart'),
+    # Payment URLs
+    path('checkout/', views.checkout, name='checkout'),
+    path('payment/success/<int:transaction_id>/', views.payment_success, name='payment_success'),
+    path('payment/failure/<int:transaction_id>/', views.payment_failure, name='payment_failure'),
+    # Cart sync URL
+    path('sync-cart/', views.sync_cart, name='sync_cart'),
+    # Debug URL
+    path('debug-cart/', views.debug_cart, name='debug_cart'),
 ]

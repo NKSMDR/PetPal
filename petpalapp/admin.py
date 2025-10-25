@@ -8,7 +8,7 @@ from django.contrib import messages
 
 # Register your models here.
 from django.contrib import admin
-from .models import Breed, Accessory, Pet, UserProfile
+from .models import Breed, Accessory, Pet, UserProfile, Order, OrderItem, Transaction
 
 # Create proxy models for separate admin sections
 class BrowsePet(Pet):
@@ -351,6 +351,62 @@ class UserProfileAdmin(admin.ModelAdmin):
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+
+# Order and Transaction Admin
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['order_id', 'customer', 'total_amount', 'status', 'created_at', 'view_items']
+    list_filter = ['status', 'created_at']
+    search_fields = ['order_id', 'customer__username', 'customer__email', 'customer__first_name', 'customer__last_name']
+    readonly_fields = ['order_id', 'created_at', 'updated_at']
+    list_editable = ['status']
+    
+    fieldsets = (
+        ('Order Information', {
+            'fields': ('order_id', 'customer', 'total_amount', 'status')
+        }),
+        ('Shipping Information', {
+            'fields': ('shipping_address', 'phone', 'notes')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def view_items(self, obj):
+        return format_html('<a href="#" class="button">View Items</a>')
+    view_items.short_description = "Items"
+
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ['order', 'product_name', 'product_type', 'quantity', 'unit_price', 'total_price']
+    list_filter = ['product_type', 'order__status']
+    search_fields = ['product_name', 'order__order_id', 'order__customer__username']
+    readonly_fields = ['order', 'product_type', 'product_id', 'product_name', 'quantity', 'unit_price', 'total_price']
+
+
+@admin.register(Transaction)
+class TransactionAdmin(admin.ModelAdmin):
+    list_display = ['transaction_uuid', 'order', 'transaction_amount', 'transaction_status', 'transaction_date']
+    list_filter = ['transaction_status', 'transaction_date']
+    search_fields = ['transaction_uuid', 'order__order_id', 'order__customer__username']
+    readonly_fields = ['transaction_uuid', 'transaction_date', 'esewa_response']
+    
+    fieldsets = (
+        ('Transaction Information', {
+            'fields': ('order', 'transaction_uuid', 'transaction_amount', 'transaction_status')
+        }),
+        ('eSewa Response', {
+            'fields': ('esewa_response',),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('transaction_date',),
             'classes': ('collapse',)
         })
     )

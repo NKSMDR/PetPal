@@ -4,10 +4,18 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.db.models import Q, Min, Max
+from django.db import IntegrityError
 from decimal import Decimal, InvalidOperation
 from django.utils import timezone
-from .models import Breed, Accessory, UserProfile, Pet
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+from django.views.decorators.http import require_http_methods
+import json
+import uuid
+from .models import Breed, Accessory, UserProfile, Pet, Order, OrderItem, Transaction
 from .forms import PetSubmissionForm
+from django_esewa import EsewaPayment
 
 def Home(request):
     return render(request, 'pages/home.html')
@@ -480,3 +488,211 @@ def marketplace_pet_detail(request, pk):
 def about_us(request):
     """Render the About Us page with company information and store location."""
     return render(request, 'pages/about_us.html')
+
+# eSewa Payment Views
+@login_required
+@ensure_csrf_cookie
+def checkout(request):
+    """Process checkout and create order"""
+    # Debug: Print request info
+    print(f"DEBUG: Request method: {request.method}")
+    print(f"DEBUG: CSRF cookie: {request.COOKIES.get('csrftoken', 'NOT FOUND')}")
+    print(f"DEBUG: POST data: {request.POST if request.method == 'POST' else 'N/A'}")
+    
+    cart = get_cart(request)
+    
+    # Debug: Print cart data
+    print(f"DEBUG: Cart data: {cart}")
+    print(f"DEBUG: Session keys: {list(request.session.keys())}")
+    
+    # If session cart is empty, try to get from request data (for JavaScript cart)
+    if not cart and request.method == 'GET':
+        # Check if there's cart data in the request
+        cart_data = request.GET.get('cart_data')
+        if cart_data:
+            try:
+                import json
+                cart = json.loads(cart_data)
+                print(f"DEBUG: Loaded cart from request data: {cart}")
+            except Exception as e:
+                print(f"DEBUG: Error parsing cart data: {e}")
+                pass
+    
+    if not cart:
+        messages.error(request, 'Your cart is empty! Please add some items to your cart first.')
+        return redirect('cart')
+    
+    # Calculate total
+    total = 0
+    cart_items = []
+    for item in cart:
+        if item['product_type'] == 'accessory':
+            product = get_object_or_404(Accessory, pk=item['product_id'])
+            subtotal = product.price * item['qty']
+            cart_items.append({
+                'product': product,
+                'qty': item['qty'],
+                'subtotal': subtotal,
+            })
+            total += subtotal
+    
+    if request.method == 'POST':
+        # Create order
+        order = Order.objects.create(
+            customer=request.user,
+            total_amount=total,
+            shipping_address=request.POST.get('shipping_address', ''),
+            phone=request.POST.get('phone', ''),
+            notes=request.POST.get('notes', '')
+        )
+        
+        # Create order items
+        for item in cart_items:
+            OrderItem.objects.create(
+                order=order,
+                product_type='accessory',
+                product_id=item['product'].id,
+                product_name=item['product'].name,
+                quantity=item['qty'],
+                unit_price=item['product'].price,
+                total_price=item['subtotal']
+            )
+        
+        # Create transaction
+        transaction_uuid = str(uuid.uuid4())
+        transaction = Transaction.objects.create(
+            order=order,
+            transaction_uuid=transaction_uuid,
+            transaction_amount=total,
+            transaction_status='PENDING'
+        )
+        
+        # Initialize eSewa payment
+        epayment = EsewaPayment(
+            product_code="EPAYTEST",
+            success_url=f'http://localhost:8000/payment/success/{transaction.id}/',
+            failure_url=f'http://localhost:8000/payment/failure/{transaction.id}/',
+            secret_key='8gBm/:&EnhH.1/q',
+            amount=str(total),
+            tax_amount='0',
+            product_service_charge='0',
+            product_delivery_charge='0',
+            total_amount=str(total),
+            transaction_uuid=transaction_uuid,
+        )
+        
+        epayment.create_signature()
+        
+        # Generate form HTML (django-esewa returns HTML string)
+        form_html = epayment.generate_form()
+        
+        # Debug: Print form HTML
+        print("DEBUG: eSewa Form HTML:")
+        print(form_html)
+        
+        # Note: Cart will be cleared after successful payment, not here
+        
+        context = {
+            'order': order,
+            'transaction': transaction,
+            'form': form_html,
+        }
+        return render(request, 'pages/checkout.html', context)
+    
+    context = {
+        'cart_items': cart_items,
+        'total': total,
+    }
+    return render(request, 'pages/checkout_form.html', context)
+
+def payment_success(request, transaction_id):
+    """Handle successful payment"""
+    transaction = get_object_or_404(Transaction, id=transaction_id)
+    order = transaction.order
+    
+    # Initialize eSewa payment for verification
+    epayment = EsewaPayment(
+        product_code="EPAYTEST",
+        success_url=f'http://localhost:8000/payment/success/{transaction.id}/',
+        failure_url=f'http://localhost:8000/payment/failure/{transaction.id}/',
+        secret_key='8gBm/:&EnhH.1/q',
+        amount=str(transaction.transaction_amount),
+        tax_amount='0',
+        product_service_charge='0',
+        product_delivery_charge='0',
+        total_amount=str(transaction.transaction_amount),
+        transaction_uuid=transaction.transaction_uuid,
+    )
+    epayment.create_signature()
+    
+    # Verify payment (in production, you would verify with eSewa API)
+    if epayment.is_completed(True):
+        transaction.transaction_status = 'SUCCESS'
+        order.status = 'processing'
+        transaction.save()
+        order.save()
+        
+        # Clear cart after successful payment
+        request.session['cart'] = []
+        request.session.modified = True
+        print(f"DEBUG: Cart cleared for user after successful payment")
+        
+        context = {
+            'order': order,
+            'transaction': transaction,
+        }
+        return render(request, 'pages/payment_success.html', context)
+    else:
+        return redirect('payment_failure', transaction_id=transaction.id)
+
+def payment_failure(request, transaction_id):
+    """Handle failed payment"""
+    transaction = get_object_or_404(Transaction, id=transaction_id)
+    order = transaction.order
+    
+    transaction.transaction_status = 'FAILURE'
+    order.status = 'cancelled'
+    transaction.save()
+    order.save()
+    
+    context = {
+        'order': order,
+        'transaction': transaction,
+    }
+    return render(request, 'pages/payment_failure.html', context)
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def sync_cart(request):
+    """Sync JavaScript cart with Django session cart"""
+    try:
+        data = json.loads(request.body)
+        cart_data = data.get('cart', [])
+        
+        print(f"DEBUG: Sync cart received data: {cart_data}")
+        
+        # Validate cart data
+        if not isinstance(cart_data, list):
+            return JsonResponse({'error': 'Invalid cart data'}, status=400)
+        
+        # Save to session
+        request.session['cart'] = cart_data
+        request.session.modified = True
+        
+        print(f"DEBUG: Cart synced to session: {request.session.get('cart')}")
+        
+        return JsonResponse({'status': 'success'})
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        print(f"DEBUG: Error in sync_cart: {e}")
+        return JsonResponse({'error': str(e)}, status=500)
+
+def debug_cart(request):
+    """Debug endpoint to check cart status"""
+    cart = get_cart(request)
+    return JsonResponse({
+        'cart': cart,
+        'session_keys': list(request.session.keys()),
+        'user': request.user.username if request.user.is_authenticated else 'Anonymous'
+    })

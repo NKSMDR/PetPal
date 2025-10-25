@@ -1,0 +1,129 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Checkout - PetPal{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h3><i class="fas fa-shopping-cart"></i> Checkout</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" action="{% url 'checkout' %}">
+                        {% csrf_token %}
+                        
+                        <!-- Shipping Information -->
+                        <div class="mb-4">
+                            <h5><i class="fas fa-truck"></i> Shipping Information</h5>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label for="phone">Phone Number</label>
+                                        <input type="tel" class="form-control" id="phone" name="phone" 
+                                               value="{{ user.userprofile.phone|default:'' }}" required>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label for="shipping_address">Shipping Address</label>
+                                <textarea class="form-control" id="shipping_address" name="shipping_address" 
+                                          rows="3" placeholder="Enter your complete shipping address" required></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label for="notes">Order Notes (Optional)</label>
+                                <textarea class="form-control" id="notes" name="notes" 
+                                          rows="2" placeholder="Any special instructions for your order"></textarea>
+                            </div>
+                        </div>
+
+                        <!-- Order Summary -->
+                        <div class="mb-4">
+                            <h5><i class="fas fa-list"></i> Order Summary</h5>
+                            <div class="table-responsive">
+                                <table class="table table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>Product</th>
+                                            <th>Quantity</th>
+                                            <th>Price</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for item in cart_items %}
+                                        <tr>
+                                            <td>
+                                                <div class="d-flex align-items-center">
+                                                    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}" 
+                                                         class="img-thumbnail me-2" style="width: 50px; height: 50px; object-fit: cover;">
+                                                    <div>
+                                                        <strong>{{ item.product.name }}</strong><br>
+                                                        <small class="text-muted">{{ item.product.category }}</small>
+                                                    </div>
+                                                </div>
+                                            </td>
+                                            <td>{{ item.qty }}</td>
+                                            <td>${{ item.product.price }}</td>
+                                            <td>${{ item.subtotal }}</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="d-flex justify-content-between align-items-center">
+                            <a href="{% url 'cart' %}" class="btn btn-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Cart
+                            </a>
+                            <button type="submit" class="btn btn-success btn-lg">
+                                <i class="fas fa-shopping-cart"></i> Proceed to Checkout
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-calculator"></i> Order Total</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex justify-content-between">
+                        <span>Subtotal:</span>
+                        <span>${{ total }}</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Shipping:</span>
+                        <span class="text-success">Free</span>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span>Tax:</span>
+                        <span>$0.00</span>
+                    </div>
+                    <hr>
+                    <div class="d-flex justify-content-between">
+                        <strong>Total:</strong>
+                        <strong>${{ total }}</strong>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-body">
+                    <h6><i class="fas fa-shield-alt"></i> Secure Payment</h6>
+                    <p class="small text-muted">
+                        Your payment will be processed securely through eSewa. 
+                        We do not store your payment information.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

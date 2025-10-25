@@ -3,6 +3,7 @@ from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.utils.text import slugify
+import uuid
 
 class UserProfile(models.Model):
     USER_TYPE_CHOICES = [
@@ -180,3 +181,112 @@ class Pet(models.Model):
     @property
     def main_image(self):
         return self.image.url if self.image else None
+
+
+class Order(models.Model):
+    """Order model to track customer orders"""
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('processing', 'Processing'),
+        ('shipped', 'Shipped'),
+        ('delivered', 'Delivered'),
+        ('cancelled', 'Cancelled'),
+    ]
+    
+    order_id = models.CharField(max_length=100, unique=True, blank=True)
+    customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    shipping_address = models.TextField(blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def save(self, *args, **kwargs):
+        if not self.order_id:
+            self.order_id = f"ORD-{uuid.uuid4().hex[:8].upper()}"
+        super().save(*args, **kwargs)
+    
+    def __str__(self):
+        return f"Order {self.order_id} - {self.customer.username}"
+
+
+class OrderItem(models.Model):
+    """Individual items within an order"""
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    product_type = models.CharField(max_length=20)  # 'accessory' or 'pet'
+    product_id = models.PositiveIntegerField()
+    product_name = models.CharField(max_length=200)
+    quantity = models.PositiveIntegerField()
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f"{self.product_name} x{self.quantity}"
+
+
+class Cart(models.Model):
+    """User-specific shopping cart"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='cart')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Cart for {self.user.username}"
+    
+    def get_total(self):
+        """Calculate total cart value"""
+        total = sum(item.get_subtotal() for item in self.items.all())
+        return total
+    
+    def get_item_count(self):
+        """Get total number of items in cart"""
+        return sum(item.quantity for item in self.items.all())
+
+
+class CartItem(models.Model):
+    """Individual items in a user's cart"""
+    cart = models.ForeignKey(Cart, on_delete=models.CASCADE, related_name='items')
+    product_type = models.CharField(max_length=20)  # 'accessory' or 'pet'
+    product_id = models.IntegerField()
+    quantity = models.PositiveIntegerField(default=1)
+    added_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        unique_together = ('cart', 'product_type', 'product_id')
+    
+    def __str__(self):
+        return f"{self.product_type} {self.product_id} x{self.quantity}"
+    
+    def get_product(self):
+        """Get the actual product object"""
+        if self.product_type == 'accessory':
+            return Accessory.objects.get(id=self.product_id)
+        return None
+    
+    def get_subtotal(self):
+        """Calculate subtotal for this cart item"""
+        product = self.get_product()
+        if product:
+            return product.price * self.quantity
+        return 0
+
+
+class Transaction(models.Model):
+    """Transaction model for eSewa payments"""
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('SUCCESS', 'Success'),
+        ('FAILURE', 'Failure'),
+    ]
+    
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='transactions')
+    transaction_uuid = models.CharField(max_length=100, unique=True)
+    transaction_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    transaction_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    transaction_date = models.DateTimeField(auto_now_add=True)
+    esewa_response = models.JSONField(blank=True, null=True)  # Store eSewa response data
+    
+    def __str__(self):
+        return f"Transaction {self.transaction_uuid} - {self.transaction_status}"

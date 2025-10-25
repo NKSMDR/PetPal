@@ -1,0 +1,115 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment - PetPal{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center">
+                    <h3><i class="fas fa-credit-card"></i> Complete Your Payment</h3>
+                    <p class="mb-0">Order #{{ order.order_id }}</p>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <h5>Order Summary</h5>
+                        <p><strong>Total Amount:</strong> ${{ order.total_amount }}</p>
+                        <p><strong>Transaction ID:</strong> {{ transaction.transaction_uuid }}</p>
+                    </div>
+                    
+                    <div class="alert alert-info" id="redirect-message">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Redirecting to eSewa...</strong><br>
+                        You will be redirected to eSewa in <span id="countdown">3</span> seconds to complete your payment securely.
+                    </div>
+                    
+                    <!-- eSewa Payment Gateway Form (django-esewa package) -->
+                    <!-- Using django-esewa package to render form automatically -->
+                    <form id="esewa-form" method="POST" action="https://rc-epay.esewa.com.np/api/epay/main/v2/form">
+                        {% csrf_token %}
+                        {{ form|safe }}
+                        
+                        <button type="submit" class="btn btn-success btn-lg" id="pay-now-btn">
+                            <i class="fas fa-credit-card"></i> Buy Now - Pay with eSewa
+                        </button>
+                    </form>
+                    
+                    <div class="mt-4">
+                        <p class="text-muted">
+                            <i class="fas fa-lock"></i> Your payment is secured by eSewa
+                        </p>
+                        <a href="{% url 'cart' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back to Cart
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-submit form after 3 seconds with countdown
+(function() {
+    var countdown = 3;
+    var countdownElement = document.getElementById('countdown');
+    var form = document.getElementById('esewa-form');
+    var payButton = document.getElementById('pay-now-btn');
+    
+    // Countdown timer
+    var countdownInterval = setInterval(function() {
+        countdown--;
+        if (countdownElement) {
+            countdownElement.textContent = countdown;
+        }
+        
+        if (countdown <= 0) {
+            clearInterval(countdownInterval);
+        }
+    }, 1000);
+    
+    // Auto-submit after 3 seconds
+    var submitTimeout = setTimeout(function() {
+        console.log('Auto-submitting eSewa form...');
+        if (form) {
+            form.submit();
+        } else {
+            console.error('eSewa form not found!');
+        }
+    }, 3000);
+    
+    // Allow manual submission and cancel auto-submit
+    if (payButton) {
+        payButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearTimeout(submitTimeout);
+            clearInterval(countdownInterval);
+            console.log('Manual form submission triggered');
+            
+            // Log form data for debugging
+            var formData = new FormData(form);
+            console.log('Form data being submitted:');
+            for (var pair of formData.entries()) {
+                console.log(pair[0] + ': ' + pair[1]);
+            }
+            
+            form.submit();
+        });
+    }
+    
+    // Debug: Log form details on page load
+    console.log('eSewa Payment Form Details:');
+    console.log('Form action:', form ? form.action : 'Form not found');
+    console.log('Form method:', form ? form.method : 'Form not found');
+    
+    if (form) {
+        var inputs = form.querySelectorAll('input[type="hidden"]');
+        inputs.forEach(function(input) {
+            console.log(input.name + ':', input.value);
+        });
+    }
+})();
+</script>
+{% endblock %}

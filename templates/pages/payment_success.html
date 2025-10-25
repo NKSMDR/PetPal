@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Payment Successful - PetPal{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card border-success">
+                <div class="card-header bg-success text-white text-center">
+                    <h3><i class="fas fa-check-circle"></i> Payment Successful!</h3>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <i class="fas fa-check-circle text-success" style="font-size: 4rem;"></i>
+                    </div>
+                    
+                    <h4 class="text-success mb-3">Thank you for your purchase!</h4>
+                    
+                    <div class="alert alert-success">
+                        <h5>Order Details</h5>
+                        <p><strong>Order ID:</strong> {{ order.order_id }}</p>
+                        <p><strong>Transaction ID:</strong> {{ transaction.transaction_uuid }}</p>
+                        <p><strong>Amount Paid:</strong> ${{ transaction.transaction_amount }}</p>
+                        <p><strong>Status:</strong> <span class="badge bg-success">{{ transaction.get_transaction_status_display }}</span></p>
+                    </div>
+                    
+                    <div class="mb-4">
+                        <h6>What happens next?</h6>
+                        <ul class="list-unstyled text-start">
+                            <li><i class="fas fa-check text-success"></i> Your order has been confirmed</li>
+                            <li><i class="fas fa-clock text-warning"></i> We'll process your order within 1-2 business days</li>
+                            <li><i class="fas fa-truck text-info"></i> You'll receive tracking information via email</li>
+                            <li><i class="fas fa-home text-primary"></i> Your items will be delivered to your address</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-flex justify-content-center gap-3">
+                        <a href="{% url 'home' %}" class="btn btn-primary">
+                            <i class="fas fa-home"></i> Continue Shopping
+                        </a>
+                        <a href="{% url 'profile' %}" class="btn btn-outline-primary">
+                            <i class="fas fa-user"></i> View Orders
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
