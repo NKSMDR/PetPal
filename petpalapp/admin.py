@@ -8,7 +8,7 @@ from django.contrib import messages
 
 # Register your models here.
 from django.contrib import admin
-from .models import Breed, Accessory, Pet, UserProfile, Order, OrderItem, Transaction
+from .models import Breed, Accessory, Pet, UserProfile, Order, OrderItem, Transaction, Cart, CartItem
 
 # Create proxy models for separate admin sections
 class BrowsePet(Pet):
@@ -410,6 +410,28 @@ class TransactionAdmin(admin.ModelAdmin):
             'classes': ('collapse',)
         })
     )
+
+# Cart Admin
+class CartItemInline(admin.TabularInline):
+    model = CartItem
+    extra = 0
+    readonly_fields = ('product_type', 'product_id', 'quantity', 'added_at')
+    can_delete = True
+
+@admin.register(Cart)
+class CartAdmin(admin.ModelAdmin):
+    list_display = ('user', 'get_item_count', 'get_total', 'updated_at')
+    search_fields = ('user__username', 'user__email')
+    readonly_fields = ('created_at', 'updated_at')
+    inlines = [CartItemInline]
+    
+    def get_item_count(self, obj):
+        return obj.get_item_count()
+    get_item_count.short_description = 'Items'
+    
+    def get_total(self, obj):
+        return f"${obj.get_total():.2f}"
+    get_total.short_description = 'Total'
 
 # Customize admin site headers
 admin.site.site_header = "PetPal Administration"

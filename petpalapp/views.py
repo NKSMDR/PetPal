@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 import json
 import uuid
-from .models import Breed, Accessory, UserProfile, Pet, Order, OrderItem, Transaction
+from .models import Breed, Accessory, UserProfile, Pet, Order, OrderItem, Transaction, Cart, CartItem
 from .forms import PetSubmissionForm
 from django_esewa import EsewaPayment
 
@@ -255,78 +255,102 @@ def profile(request):
     }
     return render(request, 'pages/profile.html', context)
 
-def get_cart(request):
-    """Get cart items for both anonymous and authenticated users"""
-    return request.session.get('cart', [])
+def get_or_create_cart(request):
+    """Get or create cart for authenticated user"""
+    if not request.user.is_authenticated:
+        return None
+    
+    cart, created = Cart.objects.get_or_create(user=request.user)
+    return cart
 
-def save_cart(request, cart_data):
-    """Save cart for anonymous users (logged-in users save automatically via ORM)"""
-    request.session['cart'] = cart_data
-    request.session.modified = True
-
+@login_required
 def add_to_cart(request, product_type, product_id):
     # Only allow 'accessory' type
     if product_type != 'accessory':
+        messages.error(request, 'Invalid product type')
         return redirect('cart')
     
     accessory = get_object_or_404(Accessory, pk=product_id)
+    cart = get_or_create_cart(request)
     
-    # Session cart for all users for now
-    cart = get_cart(request)
-    found = False
-    for item in cart:
-        if item['product_type'] == product_type and item['product_id'] == product_id:
-            item['qty'] += 1
-            found = True
-            break
-    if not found:
-        cart.append({'product_type': product_type, 'product_id': product_id, 'qty': 1})
-    save_cart(request, cart)
+    # Try to get existing cart item or create new one
+    cart_item, created = CartItem.objects.get_or_create(
+        cart=cart,
+        product_type=product_type,
+        product_id=product_id,
+        defaults={'quantity': 1}
+    )
     
+    if not created:
+        # Item already exists, increment quantity
+        cart_item.quantity += 1
+        cart_item.save()
+    
+    messages.success(request, f'{accessory.name} added to cart!')
     return redirect('cart')
 
+@login_required
 def remove_from_cart(request, product_type, product_id):
     if product_type != 'accessory':
         return redirect('cart')
     
-    # Session cart for all users for now
-    cart = get_cart(request)
-    cart[:] = [item for item in cart if not (item['product_type'] == product_type and item['product_id'] == product_id)]
-    save_cart(request, cart)
+    cart = get_or_create_cart(request)
+    
+    try:
+        cart_item = CartItem.objects.get(
+            cart=cart,
+            product_type=product_type,
+            product_id=product_id
+        )
+        cart_item.delete()
+        messages.success(request, 'Item removed from cart')
+    except CartItem.DoesNotExist:
+        messages.error(request, 'Item not found in cart')
     
     return redirect('cart')
 
+@login_required
 def update_cart(request, product_type, product_id):
     if request.method == 'POST' and product_type == 'accessory':
         quantity = int(request.POST.get('quantity', 1))
+        cart = get_or_create_cart(request)
         
-        # Session cart for all users for now
-        cart = get_cart(request)
-        for item in cart:
-            if item['product_type'] == product_type and item['product_id'] == product_id:
-                item['qty'] = quantity
-                break
-        save_cart(request, cart)
+        try:
+            cart_item = CartItem.objects.get(
+                cart=cart,
+                product_type=product_type,
+                product_id=product_id
+            )
+            if quantity > 0:
+                cart_item.quantity = quantity
+                cart_item.save()
+            else:
+                cart_item.delete()
+        except CartItem.DoesNotExist:
+            messages.error(request, 'Item not found in cart')
     
     return redirect('cart')
 
+@login_required
 def cart(request):
     cart_items = []
     total = 0
     
-    # Session cart for all users for now
-    cart = get_cart(request)
-    for item in cart:
-        if item['product_type'] == 'accessory':
-            product = get_object_or_404(Accessory, pk=item['product_id'])
-            subtotal = product.price * item['qty']
-            cart_items.append({
-                'product': product,
-                'qty': item['qty'],
-                'subtotal': subtotal,
-                'type': item['product_type'],
-            })
-            total += subtotal
+    # Get user's database cart
+    cart = get_or_create_cart(request)
+    
+    if cart:
+        for cart_item in cart.items.all():
+            product = cart_item.get_product()
+            if product:
+                subtotal = cart_item.get_subtotal()
+                cart_items.append({
+                    'product': product,
+                    'qty': cart_item.quantity,
+                    'subtotal': subtotal,
+                    'type': cart_item.product_type,
+                })
+                total += subtotal
     
     return render(request, 'includes/cart.html', {
         'cart_items': cart_items,
@@ -494,49 +518,34 @@ def about_us(request):
 @ensure_csrf_cookie
 def checkout(request):
     """Process checkout and create order"""
-    # Debug: Print request info
-    print(f"DEBUG: Request method: {request.method}")
-    print(f"DEBUG: CSRF cookie: {request.COOKIES.get('csrftoken', 'NOT FOUND')}")
-    print(f"DEBUG: POST data: {request.POST if request.method == 'POST' else 'N/A'}")
+    print(f"DEBUG Checkout: Method={request.method}, User={request.user}")
     
-    cart = get_cart(request)
+    # Get user's database cart
+    user_cart = get_or_create_cart(request)
     
-    # Debug: Print cart data
-    print(f"DEBUG: Cart data: {cart}")
-    print(f"DEBUG: Session keys: {list(request.session.keys())}")
-    
-    # If session cart is empty, try to get from request data (for JavaScript cart)
-    if not cart and request.method == 'GET':
-        # Check if there's cart data in the request
-        cart_data = request.GET.get('cart_data')
-        if cart_data:
-            try:
-                import json
-                cart = json.loads(cart_data)
-                print(f"DEBUG: Loaded cart from request data: {cart}")
-            except Exception as e:
-                print(f"DEBUG: Error parsing cart data: {e}")
-                pass
-    
-    if not cart:
+    if not user_cart or not user_cart.items.exists():
         messages.error(request, 'Your cart is empty! Please add some items to your cart first.')
+        print(f"DEBUG Checkout: Cart is empty for user {request.user}")
         return redirect('cart')
     
-    # Calculate total
+    # Calculate total and prepare cart items
     total = 0
     cart_items = []
-    for item in cart:
-        if item['product_type'] == 'accessory':
-            product = get_object_or_404(Accessory, pk=item['product_id'])
-            subtotal = product.price * item['qty']
+    for cart_item in user_cart.items.all():
+        product = cart_item.get_product()
+        if product:
+            subtotal = cart_item.get_subtotal()
             cart_items.append({
                 'product': product,
-                'qty': item['qty'],
+                'qty': cart_item.quantity,
                 'subtotal': subtotal,
             })
             total += subtotal
     
+    print(f"DEBUG Checkout: Total={total}, Items={len(cart_items)}")
+    
     if request.method == 'POST':
+        print(f"DEBUG Checkout: Processing POST request")
         # Create order
         order = Order.objects.create(
             customer=request.user,
@@ -633,9 +642,10 @@ def payment_success(request, transaction_id):
         order.save()
         
         # Clear cart after successful payment
-        request.session['cart'] = []
-        request.session.modified = True
-        print(f"DEBUG: Cart cleared for user after successful payment")
+        user_cart = get_or_create_cart(request)
+        if user_cart:
+            user_cart.items.all().delete()
+            print(f"DEBUG: Cart cleared for user {request.user} after successful payment")
         
         context = {
             'order': order,
@@ -664,7 +674,10 @@ def payment_failure(request, transaction_id):
 @csrf_exempt
 @require_http_methods(["POST"])
 def sync_cart(request):
-    """Sync JavaScript cart with Django session cart"""
+    """Sync JavaScript cart with Django database cart"""
+    if not request.user.is_authenticated:
+        return JsonResponse({'error': 'User not authenticated'}, status=401)
+    
     try:
         data = json.loads(request.body)
         cart_data = data.get('cart', [])
@@ -675,11 +688,23 @@ def sync_cart(request):
         if not isinstance(cart_data, list):
             return JsonResponse({'error': 'Invalid cart data'}, status=400)
         
-        # Save to session
-        request.session['cart'] = cart_data
-        request.session.modified = True
+        # Get or create user's cart
+        user_cart = get_or_create_cart(request)
         
-        print(f"DEBUG: Cart synced to session: {request.session.get('cart')}")
+        # Clear existing cart items
+        user_cart.items.all().delete()
+        
+        # Add items from JavaScript cart to database
+        for item in cart_data:
+            if item.get('product_type') == 'accessory':
+                CartItem.objects.create(
+                    cart=user_cart,
+                    product_type=item['product_type'],
+                    product_id=item['product_id'],
+                    quantity=item.get('qty', 1)
+                )
+        
+        print(f"DEBUG: Cart synced to database for user {request.user}")
         
         return JsonResponse({'status': 'success'})
     except json.JSONDecodeError:
@@ -690,9 +715,26 @@ def sync_cart(request):
 
 def debug_cart(request):
     """Debug endpoint to check cart status"""
-    cart = get_cart(request)
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            'error': 'User not authenticated',
+            'user': 'Anonymous'
+        })
+    
+    user_cart = get_or_create_cart(request)
+    cart_items = []
+    
+    for item in user_cart.items.all():
+        cart_items.append({
+            'product_type': item.product_type,
+            'product_id': item.product_id,
+            'quantity': item.quantity
+        })
+    
     return JsonResponse({
-        'cart': cart,
-        'session_keys': list(request.session.keys()),
-        'user': request.user.username if request.user.is_authenticated else 'Anonymous'
+        'user': request.user.username,
+        'cart_id': user_cart.id,
+        'item_count': user_cart.get_item_count(),
+        'total': float(user_cart.get_total()),
+        'items': cart_items
     })
