@@ -290,3 +290,27 @@ class Transaction(models.Model):
     
     def __str__(self):
         return f"Transaction {self.transaction_uuid} - {self.transaction_status}"
+
+
+class ListingPayment(models.Model):
+    """Payment model for pet listing fees"""
+    STATUS_CHOICES = [
+        ('PENDING', 'Pending'),
+        ('SUCCESS', 'Success'),
+        ('FAILURE', 'Failure'),
+    ]
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listing_payments')
+    transaction_uuid = models.CharField(max_length=100, unique=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)  # 100 NPR listing fee
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
+    payment_date = models.DateTimeField(auto_now_add=True)
+    esewa_response = models.JSONField(blank=True, null=True)
+    is_used = models.BooleanField(default=False)  # Track if payment was used to submit a pet
+    pet = models.ForeignKey('Pet', on_delete=models.SET_NULL, null=True, blank=True, related_name='listing_payment')
+    
+    def __str__(self):
+        return f"Listing Payment {self.transaction_uuid} - {self.user.username} - {self.status}"
+    
+    class Meta:
+        ordering = ['-payment_date']

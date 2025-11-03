@@ -398,8 +398,13 @@ def pet_detail(request, pk):
     }
     return render(request, 'pages/pet_detail.html', context)
 
+def sell_pet_info(request):
+    """Display sell pet information page with pricing and details"""
+    return render(request, 'pages/sell_pet_info.html')
+
 @login_required
-def sell_pet(request):
+def sell_pet_form(request):
+    """Handle the actual pet submission form"""
     if request.method == 'POST':
         form = PetSubmissionForm(request.POST, request.FILES)
         if form.is_valid():

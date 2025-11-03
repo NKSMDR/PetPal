@@ -1,0 +1,201 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Sell Your Pet - PetPal{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/sell_pet_info.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="sell-pet-info-container">
+    <!-- Hero Section -->
+    <div class="hero-section text-center">
+        <div class="container">
+            <h1 class="fw-bold">Sell Your Pet on PetPal</h1>
+            <p>Find loving homes for your pets through our trusted marketplace</p>
+        </div>
+    </div>
+    
+    <div class="container py-4">
+
+        <!-- Main Content -->
+        <div class="row justify-content-center">
+            <div class="col-lg-10">
+                <!-- How It Works Section -->
+                <div class="info-card mb-3">
+                    <div class="card-icon">
+                        <i class="fas fa-info-circle"></i>
+                    </div>
+                    <h2 class="section-title">How It Works</h2>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <div class="step-card">
+                                <div class="step-number">1</div>
+                                <h4>Submit Your Pet</h4>
+                                <p>Fill out the form with your pet's details, photos, and location.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="step-card">
+                                <div class="step-number">2</div>
+                                <h4>Admin Review</h4>
+                                <p>Our team reviews your submission for quality and authenticity.</p>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <div class="step-card">
+                                <div class="step-number">3</div>
+                                <h4>Get Listed</h4>
+                                <p>Once approved, your pet appears in the marketplace.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing Section -->
+                <div class="info-card mb-3">
+                    <div class="card-icon">
+                        <i class="fas fa-dollar-sign"></i>
+                    </div>
+                    <h2 class="section-title">Listing Fee</h2>
+                    <div class="pricing-box">
+                        <div class="price-tag">
+                            <span class="currency">NPR</span>
+                            <span class="amount">100</span>
+                            <span class="period">per pet listing</span>
+                        </div>
+                        <p class="price-description">
+                            One-time fee to list your pet. Helps us maintain quality and provide excellent service.
+                        </p>
+                        <ul class="features-list">
+                            <li><i class="fas fa-check-circle"></i> Professional review</li>
+                            <li><i class="fas fa-check-circle"></i> Featured in marketplace</li>
+                            <li><i class="fas fa-check-circle"></i> Secure connections</li>
+                            <li><i class="fas fa-check-circle"></i> 30-day duration</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <!-- What You Need Section -->
+                <div class="info-card mb-3">
+                    <div class="card-icon">
+                        <i class="fas fa-clipboard-list"></i>
+                    </div>
+                    <h2 class="section-title">What You'll Need</h2>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="requirement-item">
+                                <i class="fas fa-camera text-primary"></i>
+                                <div>
+                                    <h5>Clear Photos</h5>
+                                    <p>At least one high-quality photo of your pet</p>
+                                </div>
+                            </div>
+                            <div class="requirement-item">
+                                <i class="fas fa-file-alt text-primary"></i>
+                                <div>
+                                    <h5>Pet Details</h5>
+                                    <p>Breed, age, gender, and description</p>
+                                </div>
+                            </div>
+                            <div class="requirement-item">
+                                <i class="fas fa-syringe text-primary"></i>
+                                <div>
+                                    <h5>Health Information</h5>
+                                    <p>Vaccination status and health certificate (if available)</p>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="requirement-item">
+                                <i class="fas fa-map-marker-alt text-primary"></i>
+                                <div>
+                                    <h5>Location</h5>
+                                    <p>City and state where the pet is located</p>
+                                </div>
+                            </div>
+                            <div class="requirement-item">
+                                <i class="fas fa-tag text-primary"></i>
+                                <div>
+                                    <h5>Pricing</h5>
+                                    <p>Your asking price for the pet</p>
+                                </div>
+                            </div>
+                            <div class="requirement-item">
+                                <i class="fas fa-credit-card text-primary"></i>
+                                <div>
+                                    <h5>Payment</h5>
+                                    <p>Payment method for the NPR 100 listing fee</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Guidelines Section -->
+                <div class="info-card mb-3">
+                    <div class="card-icon">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <h2 class="section-title">Listing Guidelines</h2>
+                    <div class="guidelines-content">
+                        <div class="guideline-item">
+                            <i class="fas fa-check text-success"></i>
+                            <span>Provide accurate and honest information about your pet</span>
+                        </div>
+                        <div class="guideline-item">
+                            <i class="fas fa-check text-success"></i>
+                            <span>Upload clear, recent photos of your pet</span>
+                        </div>
+                        <div class="guideline-item">
+                            <i class="fas fa-check text-success"></i>
+                            <span>Include all relevant health and vaccination details</span>
+                        </div>
+                        <div class="guideline-item">
+                            <i class="fas fa-check text-success"></i>
+                            <span>Set a fair and reasonable price</span>
+                        </div>
+                        <div class="guideline-item">
+                            <i class="fas fa-times text-danger"></i>
+                            <span>No misleading or false information</span>
+                        </div>
+                        <div class="guideline-item">
+                            <i class="fas fa-times text-danger"></i>
+                            <span>No sick or injured pets without disclosure</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="action-section text-center">
+                    <div class="alert alert-info mb-3">
+                        <i class="fas fa-info-circle me-2"></i>
+                        <strong>Important:</strong> You must pay the listing fee before accessing the form. Listing fee is non-refundable.
+                    </div>
+                    
+                    {% if user.is_authenticated %}
+                        <!-- Pay Button -->
+                        <form method="POST" action="{% url 'listing_payment_checkout' %}">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-success btn-lg mb-3 pay-button">
+                                <i class="fas fa-credit-card me-2"></i>
+                                Pay NPR 100 Listing Fee
+                            </button>
+                        </form>
+                    {% else %}
+                        <a href="{% url 'login' %}?next={% url 'sell_pet' %}" class="btn btn-primary btn-lg mb-3">
+                            <i class="fas fa-sign-in-alt me-2"></i>
+                            Login to Continue
+                        </a>
+                    {% endif %}
+                    
+                    <p class="text-muted mt-3 small">
+                        By proceeding, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
