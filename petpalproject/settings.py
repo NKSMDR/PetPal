@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-408_y^lmo=pg9*bi*kw_hhcdxo%5k9+3ye^o@tde^qbtpd8b(b
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost','192.168.1.114']
 
 
 # Application definition
@@ -45,57 +45,119 @@ INSTALLED_APPS = [
 ]
 
 JAZZMIN_SETTINGS = {
+    # Site branding
     "site_title": "PetPal Admin",
     "site_header": "PetPal Administration",
     "site_brand": "PetPal",
+    "site_logo": None,
     "welcome_sign": "Welcome to PetPal Admin Portal",
+    "copyright": "PetPal © 2025",
     
-    # Color theme
-    "theme": "flatly",
+    # Search model in the sidebar
+    "search_model": ["auth.User", "petpalapp.Breed"],
     
-    # Dark mode
-    "show_ui_builder": True,
+    # Top menu links
+    "topmenu_links": [
+        {"name": "Dashboard", "url": "admin:index", "permissions": ["auth.view_user"]},
+        {"name": "View Site", "url": "/", "new_window": True},
+        {"name": "Support", "url": "https://github.com", "new_window": True},
+    ],
     
-    # Dashboard customization
-    "changeform_format": "horizontal_tabs",
-    "related_modal_active": True,
+    # User menu on the right side
+    "usermenu_links": [
+        {"name": "View Site", "url": "/", "new_window": True},
+        {"model": "auth.user"}
+    ],
     
-    # Icons for models
+    # Side menu configuration
+    "show_sidebar": True,
+    "navigation_expanded": True,
+    "hide_apps": [],
+    "hide_models": [],
+    
+    # Custom menu ordering - this creates the structure
+    "order_with_respect_to": [
+        "auth",
+        "petpalapp",
+    ],
+    
+    # Icons for models and apps
     "icons": {
         "auth": "fas fa-users-cog",
-        "auth.user": "fas fa-user", 
+        "auth.user": "fas fa-user",
         "auth.Group": "fas fa-users",
+        "petpalapp": "fas fa-paw",
         "petpalapp.breed": "fas fa-dog",
         "petpalapp.accessory": "fas fa-shopping-bag",
-        "petpalapp.browsepet": "fas fa-paw",
+        "petpalapp.browsepet": "fas fa-store",
         "petpalapp.pendingpet": "fas fa-clock",
         "petpalapp.approvedpet": "fas fa-check-circle",
         "petpalapp.rejectedpet": "fas fa-times-circle",
-        "petpalapp.userprofile": "fas fa-user-circle",
+        "petpalapp.userprofile": "fas fa-id-card",
+        "petpalapp.order": "fas fa-shopping-cart",
+        "petpalapp.orderitem": "fas fa-list",
+        "petpalapp.transaction": "fas fa-credit-card",
+        "petpalapp.cart": "fas fa-shopping-basket",
+        "petpalapp.listingpayment": "fas fa-money-bill-wave",
+        "petpalapp.listingprice": "fas fa-dollar-sign",
+        "petpalapp.herosection": "fas fa-image",
+        "petpalapp.featurecard": "fas fa-star",
+        "petpalapp.testimonial": "fas fa-quote-right",
+        "petpalapp.homepagesettings": "fas fa-cog",
     },
     
-    # Custom menu
-    "topmenu_links": [
-        {"name": "Home", "url": "admin:index", "permissions": ["auth.view_user"]},
-        {"name": "View Site", "url": "/", "new_window": True},
-    ],
+    # Default icon for models without specific icon
+    "default_icon_parents": "fas fa-chevron-circle-right",
+    "default_icon_children": "fas fa-circle",
     
+    # Related modal (popup for foreign keys)
+    "related_modal_active": True,
+    
+    # UI Customizer on the right sidebar
+    "show_ui_builder": False,
+    
+    # Change form layout
+    "changeform_format": "horizontal_tabs",
+    "changeform_format_overrides": {
+        "auth.user": "collapsible",
+        "auth.group": "vertical_tabs"
+    },
+    
+    # Language chooser
+    "language_chooser": False,
 }
 
 JAZZMIN_UI_TWEAKS = {
+    # General styling
     "navbar_small_text": False,
     "footer_small_text": False,
     "body_small_text": False,
     "brand_small_text": False,
-    "brand_colour": "navbar-navy",
-    "accent": "accent-teal",
-    "navbar": "navbar-navy navbar-dark",
+    
+    # Colors - Modern blue theme
+    "brand_colour": "navbar-primary",
+    "accent": "accent-primary",
+    "navbar": "navbar-white navbar-light",
     "no_navbar_border": False,
-    "sidebar": "sidebar-dark-navy",
+    
+    # Sidebar - Dark professional theme
+    "sidebar": "sidebar-dark-primary",
     "sidebar_nav_small_text": False,
     "sidebar_disable_expand": False,
-    "sidebar_nav_child_indent": False,
-    "sidebar_nav_compact_style": False,
+    "sidebar_nav_child_indent": True,
+    "sidebar_nav_compact_style": True,
+    "sidebar_nav_legacy_style": False,
+    "sidebar_nav_flat_style": False,
+    
+    # Buttons
+    "button_classes": {
+        "primary": "btn-primary",
+        "secondary": "btn-secondary",
+        "info": "btn-info",
+        "warning": "btn-warning",
+        "danger": "btn-danger",
+        "success": "btn-success"
+    },
 }
 
 MIDDLEWARE = [
@@ -169,7 +231,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'Asia/Kathmandu'
 
 USE_I18N = True
 

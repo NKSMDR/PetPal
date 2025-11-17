@@ -292,8 +292,30 @@ class Transaction(models.Model):
         return f"Transaction {self.transaction_uuid} - {self.transaction_status}"
 
 
+class ListingPrice(models.Model):
+    """Admin-configurable listing price"""
+    price = models.DecimalField(max_digits=10, decimal_places=2, default=100.00, help_text="Listing fee in NPR")
+    updated_at = models.DateTimeField(auto_now=True)
+    updated_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='listing_price_updates')
+    
+    class Meta:
+        verbose_name = "Listing Price Configuration"
+        verbose_name_plural = "Listing Price Configuration"
+    
+    def __str__(self):
+        return f"NPR {self.price}"
+    
+    @classmethod
+    def get_current_price(cls):
+        """Get the current listing price, create default if doesn't exist"""
+        price_config = cls.objects.first()
+        if not price_config:
+            price_config = cls.objects.create(price=100.00)
+        return price_config.price
+
+
 class ListingPayment(models.Model):
-    """Payment model for pet listing fees"""
+    """Payment model for pet listing fees - allows 5 pet submissions per payment"""
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
         ('SUCCESS', 'Success'),
@@ -302,15 +324,124 @@ class ListingPayment(models.Model):
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listing_payments')
     transaction_uuid = models.CharField(max_length=100, unique=True)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)  # 100 NPR listing fee
+    amount = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     payment_date = models.DateTimeField(auto_now_add=True)
     esewa_response = models.JSONField(blank=True, null=True)
-    is_used = models.BooleanField(default=False)  # Track if payment was used to submit a pet
-    pet = models.ForeignKey('Pet', on_delete=models.SET_NULL, null=True, blank=True, related_name='listing_payment')
+    
+    # Multi-pet submission tracking
+    total_submissions_allowed = models.IntegerField(default=5, help_text="Number of pets that can be submitted with this payment")
+    submissions_used = models.IntegerField(default=0, help_text="Number of pet submissions already made")
     
     def __str__(self):
-        return f"Listing Payment {self.transaction_uuid} - {self.user.username} - {self.status}"
+        return f"Listing Payment {self.transaction_uuid} - {self.user.username} - {self.submissions_used}/{self.total_submissions_allowed} used"
+    
+    def has_remaining_submissions(self):
+        """Check if this payment still has available submissions"""
+        return self.status == 'SUCCESS' and self.submissions_used < self.total_submissions_allowed
+    
+    def get_remaining_submissions(self):
+        """Get number of remaining submissions"""
+        if self.status != 'SUCCESS':
+            return 0
+        return max(0, self.total_submissions_allowed - self.submissions_used)
+    
+    def use_submission(self):
+        """Increment the submissions used counter"""
+        if self.has_remaining_submissions():
+            self.submissions_used += 1
+            self.save()
+            return True
+        return False
     
     class Meta:
         ordering = ['-payment_date']
+
+
+class HeroSection(models.Model):
+    """Homepage hero section with customizable images and text"""
+    title = models.CharField(max_length=200, default="Find Your Perfect Companion")
+    subtitle = models.CharField(max_length=300, default="Discover loving pets and quality accessories")
+    background_image = models.ImageField(upload_to='homepage/hero/', help_text="Hero background image (recommended: 1920x800px)")
+    cta_text = models.CharField(max_length=50, default="Browse Pets", help_text="Call-to-action button text")
+    cta_link = models.CharField(max_length=200, default="/browse-pets/", help_text="Button link URL")
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0, help_text="Display order (lower numbers first)")
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['order', '-created_at']
+        verbose_name = "Hero Section"
+        verbose_name_plural = "Hero Sections"
+    
+    def __str__(self):
+        return f"{self.title} - {'Active' if self.is_active else 'Inactive'}"
+
+
+class FeatureCard(models.Model):
+    """Feature cards displayed on homepage"""
+    title = models.CharField(max_length=100)
+    description = models.TextField(max_length=200)
+    icon = models.CharField(max_length=50, default="fas fa-paw", help_text="Font Awesome icon class (e.g., 'fas fa-paw')")
+    image = models.ImageField(upload_to='homepage/features/', blank=True, null=True, help_text="Optional image instead of icon")
+    link = models.CharField(max_length=200, blank=True, help_text="Link URL (optional)")
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['order', 'title']
+        verbose_name = "Feature Card"
+        verbose_name_plural = "Feature Cards"
+    
+    def __str__(self):
+        return self.title
+
+
+class Testimonial(models.Model):
+    """Customer testimonials for homepage"""
+    customer_name = models.CharField(max_length=100)
+    customer_image = models.ImageField(upload_to='homepage/testimonials/', blank=True, null=True, help_text="Customer photo (optional)")
+    rating = models.IntegerField(default=5, help_text="Rating out of 5")
+    testimonial_text = models.TextField(max_length=500)
+    location = models.CharField(max_length=100, blank=True, help_text="e.g., 'Kathmandu, Nepal'")
+    is_active = models.BooleanField(default=True)
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    class Meta:
+        ordering = ['order', '-created_at']
+        verbose_name = "Testimonial"
+        verbose_name_plural = "Testimonials"
+    
+    def __str__(self):
+        return f"{self.customer_name} - {self.rating}★"
+
+
+class HomePageSettings(models.Model):
+    """General homepage settings"""
+    site_name = models.CharField(max_length=100, default="PetPal")
+    tagline = models.CharField(max_length=200, default="Your Trusted Pet Marketplace")
+    about_section_title = models.CharField(max_length=100, default="About PetPal")
+    about_section_text = models.TextField(default="We connect loving families with their perfect pets.")
+    about_image = models.ImageField(upload_to='homepage/', blank=True, null=True)
+    show_featured_pets = models.BooleanField(default=True, help_text="Show featured pets section")
+    show_testimonials = models.BooleanField(default=True, help_text="Show testimonials section")
+    show_features = models.BooleanField(default=True, help_text="Show features section")
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        verbose_name = "Homepage Settings"
+        verbose_name_plural = "Homepage Settings"
+    
+    def __str__(self):
+        return f"Homepage Settings - {self.site_name}"
+    
+    @classmethod
+    def get_settings(cls):
+        """Get or create homepage settings"""
+        settings = cls.objects.first()
+        if not settings:
+            settings = cls.objects.create()
+        return settings

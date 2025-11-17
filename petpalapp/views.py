@@ -13,7 +13,7 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 import json
 import uuid
-from .models import Breed, Accessory, UserProfile, Pet, Order, OrderItem, Transaction, Cart, CartItem
+from .models import Breed, Accessory, UserProfile, Pet, Order, OrderItem, Transaction, Cart, CartItem, ListingPayment, ListingPrice
 from .forms import PetSubmissionForm
 from django_esewa import EsewaPayment
 
@@ -400,11 +400,42 @@ def pet_detail(request, pk):
 
 def sell_pet_info(request):
     """Display sell pet information page with pricing and details"""
-    return render(request, 'pages/sell_pet_info.html')
+    # Get current listing price from database
+    listing_price = ListingPrice.get_current_price()
+    
+    # Check if user has a valid payment with remaining submissions
+    has_valid_payment = False
+    remaining_submissions = 0
+    if request.user.is_authenticated:
+        valid_payment = ListingPayment.objects.filter(
+            user=request.user,
+            status='SUCCESS'
+        ).order_by('-payment_date').first()
+        
+        if valid_payment and valid_payment.has_remaining_submissions():
+            has_valid_payment = True
+            remaining_submissions = valid_payment.get_remaining_submissions()
+    
+    context = {
+        'listing_price': listing_price,
+        'has_valid_payment': has_valid_payment,
+        'remaining_submissions': remaining_submissions,
+    }
+    return render(request, 'pages/sell_pet_info.html', context)
 
 @login_required
 def sell_pet_form(request):
     """Handle the actual pet submission form"""
+    # Check if user has a payment with remaining submissions
+    valid_payment = ListingPayment.objects.filter(
+        user=request.user,
+        status='SUCCESS'
+    ).order_by('-payment_date').first()
+    
+    if not valid_payment or not valid_payment.has_remaining_submissions():
+        messages.error(request, 'You must pay the listing fee before submitting a pet. Please complete the payment first.')
+        return redirect('sell_pet')
+    
     if request.method == 'POST':
         form = PetSubmissionForm(request.POST, request.FILES)
         if form.is_valid():
@@ -414,7 +445,14 @@ def sell_pet_form(request):
             pet.status = 'pending_review'
             pet.save()
             
-            messages.success(request, 'Your pet has been submitted for review! Our admin team will review it shortly.')
+            # Use one submission from the payment
+            valid_payment.use_submission()
+            
+            remaining = valid_payment.get_remaining_submissions()
+            if remaining > 0:
+                messages.success(request, f'Your pet has been submitted for review! You have {remaining} submission(s) remaining.')
+            else:
+                messages.success(request, 'Your pet has been submitted for review! You have used all your submissions.')
             return redirect('my_pets')
         else:
             messages.error(request, 'Please correct the errors below.')
@@ -423,6 +461,7 @@ def sell_pet_form(request):
     
     context = {
         'form': form,
+        'payment': valid_payment,
     }
     return render(request, 'pages/sell_pet.html', context)
 
@@ -743,3 +782,98 @@ def debug_cart(request):
         'total': float(user_cart.get_total()),
         'items': cart_items
     })
+
+
+# Listing Payment Views
+@login_required
+@ensure_csrf_cookie
+def listing_payment_checkout(request):
+    """Process listing fee payment"""
+    if request.method == 'POST':
+        # Get current listing price from database
+        listing_price = ListingPrice.get_current_price()
+        
+        # Create listing payment transaction
+        transaction_uuid = str(uuid.uuid4())
+        listing_payment = ListingPayment.objects.create(
+            user=request.user,
+            transaction_uuid=transaction_uuid,
+            amount=listing_price,
+            status='PENDING'
+        )
+        
+        # Initialize eSewa payment
+        epayment = EsewaPayment(
+            product_code="EPAYTEST",
+            success_url=f'http://localhost:8000/listing-payment/success/{listing_payment.id}/',
+            failure_url=f'http://localhost:8000/listing-payment/failure/{listing_payment.id}/',
+            secret_key='8gBm/:&EnhH.1/q',
+            amount=str(listing_price),
+            tax_amount='0',
+            product_service_charge='0',
+            product_delivery_charge='0',
+            total_amount=str(listing_price),
+            transaction_uuid=transaction_uuid,
+        )
+        
+        epayment.create_signature()
+        
+        # Generate form HTML
+        form_html = epayment.generate_form()
+        
+        context = {
+            'listing_payment': listing_payment,
+            'form': form_html,
+        }
+        return render(request, 'pages/listing_payment_checkout.html', context)
+    
+    return redirect('sell_pet')
+
+
+def listing_payment_success(request, payment_id):
+    """Handle successful listing payment"""
+    listing_payment = get_object_or_404(ListingPayment, id=payment_id)
+    
+    # Initialize eSewa payment for verification
+    epayment = EsewaPayment(
+        product_code="EPAYTEST",
+        success_url=f'http://localhost:8000/listing-payment/success/{listing_payment.id}/',
+        failure_url=f'http://localhost:8000/listing-payment/failure/{listing_payment.id}/',
+        secret_key='8gBm/:&EnhH.1/q',
+        amount=str(listing_payment.amount),
+        tax_amount='0',
+        product_service_charge='0',
+        product_delivery_charge='0',
+        total_amount=str(listing_payment.amount),
+        transaction_uuid=listing_payment.transaction_uuid,
+    )
+    epayment.create_signature()
+    
+    # Verify payment
+    if epayment.is_completed(True):
+        listing_payment.status = 'SUCCESS'
+        listing_payment.save()
+        
+        messages.success(request, 'Payment successful! You can now submit your pet listing.')
+        
+        context = {
+            'listing_payment': listing_payment,
+        }
+        return render(request, 'pages/listing_payment_success.html', context)
+    else:
+        return redirect('listing_payment_failure', payment_id=listing_payment.id)
+
+
+def listing_payment_failure(request, payment_id):
+    """Handle failed listing payment"""
+    listing_payment = get_object_or_404(ListingPayment, id=payment_id)
+    
+    listing_payment.status = 'FAILURE'
+    listing_payment.save()
+    
+    messages.error(request, 'Payment failed. Please try again.')
+    
+    context = {
+        'listing_payment': listing_payment,
+    }
+    return render(request, 'pages/listing_payment_failure.html', context)

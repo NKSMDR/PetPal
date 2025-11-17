@@ -32,8 +32,8 @@
                         <div class="col-md-4 mb-3">
                             <div class="step-card">
                                 <div class="step-number">1</div>
-                                <h4>Submit Your Pet</h4>
-                                <p>Fill out the form with your pet's details, photos, and location.</p>
+                                <h4>Pay Once, Submit 5 Pets</h4>
+                                <p>One payment allows you to submit up to 5 different pets with their details, photos, and location.</p>
                             </div>
                         </div>
                         <div class="col-md-4 mb-3">
@@ -62,17 +62,18 @@
                     <div class="pricing-box">
                         <div class="price-tag">
                             <span class="currency">NPR</span>
-                            <span class="amount">100</span>
-                            <span class="period">per pet listing</span>
+                            <span class="amount">{{ listing_price|floatformat:0 }}</span>
+                            <span class="period">for 5 pet listings</span>
                         </div>
                         <p class="price-description">
-                            One-time fee to list your pet. Helps us maintain quality and provide excellent service.
+                            One-time payment allows you to submit up to 5 pets. Helps us maintain quality and provide excellent service.
                         </p>
                         <ul class="features-list">
-                            <li><i class="fas fa-check-circle"></i> Professional review</li>
+                            <li><i class="fas fa-check-circle"></i> Submit up to 5 pets</li>
+                            <li><i class="fas fa-check-circle"></i> Professional review for each pet</li>
                             <li><i class="fas fa-check-circle"></i> Featured in marketplace</li>
                             <li><i class="fas fa-check-circle"></i> Secure connections</li>
-                            <li><i class="fas fa-check-circle"></i> 30-day duration</li>
+                            <li><i class="fas fa-check-circle"></i> 30-day duration per listing</li>
                         </ul>
                     </div>
                 </div>
@@ -169,30 +170,50 @@
 
                 <!-- Action Buttons -->
                 <div class="action-section text-center">
-                    <div class="alert alert-info mb-3">
-                        <i class="fas fa-info-circle me-2"></i>
-                        <strong>Important:</strong> You must pay the listing fee before accessing the form. Listing fee is non-refundable.
-                    </div>
-                    
                     {% if user.is_authenticated %}
-                        <!-- Pay Button -->
-                        <form method="POST" action="{% url 'listing_payment_checkout' %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-success btn-lg mb-3 pay-button">
-                                <i class="fas fa-credit-card me-2"></i>
-                                Pay NPR 100 Listing Fee
-                            </button>
-                        </form>
+                        {% if has_valid_payment %}
+                            <!-- User has paid, show form button -->
+                            <div class="alert alert-success mb-3">
+                                <i class="fas fa-check-circle me-2"></i>
+                                <strong>Payment Confirmed!</strong> You have {{ remaining_submissions }} pet submission{{ remaining_submissions|pluralize }} remaining.
+                            </div>
+                            <a href="{% url 'sell_pet_form' %}" class="btn btn-primary btn-lg mb-3">
+                                <i class="fas fa-paw me-2"></i>
+                                Fill Pet Submission Form
+                            </a>
+                            <p class="text-muted mt-3 small">
+                                You can submit {{ remaining_submissions }} more pet{{ remaining_submissions|pluralize }} with your current payment.
+                            </p>
+                        {% else %}
+                            <!-- User needs to pay -->
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Important:</strong> You must pay the listing fee before accessing the form. Listing fee is non-refundable.
+                            </div>
+                            <form method="POST" action="{% url 'listing_payment_checkout' %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-success btn-lg mb-3 pay-button">
+                                    <i class="fas fa-credit-card me-2"></i>
+                                    Pay NPR {{ listing_price|floatformat:0 }} Listing Fee
+                                </button>
+                            </form>
+                            <p class="text-muted mt-3 small">
+                                By proceeding, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>
+                            </p>
+                        {% endif %}
                     {% else %}
+                        <div class="alert alert-info mb-3">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Important:</strong> You must pay the listing fee before accessing the form. Listing fee is non-refundable.
+                        </div>
                         <a href="{% url 'login' %}?next={% url 'sell_pet' %}" class="btn btn-primary btn-lg mb-3">
                             <i class="fas fa-sign-in-alt me-2"></i>
                             Login to Continue
                         </a>
+                        <p class="text-muted mt-3 small">
+                            By proceeding, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>
+                        </p>
                     {% endif %}
-                    
-                    <p class="text-muted mt-3 small">
-                        By proceeding, you agree to our <a href="#">Terms</a> and <a href="#">Privacy Policy</a>
-                    </p>
                 </div>
             </div>
         </div>

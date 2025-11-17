@@ -1,0 +1,318 @@
+{% extends "admin/base.html" %}
+
+{% block title %}{{ title }} | {{ site_title|default:_('Django site admin') }}{% endblock %}
+
+{% block branding %}
+<h1 id="site-name"><a href="{% url 'admin:index' %}">PetPal Administration</a></h1>
+{% endblock %}
+
+{% block nav-global %}{% endblock %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    /* Custom Admin Styling */
+    #site-name a {
+        color: #fff;
+        background: #417690;
+        padding: 15px 20px;
+        display: block;
+        font-size: 20px;
+        font-weight: bold;
+        text-decoration: none;
+    }
+    
+    #site-name a:hover {
+        background: #2e5266;
+    }
+    
+    /* Collapsible Menu Styling */
+    .collapsible-group {
+        margin: 10px 0;
+    }
+    
+    .collapsible-header {
+        background: #f8f8f8;
+        border: 1px solid #ddd;
+        padding: 10px 15px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-weight: bold;
+        color: #333;
+        border-radius: 4px;
+        transition: background 0.2s ease;
+    }
+    
+    .collapsible-header:hover {
+        background: #e8e8e8;
+    }
+    
+    .collapsible-header .icon {
+        margin-right: 8px;
+        font-size: 16px;
+    }
+    
+    .collapsible-header .arrow {
+        transition: transform 0.3s ease;
+        font-size: 14px;
+    }
+    
+    .collapsible-header.collapsed .arrow {
+        transform: rotate(-90deg);
+    }
+    
+    .collapsible-content {
+        max-height: 500px;
+        overflow: hidden;
+        transition: max-height 0.3s ease, opacity 0.3s ease;
+        opacity: 1;
+        padding-left: 15px;
+        margin-top: 5px;
+    }
+    
+    .collapsible-content.collapsed {
+        max-height: 0;
+        opacity: 0;
+        margin-top: 0;
+    }
+    
+    .collapsible-content ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .collapsible-content li {
+        margin: 5px 0;
+    }
+    
+    .collapsible-content a {
+        display: block;
+        padding: 8px 15px;
+        background: #fff;
+        border: 1px solid #e0e0e0;
+        border-radius: 3px;
+        text-decoration: none;
+        color: #417690;
+        transition: all 0.2s ease;
+        font-weight: normal;
+    }
+    
+    .collapsible-content a:hover {
+        background: #417690;
+        color: #fff;
+        border-color: #417690;
+    }
+    
+    .collapsible-content a.active {
+        background: #417690;
+        color: #fff;
+        border-color: #417690;
+        font-weight: bold;
+    }
+    
+    /* Make collapsible groups look like list items */
+    .collapsible-group {
+        list-style: none;
+    }
+    
+    /* Module styling improvements */
+    .module h2, .module caption {
+        background: #417690;
+    }
+    
+    /* Breadcrumbs */
+    div.breadcrumbs {
+        background: #417690;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Function to create collapsible groups
+    function createCollapsibleGroups() {
+        // Try to find admin index page app list first
+        const appList = document.querySelector('#content-main .app-petpalapp');
+        
+        if (!appList) {
+            console.log('PetPal app list not found');
+            return;
+        }
+        
+        console.log('Found PetPal app list:', appList);
+        
+        // ADMIN INDEX PAGE
+        const modelList = appList.querySelector('.model-list, ul');
+        if (!modelList) {
+            console.log('Model list not found');
+            return;
+        }
+        
+        console.log('Found model list:', modelList);
+        
+        const allItems = Array.from(modelList.children);
+        const marketplaceItems = [];
+        const orderItems = [];
+        
+        // Categorize items
+        allItems.forEach(item => {
+            const link = item.querySelector('a');
+            if (link) {
+                const text = link.textContent.trim();
+                console.log('Found item:', text);
+                
+                // Marketplace items
+                if (text.includes('Pending Review') || 
+                    text.includes('Approved Pets') || 
+                    text.includes('Rejected Pets')) {
+                    console.log('  -> Marketplace item');
+                    marketplaceItems.push(item);
+                }
+                // Order/Transaction items
+                else if (text.includes('Orders') || 
+                         text.includes('Order items') || 
+                         text.includes('Transactions')) {
+                    console.log('  -> Order item');
+                    orderItems.push(item);
+                }
+            }
+        });
+        
+        console.log('Marketplace items found:', marketplaceItems.length);
+        console.log('Order items found:', orderItems.length);
+        
+        const currentUrl = window.location.href;
+        
+        // Helper function to create collapsible group
+        function createGroup(items, title, icon, storageKey, urlPatterns) {
+            if (items.length === 0) return null;
+            
+            const collapsibleGroup = document.createElement('li');
+            collapsibleGroup.className = 'collapsible-group';
+            
+            const header = document.createElement('div');
+            header.className = 'collapsible-header';
+            header.innerHTML = `
+                <span>
+                    <span class="icon">${icon}</span>
+                    ${title}
+                </span>
+                <span class="arrow">▼</span>
+            `;
+            
+            const content = document.createElement('div');
+            content.className = 'collapsible-content';
+            
+            const ul = document.createElement('ul');
+            
+            // Move items into collapsible group
+            items.forEach(item => {
+                const link = item.querySelector('a');
+                if (link) {
+                    const li = document.createElement('li');
+                    const newLink = link.cloneNode(true);
+                    
+                    // Check if current page
+                    if (urlPatterns.some(pattern => currentUrl.includes(pattern))) {
+                        if (currentUrl.includes(link.getAttribute('href'))) {
+                            newLink.classList.add('active');
+                        }
+                    }
+                    
+                    li.appendChild(newLink);
+                    ul.appendChild(li);
+                }
+                item.remove(); // Remove original item
+            });
+            
+            content.appendChild(ul);
+            collapsibleGroup.appendChild(header);
+            collapsibleGroup.appendChild(content);
+            
+            // Add toggle functionality
+            header.addEventListener('click', function() {
+                const isCollapsed = content.classList.contains('collapsed');
+                
+                if (isCollapsed) {
+                    content.classList.remove('collapsed');
+                    header.classList.remove('collapsed');
+                } else {
+                    content.classList.add('collapsed');
+                    header.classList.add('collapsed');
+                }
+                
+                // Save state
+                localStorage.setItem(storageKey, !isCollapsed);
+            });
+            
+            // Restore state
+            const savedState = localStorage.getItem(storageKey);
+            if (savedState === 'true') {
+                content.classList.add('collapsed');
+                header.classList.add('collapsed');
+            }
+            
+            // Auto-expand if on a related page
+            if (urlPatterns.some(pattern => currentUrl.includes(pattern))) {
+                content.classList.remove('collapsed');
+                header.classList.remove('collapsed');
+            }
+            
+            return collapsibleGroup;
+        }
+        
+        // Create Marketplace group
+        const marketplaceGroup = createGroup(
+            marketplaceItems,
+            'Marketplace',
+            '🛒',
+            'marketplaceCollapsed',
+            ['pendingpet', 'approvedpet', 'rejectedpet']
+        );
+        
+        // Create Orders & Transactions group
+        const orderGroup = createGroup(
+            orderItems,
+            'Orders & Transactions',
+            '📦',
+            'ordersCollapsed',
+            ['order', 'transaction']
+        );
+        
+        // Insert groups into the model list
+        // Find a good insertion point (after non-grouped items)
+        const remainingItems = allItems.filter(item => 
+            !marketplaceItems.includes(item) && 
+            !orderItems.includes(item) &&
+            item.parentElement === modelList
+        );
+        
+        if (marketplaceGroup) {
+            if (remainingItems.length > 0) {
+                // Insert after the last remaining item
+                const lastItem = remainingItems[remainingItems.length - 1];
+                lastItem.after(marketplaceGroup);
+            } else {
+                modelList.appendChild(marketplaceGroup);
+            }
+        }
+        
+        if (orderGroup) {
+            if (marketplaceGroup) {
+                marketplaceGroup.after(orderGroup);
+            } else if (remainingItems.length > 0) {
+                const lastItem = remainingItems[remainingItems.length - 1];
+                lastItem.after(orderGroup);
+            } else {
+                modelList.appendChild(orderGroup);
+            }
+        }
+    }
+    
+    // Run the function
+    createCollapsibleGroups();
+});
+</script>
+{% endblock %}

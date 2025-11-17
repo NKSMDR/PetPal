@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Listing Fee Payment - PetPal{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header text-center bg-success text-white">
+                    <h3><i class="fas fa-credit-card"></i> Pay Listing Fee</h3>
+                    <p class="mb-0">Transaction ID: {{ listing_payment.transaction_uuid }}</p>
+                </div>
+                <div class="card-body text-center">
+                    <div class="mb-4">
+                        <h5>Payment Summary</h5>
+                        <p><strong>Listing Fee:</strong> NPR {{ listing_payment.amount }}</p>
+                        <p class="text-muted">One-time fee to list your pet on PetPal marketplace</p>
+                    </div>
+                    
+                    <div class="alert alert-info" id="redirect-message">
+                        <i class="fas fa-info-circle"></i>
+                        <strong>Redirecting to eSewa...</strong><br>
+                        You will be redirected to eSewa in <span id="countdown">3</span> seconds to complete your payment securely.
+                    </div>
+                    
+                    <!-- eSewa Payment Gateway Form -->
+                    <form id="esewa-form" method="POST" action="https://rc-epay.esewa.com.np/api/epay/main/v2/form">
+                        {% csrf_token %}
+                        {{ form|safe }}
+                        
+                        <button type="submit" class="btn btn-success btn-lg" id="pay-now-btn">
+                            <i class="fas fa-credit-card"></i> Pay NPR 100 with eSewa
+                        </button>
+                    </form>
+                    
+                    <div class="mt-4">
+                        <p class="text-muted">
+                            <i class="fas fa-lock"></i> Your payment is secured by eSewa
+                        </p>
+                        <a href="{% url 'sell_pet' %}" class="btn btn-outline-secondary">
+                            <i class="fas fa-arrow-left"></i> Back
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Auto-submit form after 3 seconds with countdown
+(function() {
+    var countdown = 3;
+    var countdownElement = document.getElementById('countdown');
+    var form = document.getElementById('esewa-form');
+    var payButton = document.getElementById('pay-now-btn');
+    
+    // Countdown timer
+    var countdownInterval = setInterval(function() {
+        countdown--;
+        if (countdownElement) {
+            countdownElement.textContent = countdown;
+        }
+        
+        if (countdown <= 0) {
+            clearInterval(countdownInterval);
+        }
+    }, 1000);
+    
+    // Auto-submit after 3 seconds
+    var submitTimeout = setTimeout(function() {
+        console.log('Auto-submitting eSewa form...');
+        if (form) {
+            form.submit();
+        } else {
+            console.error('eSewa form not found!');
+        }
+    }, 3000);
+    
+    // Allow manual submission and cancel auto-submit
+    if (payButton) {
+        payButton.addEventListener('click', function(e) {
+            e.preventDefault();
+            clearTimeout(submitTimeout);
+            clearInterval(countdownInterval);
+            console.log('Manual form submission triggered');
+            
+            form.submit();
+        });
+    }
+})();
+</script>
+{% endblock %}

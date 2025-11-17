@@ -1,0 +1,402 @@
+[
+  {
+    "model": "petpalapp.accessory",
+    "pk": 1,
+    "fields": {
+      "name": "Premium Leather Collar",
+      "slug": "premium-leather-collar",
+      "description": "Handcrafted genuine leather collar with adjustable buckle. Durable and comfortable for daily wear. Features soft padding for extra comfort.",
+      "price": "24.99",
+      "original_price": "34.99",
+      "image": "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Collar"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 2,
+    "fields": {
+      "name": "Reflective Safety Collar",
+      "slug": "reflective-safety-collar",
+      "description": "High-visibility reflective collar perfect for evening walks. Water-resistant and easy to clean. Available in multiple sizes.",
+      "price": "15.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1591769225440-811ad7d6eab3?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Collar"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 3,
+    "fields": {
+      "name": "Retractable Dog Leash",
+      "slug": "retractable-dog-leash",
+      "description": "16-foot retractable leash with one-button brake and lock. Ergonomic anti-slip handle for comfortable grip. Supports dogs up to 50kg.",
+      "price": "29.99",
+      "original_price": "39.99",
+      "image": "https://images.unsplash.com/photo-1601758228041-f3b2795255f1?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Leash"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 4,
+    "fields": {
+      "name": "Heavy Duty Training Leash",
+      "slug": "heavy-duty-training-leash",
+      "description": "Professional-grade 6-foot training leash made from reinforced nylon. Perfect for obedience training and walking large dogs.",
+      "price": "18.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1583511666407-5f06533f2113?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Leash"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 5,
+    "fields": {
+      "name": "Interactive Squeaky Ball",
+      "slug": "interactive-squeaky-ball",
+      "description": "Durable rubber ball with built-in squeaker. Perfect for fetch and play. Non-toxic and easy to clean. Suitable for all dog sizes.",
+      "price": "9.99",
+      "original_price": "14.99",
+      "image": "https://images.unsplash.com/photo-1535045566372-44a7c6e85ab0?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Toy"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 6,
+    "fields": {
+      "name": "Rope Tug Toy",
+      "slug": "rope-tug-toy",
+      "description": "Heavy-duty braided cotton rope toy for tug-of-war. Helps clean teeth and massage gums. Machine washable and long-lasting.",
+      "price": "12.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Toy"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 7,
+    "fields": {
+      "name": "Plush Chew Toy Set",
+      "slug": "plush-chew-toy-set",
+      "description": "Set of 3 soft plush toys with squeakers inside. Perfect for gentle chewers. Cute animal designs your dog will love.",
+      "price": "19.99",
+      "original_price": "27.99",
+      "image": "https://images.unsplash.com/photo-1615751072497-5f5169febe17?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Toy"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 8,
+    "fields": {
+      "name": "Stainless Steel Food Bowl",
+      "slug": "stainless-steel-food-bowl",
+      "description": "Dishwasher-safe stainless steel bowl with non-skid rubber base. Rust-resistant and hygienic. Available in small, medium, and large sizes.",
+      "price": "16.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Bowl"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 9,
+    "fields": {
+      "name": "Elevated Double Bowl Stand",
+      "slug": "elevated-double-bowl-stand",
+      "description": "Raised feeding station with two stainless steel bowls. Promotes better posture and digestion. Adjustable height for growing dogs.",
+      "price": "44.99",
+      "original_price": "59.99",
+      "image": "https://images.unsplash.com/photo-1623387641168-d9803ddd3f35?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Bowl"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 10,
+    "fields": {
+      "name": "Automatic Water Fountain",
+      "slug": "automatic-water-fountain",
+      "description": "Electric pet water fountain with triple filtration system. Encourages hydration with flowing water. Ultra-quiet pump. 2L capacity.",
+      "price": "39.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1591171173839-e6a14d6d67c3?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Bowl"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 11,
+    "fields": {
+      "name": "Memory Foam Dog Bed",
+      "slug": "memory-foam-dog-bed",
+      "description": "Orthopedic memory foam bed with removable washable cover. Perfect for senior dogs or those with joint issues. Non-slip bottom.",
+      "price": "79.99",
+      "original_price": "99.99",
+      "image": "https://images.unsplash.com/photo-1583511655826-05700d47ef1a?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Bed"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 12,
+    "fields": {
+      "name": "Cozy Donut Bed",
+      "slug": "cozy-donut-bed",
+      "description": "Round plush donut-shaped bed with raised rim for head support. Super soft and comfortable. Machine washable. Multiple colors available.",
+      "price": "34.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1610557992136-be33b4e1e538?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Bed"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 13,
+    "fields": {
+      "name": "Outdoor All-Weather Bed",
+      "slug": "outdoor-all-weather-bed",
+      "description": "Waterproof and UV-resistant elevated bed. Perfect for outdoor use. Breathable mesh center keeps dogs cool. Easy to clean.",
+      "price": "54.99",
+      "original_price": "69.99",
+      "image": "https://images.unsplash.com/photo-1592779218160-bf75f8f46145?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Bed"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 14,
+    "fields": {
+      "name": "Waterproof Rain Jacket",
+      "slug": "waterproof-rain-jacket",
+      "description": "Lightweight waterproof jacket with reflective strips. Adjustable straps for perfect fit. Keeps your dog dry during rainy walks.",
+      "price": "27.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1612536432647-373bd25d3050?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Clothes"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 15,
+    "fields": {
+      "name": "Winter Fleece Sweater",
+      "slug": "winter-fleece-sweater",
+      "description": "Warm and cozy fleece sweater for cold weather. Soft fabric with stretchy fit. Available in various sizes and colors. Easy to put on and take off.",
+      "price": "22.99",
+      "original_price": "32.99",
+      "image": "https://images.unsplash.com/photo-1602457950681-1a9c899fc3fc?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Clothes"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 16,
+    "fields": {
+      "name": "Cooling Vest",
+      "slug": "cooling-vest",
+      "description": "Innovative cooling vest for hot summer days. Activated by water, provides hours of cooling relief. Lightweight and comfortable.",
+      "price": "31.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1598977123118-4e30ba3c4f5b?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Clothes"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 17,
+    "fields": {
+      "name": "Premium Dry Dog Food",
+      "slug": "premium-dry-dog-food",
+      "description": "High-quality dry food with real chicken as the first ingredient. Balanced nutrition for adult dogs. Grain-free formula. 5kg bag.",
+      "price": "49.99",
+      "original_price": "59.99",
+      "image": "https://images.unsplash.com/photo-1589924691995-400dc9ecc119?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Food"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 18,
+    "fields": {
+      "name": "Puppy Formula Food",
+      "slug": "puppy-formula-food",
+      "description": "Specially formulated nutrition for growing puppies. Contains DHA for brain development. Rich in protein and calcium. 3kg bag.",
+      "price": "39.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1628009368231-7bb7cfcb0def?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Food"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 19,
+    "fields": {
+      "name": "Training Treat Pack",
+      "slug": "training-treat-pack",
+      "description": "Small, soft training treats perfect for positive reinforcement. Low calorie and easy to digest. Made with natural ingredients. 500g pack.",
+      "price": "14.99",
+      "original_price": "19.99",
+      "image": "https://images.unsplash.com/photo-1585664811087-47f65abbad64?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Food"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 20,
+    "fields": {
+      "name": "Portable Travel Water Bottle",
+      "slug": "portable-travel-water-bottle",
+      "description": "Leak-proof travel water bottle with attached bowl. One-hand operation. Perfect for walks, hikes, and trips. 350ml capacity.",
+      "price": "17.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1591081398001-56c2c5c3c5c0?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Other"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 21,
+    "fields": {
+      "name": "Pet Grooming Kit",
+      "slug": "pet-grooming-kit",
+      "description": "Complete grooming set with brush, comb, nail clippers, and scissors. Professional-quality tools in a convenient carrying case.",
+      "price": "42.99",
+      "original_price": "54.99",
+      "image": "https://images.unsplash.com/photo-1576201836106-db1758fd1c97?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Other"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 22,
+    "fields": {
+      "name": "Pet First Aid Kit",
+      "slug": "pet-first-aid-kit",
+      "description": "Comprehensive first aid kit for pets. Includes bandages, antiseptic, tweezers, and emergency guide. Essential for every pet owner.",
+      "price": "29.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1603796846097-bee99e4a601f?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Other"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 23,
+    "fields": {
+      "name": "GPS Tracking Collar",
+      "slug": "gps-tracking-collar",
+      "description": "Smart GPS collar with real-time location tracking. Waterproof and rechargeable. Activity monitoring and geofencing features. Requires subscription.",
+      "price": "89.99",
+      "original_price": "119.99",
+      "image": "https://images.unsplash.com/photo-1568640347023-a616a30bc3bd?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Other"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 24,
+    "fields": {
+      "name": "Dental Chew Toys Bundle",
+      "slug": "dental-chew-toys-bundle",
+      "description": "Set of 4 dental chew toys designed to reduce plaque and tartar. Different textures and shapes. Promotes healthy teeth and gums.",
+      "price": "24.99",
+      "original_price": null,
+      "image": "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Toy"
+    }
+  },
+  {
+    "model": "petpalapp.accessory",
+    "pk": 25,
+    "fields": {
+      "name": "Luxury Pet Carrier Bag",
+      "slug": "luxury-pet-carrier-bag",
+      "description": "Stylish and comfortable airline-approved pet carrier. Padded shoulder strap and multiple ventilation windows. Perfect for small dogs and cats.",
+      "price": "64.99",
+      "original_price": "84.99",
+      "image": "https://images.unsplash.com/photo-1591769225440-811ad7d6eab3?w=800",
+      "image2": "",
+      "image3": "",
+      "image4": "",
+      "category": "Other"
+    }
+  }
+]

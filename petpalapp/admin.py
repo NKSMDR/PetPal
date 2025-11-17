@@ -8,38 +8,39 @@ from django.contrib import messages
 
 # Register your models here.
 from django.contrib import admin
-from .models import Breed, Accessory, Pet, UserProfile, Order, OrderItem, Transaction, Cart, CartItem
+from .models import (Breed, Accessory, Pet, UserProfile, Order, OrderItem, Transaction, Cart, CartItem, 
+                     ListingPayment, ListingPrice, HeroSection, FeatureCard, Testimonial, HomePageSettings)
 
 # Create proxy models for separate admin sections
 class BrowsePet(Pet):
     class Meta:
         proxy = True
-        verbose_name = "Browse Pet (Admin Added)"
-        verbose_name_plural = "Browse Pets (Admin Added)"
+        verbose_name = "Professional Pet Listing"
+        verbose_name_plural = "Professional Pet Listings"
 
 class MarketplacePet(Pet):
     class Meta:
         proxy = True
-        verbose_name = "Marketplace Pet (User Submitted)"
-        verbose_name_plural = "Marketplace Pets (User Submitted)"
+        verbose_name = "User Submitted Pet"
+        verbose_name_plural = "User Marketplace Pets"
 
 class PendingPet(Pet):
     class Meta:
         proxy = True
-        verbose_name = "Marketplace - Pending Review"
-        verbose_name_plural = "Marketplace → 📋 Pending Review"
+        verbose_name = "Pending Review"
+        verbose_name_plural = "├─ Pending Review"
 
 class ApprovedPet(Pet):
     class Meta:
         proxy = True
-        verbose_name = "Marketplace - Approved"
-        verbose_name_plural = "Marketplace → ✅ Approved Pets"
+        verbose_name = "Approved Pet"
+        verbose_name_plural = "├─ Approved Pets"
 
 class RejectedPet(Pet):
     class Meta:
         proxy = True
-        verbose_name = "Marketplace - Rejected"
-        verbose_name_plural = "Marketplace → ❌ Rejected Pets"
+        verbose_name = "Rejected Pet"
+        verbose_name_plural = "└─ Rejected Pets"
 
 class BreedAdmin(admin.ModelAdmin):
     list_display = ['name', 'size', 'life_span', 'good_with_kids', 'energy_level', 'image_preview', 'view_detail']
@@ -432,6 +433,219 @@ class CartAdmin(admin.ModelAdmin):
     def get_total(self, obj):
         return f"${obj.get_total():.2f}"
     get_total.short_description = 'Total'
+
+
+# Listing Payment Admin
+@admin.register(ListingPayment)
+class ListingPaymentAdmin(admin.ModelAdmin):
+    list_display = ['transaction_uuid', 'user', 'amount', 'status', 'submission_status', 'payment_date']
+    list_filter = ['status', 'payment_date']
+    search_fields = ['transaction_uuid', 'user__username', 'user__email']
+    readonly_fields = ['transaction_uuid', 'payment_date', 'esewa_response', 'submissions_used']
+    
+    fieldsets = (
+        ('Payment Information', {
+            'fields': ('user', 'transaction_uuid', 'amount', 'status')
+        }),
+        ('Submission Tracking', {
+            'fields': ('total_submissions_allowed', 'submissions_used'),
+            'description': 'Track how many pet submissions have been made with this payment'
+        }),
+        ('eSewa Response', {
+            'fields': ('esewa_response',),
+            'classes': ('collapse',)
+        }),
+        ('Timestamps', {
+            'fields': ('payment_date',),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def submission_status(self, obj):
+        if obj.status != 'SUCCESS':
+            return format_html('<span style="color: #6c757d;">N/A</span>')
+        
+        remaining = obj.get_remaining_submissions()
+        if remaining > 0:
+            return format_html(
+                '<span style="color: #28a745; font-weight: bold;">{}/{} used ({} remaining)</span>',
+                obj.submissions_used, obj.total_submissions_allowed, remaining
+            )
+        else:
+            return format_html(
+                '<span style="color: #dc3545; font-weight: bold;">{}/{} used (All used)</span>',
+                obj.submissions_used, obj.total_submissions_allowed
+            )
+    submission_status.short_description = "Submission Status"
+    
+    def has_add_permission(self, request):
+        # Prevent manual addition of listing payments
+        return False
+
+
+# Listing Price Admin
+@admin.register(ListingPrice)
+class ListingPriceAdmin(admin.ModelAdmin):
+    list_display = ['price', 'updated_at', 'updated_by']
+    readonly_fields = ['updated_at', 'updated_by']
+    
+    fieldsets = (
+        ('Listing Fee Configuration', {
+            'fields': ('price',),
+            'description': 'Set the listing fee for pet submissions. This price will be shown to users on the sell pet info page.'
+        }),
+        ('Update Information', {
+            'fields': ('updated_at', 'updated_by'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def has_add_permission(self, request):
+        # Only allow one listing price configuration
+        return not ListingPrice.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        # Prevent deletion of listing price
+        return False
+    
+    def save_model(self, request, obj, form, change):
+        # Track who updated the price
+        obj.updated_by = request.user
+        super().save_model(request, obj, form, change)
+
+
+# Homepage Customization Admin
+@admin.register(HeroSection)
+class HeroSectionAdmin(admin.ModelAdmin):
+    list_display = ['title', 'is_active', 'order', 'image_preview', 'updated_at']
+    list_editable = ['is_active', 'order']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['title', 'subtitle']
+    readonly_fields = ['image_preview', 'created_at', 'updated_at']
+    
+    fieldsets = (
+        ('Content', {
+            'fields': ('title', 'subtitle', 'cta_text', 'cta_link')
+        }),
+        ('Image', {
+            'fields': ('background_image', 'image_preview')
+        }),
+        ('Settings', {
+            'fields': ('is_active', 'order')
+        }),
+        ('Timestamps', {
+            'fields': ('created_at', 'updated_at'),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def image_preview(self, obj):
+        if obj.background_image:
+            return format_html('<img src="{}" style="max-width: 300px; max-height: 150px; border-radius: 8px;" />', obj.background_image.url)
+        return "No Image"
+    image_preview.short_description = "Preview"
+
+
+@admin.register(FeatureCard)
+class FeatureCardAdmin(admin.ModelAdmin):
+    list_display = ['title', 'icon', 'is_active', 'order', 'has_link']
+    list_editable = ['is_active', 'order']
+    list_filter = ['is_active', 'created_at']
+    search_fields = ['title', 'description']
+    readonly_fields = ['image_preview']
+    
+    fieldsets = (
+        ('Content', {
+            'fields': ('title', 'description', 'link')
+        }),
+        ('Visual', {
+            'fields': ('icon', 'image', 'image_preview'),
+            'description': 'Use either an icon OR an image'
+        }),
+        ('Settings', {
+            'fields': ('is_active', 'order')
+        })
+    )
+    
+    def image_preview(self, obj):
+        if obj.image:
+            return format_html('<img src="{}" style="max-width: 100px; max-height: 100px; border-radius: 8px;" />', obj.image.url)
+        return "Using icon instead"
+    image_preview.short_description = "Image Preview"
+    
+    def has_link(self, obj):
+        return "✓" if obj.link else "✗"
+    has_link.short_description = "Has Link"
+
+
+@admin.register(Testimonial)
+class TestimonialAdmin(admin.ModelAdmin):
+    list_display = ['customer_name', 'rating_stars', 'location', 'is_active', 'order']
+    list_editable = ['is_active', 'order']
+    list_filter = ['is_active', 'rating', 'created_at']
+    search_fields = ['customer_name', 'testimonial_text', 'location']
+    readonly_fields = ['image_preview']
+    
+    fieldsets = (
+        ('Customer Info', {
+            'fields': ('customer_name', 'location', 'customer_image', 'image_preview')
+        }),
+        ('Testimonial', {
+            'fields': ('rating', 'testimonial_text')
+        }),
+        ('Settings', {
+            'fields': ('is_active', 'order')
+        })
+    )
+    
+    def image_preview(self, obj):
+        if obj.customer_image:
+            return format_html('<img src="{}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" />', obj.customer_image.url)
+        return "No Image"
+    image_preview.short_description = "Photo"
+    
+    def rating_stars(self, obj):
+        stars = '⭐' * obj.rating
+        return format_html('<span style="font-size: 18px;">{}</span>', stars)
+    rating_stars.short_description = "Rating"
+
+
+@admin.register(HomePageSettings)
+class HomePageSettingsAdmin(admin.ModelAdmin):
+    list_display = ['site_name', 'tagline', 'show_featured_pets', 'show_testimonials', 'show_features', 'updated_at']
+    readonly_fields = ['updated_at', 'image_preview']
+    
+    fieldsets = (
+        ('Site Branding', {
+            'fields': ('site_name', 'tagline')
+        }),
+        ('About Section', {
+            'fields': ('about_section_title', 'about_section_text', 'about_image', 'image_preview')
+        }),
+        ('Section Visibility', {
+            'fields': ('show_featured_pets', 'show_testimonials', 'show_features'),
+            'description': 'Toggle which sections appear on the homepage'
+        }),
+        ('Last Updated', {
+            'fields': ('updated_at',),
+            'classes': ('collapse',)
+        })
+    )
+    
+    def image_preview(self, obj):
+        if obj.about_image:
+            return format_html('<img src="{}" style="max-width: 300px; max-height: 200px; border-radius: 8px;" />', obj.about_image.url)
+        return "No Image"
+    image_preview.short_description = "About Image Preview"
+    
+    def has_add_permission(self, request):
+        # Only allow one homepage settings instance
+        return not HomePageSettings.objects.exists()
+    
+    def has_delete_permission(self, request, obj=None):
+        # Prevent deletion of homepage settings
+        return False
+
 
 # Customize admin site headers
 admin.site.site_header = "PetPal Administration"

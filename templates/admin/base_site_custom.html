@@ -1,0 +1,119 @@
+{% extends "admin/base_site.html" %}
+
+{% block extrahead %}
+{{ block.super }}
+<style>
+    /* Marketplace collapsible group styling */
+    .marketplace-group {
+        cursor: pointer;
+        padding: 8px 12px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 4px;
+        margin: 4px 0;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+    
+    .marketplace-group:hover {
+        background: rgba(255, 255, 255, 0.15);
+    }
+    
+    .marketplace-group .icon {
+        margin-right: 8px;
+    }
+    
+    .marketplace-group .arrow {
+        transition: transform 0.3s ease;
+    }
+    
+    .marketplace-group.collapsed .arrow {
+        transform: rotate(-90deg);
+    }
+    
+    .marketplace-children {
+        padding-left: 20px;
+        overflow: hidden;
+        transition: max-height 0.3s ease;
+    }
+    
+    .marketplace-children.collapsed {
+        max-height: 0;
+    }
+    
+    .marketplace-children:not(.collapsed) {
+        max-height: 500px;
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Find marketplace menu items
+    const sidebar = document.querySelector('.main-sidebar');
+    if (!sidebar) return;
+    
+    const menuItems = sidebar.querySelectorAll('.nav-link');
+    const marketplaceItems = [];
+    
+    // Find all marketplace-related items
+    menuItems.forEach(item => {
+        const text = item.textContent.trim();
+        if (text.includes('Pending Review') || 
+            text.includes('Approved Pets') || 
+            text.includes('Rejected Pets')) {
+            marketplaceItems.push(item.closest('li'));
+        }
+    });
+    
+    if (marketplaceItems.length === 0) return;
+    
+    // Create collapsible group
+    const firstItem = marketplaceItems[0];
+    const parentUl = firstItem.parentElement;
+    
+    // Create group header
+    const groupHeader = document.createElement('li');
+    groupHeader.className = 'nav-item';
+    groupHeader.innerHTML = `
+        <div class="marketplace-group">
+            <span>
+                <i class="fas fa-store icon"></i>
+                🛒 Marketplace
+            </span>
+            <i class="fas fa-chevron-down arrow"></i>
+        </div>
+    `;
+    
+    // Create children container
+    const childrenContainer = document.createElement('ul');
+    childrenContainer.className = 'nav nav-treeview marketplace-children';
+    
+    // Move marketplace items into group
+    marketplaceItems.forEach(item => {
+        childrenContainer.appendChild(item);
+    });
+    
+    // Insert group before first marketplace item
+    parentUl.insertBefore(groupHeader, firstItem);
+    parentUl.insertBefore(childrenContainer, firstItem);
+    
+    // Add click handler
+    const groupHeaderDiv = groupHeader.querySelector('.marketplace-group');
+    groupHeaderDiv.addEventListener('click', function() {
+        this.classList.toggle('collapsed');
+        childrenContainer.classList.toggle('collapsed');
+        
+        // Save state
+        const isCollapsed = childrenContainer.classList.contains('collapsed');
+        localStorage.setItem('marketplaceCollapsed', isCollapsed);
+    });
+    
+    // Restore state
+    const savedState = localStorage.getItem('marketplaceCollapsed');
+    if (savedState === 'true') {
+        groupHeaderDiv.classList.add('collapsed');
+        childrenContainer.classList.add('collapsed');
+    }
+});
+</script>
+{% endblock %}

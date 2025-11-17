@@ -44,6 +44,10 @@ urlpatterns = [
     path('checkout/', views.checkout, name='checkout'),
     path('payment/success/<int:transaction_id>/', views.payment_success, name='payment_success'),
     path('payment/failure/<int:transaction_id>/', views.payment_failure, name='payment_failure'),
+    # Listing Payment URLs
+    path('listing-payment/checkout/', views.listing_payment_checkout, name='listing_payment_checkout'),
+    path('listing-payment/success/<int:payment_id>/', views.listing_payment_success, name='listing_payment_success'),
+    path('listing-payment/failure/<int:payment_id>/', views.listing_payment_failure, name='listing_payment_failure'),
     # Cart sync URL
     path('sync-cart/', views.sync_cart, name='sync_cart'),
     # Debug URL
