@@ -77,6 +77,7 @@ class Accessory(models.Model):
     description = models.TextField()
     price = models.DecimalField(max_digits=6, decimal_places=2)
     original_price = models.DecimalField(max_digits=6, decimal_places=2, blank=True, null=True)
+    stock = models.PositiveIntegerField(default=0, help_text="Number of items in stock")
     image = models.ImageField(upload_to='accessories/')
     image2 = models.ImageField(upload_to='accessories/', blank=True, null=True)
     image3 = models.ImageField(upload_to='accessories/', blank=True, null=True)
@@ -88,6 +89,31 @@ class Accessory(models.Model):
         super().save(*args, **kwargs)
     def is_discounted(self):
         return self.original_price and self.original_price > self.price
+    
+    def is_in_stock(self):
+        """Check if item is in stock"""
+        return self.stock > 0
+    
+    def is_out_of_stock(self):
+        """Check if item is out of stock"""
+        return self.stock == 0
+    
+    def decrease_stock(self, quantity=1):
+        """Decrease stock by specified quantity"""
+        if self.stock >= quantity:
+            self.stock -= quantity
+            self.save()
+            return True
+        return False
+    
+    def get_stock_status(self):
+        """Get stock status as string"""
+        if self.stock == 0:
+            return "Out of Stock"
+        elif self.stock <= 5:
+            return f"Low Stock ({self.stock} left)"
+        else:
+            return f"In Stock ({self.stock} available)"
     
     def get_all_images(self):
         """Return list of all available images for this accessory"""

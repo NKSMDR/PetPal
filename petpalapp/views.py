@@ -623,7 +623,7 @@ def checkout(request):
         # Initialize eSewa payment
         epayment = EsewaPayment(
             product_code="EPAYTEST",
-            success_url=f'http://localhost:8000/payment/success/{transaction.id}/',
+            success_url=request.build_absolute_uri(f'/payment/success/{transaction.id}/'),
             failure_url=f'http://localhost:8000/payment/failure/{transaction.id}/',
             secret_key='8gBm/:&EnhH.1/q',
             amount=str(total),
@@ -666,7 +666,7 @@ def payment_success(request, transaction_id):
     # Initialize eSewa payment for verification
     epayment = EsewaPayment(
         product_code="EPAYTEST",
-        success_url=f'http://localhost:8000/payment/success/{transaction.id}/',
+        success_url=request.build_absolute_uri(f'/payment/success/{transaction.id}/'),
         failure_url=f'http://localhost:8000/payment/failure/{transaction.id}/',
         secret_key='8gBm/:&EnhH.1/q',
         amount=str(transaction.transaction_amount),

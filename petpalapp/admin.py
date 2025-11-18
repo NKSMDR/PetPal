@@ -82,11 +82,12 @@ admin.site.register(Breed, BreedAdmin)
 
 
 class AccessoryAdmin(admin.ModelAdmin):
-    list_display = ['name', 'category', 'price_display', 'discount_badge', 'image_preview', 'view_actions']
+    list_display = ['name', 'category', 'price_display', 'stock', 'discount_badge', 'image_preview', 'view_actions']
     search_fields = ['name', 'description', 'category']
-    list_filter = ['category', 'price']
+    list_filter = ['category', 'price', 'stock']
     prepopulated_fields = {'slug': ('name',)}
-    readonly_fields = ['image_preview', 'discount_info']
+    readonly_fields = ['image_preview', 'discount_info', 'stock_status']
+    list_editable = ['stock']
     
     fieldsets = (
         ('Product Information', {
@@ -94,6 +95,9 @@ class AccessoryAdmin(admin.ModelAdmin):
         }),
         ('Pricing', {
             'fields': ('price', 'original_price', 'discount_info')
+        }),
+        ('Inventory', {
+            'fields': ('stock', 'stock_status')
         }),
         ('Media', {
             'fields': ('image', 'image2', 'image3', 'image4', 'image_preview')
@@ -137,12 +141,20 @@ class AccessoryAdmin(admin.ModelAdmin):
         return "No discount applied"
     discount_info.short_description = "Discount Information"
     
+    def stock_status(self, obj):
+        """Display stock status with color coding"""
+        return format_html(
+            '<span style="color: {}; font-weight: bold;">{}</span>',
+            '#dc3545' if obj.stock == 0 else '#ffc107' if obj.stock <= 5 else '#28a745',
+            obj.get_stock_status()
+        )
+    stock_status.short_description = "Stock Status"
+    
     def view_actions(self, obj):
         return format_html('<a href="#" class="button">Edit</a>')
     view_actions.short_description = "Actions"
 
 admin.site.register(Accessory, AccessoryAdmin)
-
 
 # Separate admin for Browse Pets (Admin-added pets only)
 class BrowsePetAdmin(admin.ModelAdmin):
