@@ -109,7 +109,10 @@ def Register(request):
 def Logout(request):
     logout(request)
     messages.success(request, 'You have been logged out successfully')
-    return redirect('home')
+    response = redirect('home')
+    # Set a flag to clear cart on next page load
+    response.set_cookie('clear_cart', 'true', max_age=5)
+    return response
 
 # Your existing views
 def breed_detail(request, slug):
@@ -356,6 +359,71 @@ def cart(request):
         'cart_items': cart_items,
         'total': total,
     })
+
+@login_required
+@require_http_methods(["POST"])
+def sync_cart(request):
+    """Sync cart from frontend localStorage to Django backend"""
+    try:
+        data = json.loads(request.body)
+        cart_data = data.get('cart', [])
+        
+        if not isinstance(cart_data, list):
+            return JsonResponse({'status': 'error', 'message': 'Invalid cart data'}, status=400)
+        
+        user_cart = get_or_create_cart(request)
+        
+        # Build frontend cart dictionary
+        frontend_items = {}
+        for item in cart_data:
+            if not all(key in item for key in ['product_type', 'product_id', 'qty']):
+                continue
+            
+            product_type = item['product_type']
+            product_id = int(item['product_id'])
+            quantity = int(item['qty'])
+            
+            if quantity < 1 or quantity > 99:
+                continue
+            
+            item_key = (product_type, product_id)
+            frontend_items[item_key] = quantity
+        
+        # Get existing cart items
+        existing_items = {
+            (cart_item.product_type, cart_item.product_id): cart_item
+            for cart_item in user_cart.items.all()
+        }
+        
+        # Update or create items
+        for item_key, quantity in frontend_items.items():
+            product_type, product_id = item_key
+            
+            if item_key in existing_items:
+                cart_item = existing_items[item_key]
+                if cart_item.quantity != quantity:
+                    cart_item.quantity = quantity
+                    cart_item.save()
+            else:
+                CartItem.objects.create(
+                    cart=user_cart,
+                    product_type=product_type,
+                    product_id=product_id,
+                    quantity=quantity
+                )
+        
+        # Remove items not in frontend cart
+        for item_key, cart_item in existing_items.items():
+            if item_key not in frontend_items:
+                cart_item.delete()
+        
+        return JsonResponse({'status': 'success', 'message': 'Cart synced'})
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+    except Exception as e:
+        print(f"Error syncing cart: {str(e)}")
+        return JsonResponse({'status': 'error', 'message': 'Sync failed'}, status=500)
 
 def browse_pets(request):
     # Only show admin-added pets (not user-submitted ones)
@@ -710,60 +778,9 @@ def payment_failure(request, transaction_id):
     order.save()
     
     context = {
-        'order': order,
-        'transaction': transaction,
-    }
-    return render(request, 'pages/payment_failure.html', context)
-
-@csrf_exempt
-@require_http_methods(["POST"])
-def sync_cart(request):
-    """Sync JavaScript cart with Django database cart"""
-    if not request.user.is_authenticated:
-        return JsonResponse({'error': 'User not authenticated'}, status=401)
-    
-    try:
-        data = json.loads(request.body)
-        cart_data = data.get('cart', [])
-        
-        print(f"DEBUG: Sync cart received data: {cart_data}")
-        
-        # Validate cart data
-        if not isinstance(cart_data, list):
-            return JsonResponse({'error': 'Invalid cart data'}, status=400)
-        
-        # Get or create user's cart
-        user_cart = get_or_create_cart(request)
-        
-        # Clear existing cart items
-        user_cart.items.all().delete()
-        
-        # Add items from JavaScript cart to database
-        for item in cart_data:
-            if item.get('product_type') == 'accessory':
-                CartItem.objects.create(
-                    cart=user_cart,
-                    product_type=item['product_type'],
-                    product_id=item['product_id'],
-                    quantity=item.get('qty', 1)
-                )
-        
-        print(f"DEBUG: Cart synced to database for user {request.user}")
-        
-        return JsonResponse({'status': 'success'})
-    except json.JSONDecodeError:
-        return JsonResponse({'error': 'Invalid JSON'}, status=400)
-    except Exception as e:
-        print(f"DEBUG: Error in sync_cart: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
-
-def debug_cart(request):
-    """Debug endpoint to check cart status"""
-    if not request.user.is_authenticated:
-        return JsonResponse({
             'error': 'User not authenticated',
             'user': 'Anonymous'
-        })
+        }
     
     user_cart = get_or_create_cart(request)
     cart_items = []
@@ -877,3 +894,25 @@ def listing_payment_failure(request, payment_id):
         'listing_payment': listing_payment,
     }
     return render(request, 'pages/listing_payment_failure.html', context)
+
+@login_required
+def get_product_stock(request, product_type, product_id):
+    """Get current stock for a product"""
+    try:
+        if product_type == 'accessory':
+            accessory = get_object_or_404(Accessory, pk=product_id)
+            return JsonResponse({
+                'status': 'success',
+                'stock': accessory.stock,
+                'product_name': accessory.name
+            })
+        else:
+            return JsonResponse({
+                'status': 'error',
+                'message': 'Invalid product type'
+            }, status=400)
+    except Exception as e:
+        return JsonResponse({
+            'status': 'error',
+            'message': str(e)
+        }, status=500)

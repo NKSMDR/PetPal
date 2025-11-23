@@ -127,33 +127,37 @@
     function initCartPage() {
         if (typeof CartManager === 'undefined') {
             console.error('CartManager not available');
-            document.getElementById('cart-loading').style.display = 'none';
             showError('Cart system not available. Please refresh the page.');
             return;
         }
         
-        loadCartItems();
+        // Check if we need to load from localStorage
+        var djangoItems = document.querySelectorAll('#cart-items-tbody tr').length;
+        if (djangoItems === 0) {
+            // No Django items, try loading from localStorage
+            loadCartItems();
+        } else {
+            console.log('Cart loaded from Django backend');
+        }
     }
     
     // Show error message
     function showError(message) {
         var container = document.getElementById('cart-container');
-        container.innerHTML = '<div class="alert alert-danger text-center p-5"><i class="fas fa-exclamation-triangle fa-3x mb-3"></i><h4>' + message + '</h4><button class="btn btn-primary mt-3" onclick="location.reload()">Refresh Page</button></div>';
+        if (container) {
+            container.innerHTML = '<div class="alert alert-danger text-center p-5"><i class="fas fa-exclamation-triangle fa-3x mb-3"></i><h4>' + message + '</h4><button class="btn btn-primary mt-3" onclick="location.reload()">Refresh Page</button></div>';
+        }
     }
     
-    // Load cart items
+    // Load cart items from localStorage
     window.loadCartItems = function() {
-        setTimeout(function() {
-            document.getElementById('cart-loading').style.display = 'none';
-            
-            try {
-                var cart = CartManager.getCart();
-                displayCartItems(cart);
-            } catch (e) {
-                console.error('Error loading cart:', e);
-                showError('Failed to load cart. Please try again.');
-            }
-        }, 300);
+        try {
+            var cart = CartManager.getCart();
+            displayCartItems(cart);
+        } catch (e) {
+            console.error('Error loading cart:', e);
+            showError('Failed to load cart. Please try again.');
+        }
     };
     
     // Initialize on DOM ready
@@ -170,6 +174,11 @@ function displayCartItems(cart) {
     var emptyCart = document.getElementById('empty-cart');
     var itemsCount = document.getElementById('items-count');
     
+    if (!tbody || !cartItemsSection || !emptyCart) {
+        console.error('Cart elements not found');
+        return;
+    }
+    
     if (!cart || cart.length === 0) {
         showEmptyCart();
         return;
@@ -181,7 +190,7 @@ function displayCartItems(cart) {
     var subtotal = 0;
     var totalItems = 0;
     
-    cart.forEach(function(item, index) {
+    cart.forEach(function(item) {
         var itemSubtotal = item.price * item.quantity;
         subtotal += itemSubtotal;
         totalItems += item.quantity;
@@ -192,13 +201,13 @@ function displayCartItems(cart) {
         row.setAttribute('data-product-type', item.type);
         row.innerHTML = `
             <td>
-                <img src="${item.image}" alt="${item.name}" class="product-image">
+                <img src="${item.image}" alt="${item.name}" style="width: 80px; height: 80px; object-fit: cover;">
             </td>
             <td>
-                <div class="product-name">${item.name}</div>
-                <div class="product-type">${item.type}</div>
+                <h6>${item.name}</h6>
+                <small class="text-muted">${item.type}</small>
             </td>
-            <td class="price-display">$${item.price.toFixed(2)}</td>
+            <td>$${item.price.toFixed(2)}</td>
             <td>
                 <div class="quantity-controls">
                     <button class="quantity-btn" onclick="updateQuantity('${item.id}', '${item.type}', ${item.quantity - 1})" type="button">
@@ -213,7 +222,7 @@ function displayCartItems(cart) {
                     </button>
                 </div>
             </td>
-            <td class="price-display">$${itemSubtotal.toFixed(2)}</td>
+            <td>$${itemSubtotal.toFixed(2)}</td>
             <td>
                 <button class="remove-btn" onclick="removeItem('${item.id}', '${item.type}')">
                     <i class="fas fa-trash"></i>
@@ -223,15 +232,19 @@ function displayCartItems(cart) {
         tbody.appendChild(row);
     });
     
-    // Calculate tax (8% for example)
+    // Calculate tax
     var tax = subtotal * 0.08;
     var total = subtotal + tax;
     
-    // Update all totals
-    document.getElementById('cart-subtotal').textContent = '$' + subtotal.toFixed(2);
-    document.getElementById('cart-tax').textContent = '$' + tax.toFixed(2);
-    document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
-    itemsCount.textContent = totalItems;
+    // Update totals
+    var subtotalEl = document.getElementById('cart-subtotal');
+    var taxEl = document.getElementById('cart-tax');
+    var totalEl = document.getElementById('cart-total');
+    
+    if (subtotalEl) subtotalEl.textContent = '$' + subtotal.toFixed(2);
+    if (taxEl) taxEl.textContent = '$' + tax.toFixed(2);
+    if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
+    if (itemsCount) itemsCount.textContent = totalItems;
     
     // Show cart sections
     cartItemsSection.style.display = 'block';
@@ -239,18 +252,20 @@ function displayCartItems(cart) {
 }
 
 function showEmptyCart() {
-    document.getElementById('cart-items-section').style.display = 'none';
-    document.getElementById('empty-cart').style.display = 'block';
-    document.getElementById('items-count').textContent = '0';
+    var cartItemsSection = document.getElementById('cart-items-section');
+    var emptyCart = document.getElementById('empty-cart');
+    var itemsCount = document.getElementById('items-count');
+    
+    if (cartItemsSection) cartItemsSection.style.display = 'none';
+    if (emptyCart) emptyCart.style.display = 'block';
+    if (itemsCount) itemsCount.textContent = '0';
 }
 
 function updateQuantity(itemId, itemType, newQuantity) {
-    // Validate quantity
     newQuantity = parseInt(newQuantity);
     
     if (isNaN(newQuantity)) {
         showNotification('Invalid quantity', 'error');
-        loadCartItems(); // Reload to restore correct state
         return;
     }
     
@@ -264,30 +279,44 @@ function updateQuantity(itemId, itemType, newQuantity) {
         showNotification('Maximum quantity is 99', 'error');
     }
     
-    if (typeof CartManager === 'undefined') {
-        showNotification('Cart system not available. Please refresh the page.', 'error');
-        return;
-    }
-    
-    try {
-        var success = CartManager.updateQuantity(itemId, itemType, newQuantity);
-        
-        if (success) {
-            // Immediately update totals without full refresh for better UX
-            updateCartTotals();
-        } else {
-            // Reload cart to restore correct state
-            loadCartItems();
-            showNotification('Failed to update quantity. Please try again.', 'error');
-        }
-    } catch (e) {
-        console.error('Error updating quantity:', e);
-        loadCartItems();
-        showNotification('An error occurred. Please try again.', 'error');
-    }
+    // Fetch product stock from backend and validate
+    fetch('/get-product-stock/' + itemType + '/' + itemId + '/?t=' + Date.now())
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.stock !== undefined) {
+                var availableStock = data.stock;
+                
+                if (newQuantity > availableStock) {
+                    showNotification('Only ' + availableStock + ' items available in stock!', 'error');
+                    
+                    if (availableStock > 0 && typeof CartManager !== 'undefined') {
+                        CartManager.updateQuantity(itemId, itemType, availableStock);
+                        loadCartItems();
+                    } else {
+                        removeItem(itemId, itemType);
+                    }
+                    return;
+                }
+                
+                if (typeof CartManager !== 'undefined') {
+                    var success = CartManager.updateQuantity(itemId, itemType, newQuantity);
+                    
+                    if (success) {
+                        updateCartTotals();
+                    } else {
+                        showNotification('Failed to update quantity', 'error');
+                    }
+                }
+            }
+        })
+        .catch(function(error) {
+            console.error('Error checking stock:', error);
+            showNotification('Could not verify stock', 'error');
+        });
 }
 
-// Function to update cart totals without full refresh
 function updateCartTotals() {
     if (typeof CartManager !== 'undefined') {
         var cart = CartManager.getCart();
@@ -302,183 +331,60 @@ function updateCartTotals() {
         var tax = subtotal * 0.08;
         var total = subtotal + tax;
         
-        // Update display elements
-        document.getElementById('cart-subtotal').textContent = '$' + subtotal.toFixed(2);
-        document.getElementById('cart-tax').textContent = '$' + tax.toFixed(2);
-        document.getElementById('cart-total').textContent = '$' + total.toFixed(2);
-        document.getElementById('items-count').textContent = totalItems;
+        var subtotalEl = document.getElementById('cart-subtotal');
+        var taxEl = document.getElementById('cart-tax');
+        var totalEl = document.getElementById('cart-total');
+        var itemsCount = document.getElementById('items-count');
+        
+        if (subtotalEl) subtotalEl.textContent = '$' + subtotal.toFixed(2);
+        if (taxEl) taxEl.textContent = '$' + tax.toFixed(2);
+        if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
+        if (itemsCount) itemsCount.textContent = totalItems;
         
         // Update individual row subtotals
         cart.forEach(function(item) {
             var rowSubtotal = item.price * item.quantity;
-            var subtotalElements = document.querySelectorAll(`[data-item-id="${item.id}"][data-item-type="${item.type}"]`);
-            subtotalElements.forEach(function(element) {
-                var row = element.closest('tr');
-                if (row) {
-                    var subtotalCell = row.querySelector('td:nth-child(5)');
-                    if (subtotalCell) {
-                        subtotalCell.textContent = '$' + rowSubtotal.toFixed(2);
-                    }
-                    var quantityInput = row.querySelector('.quantity-input');
-                    if (quantityInput) {
-                        quantityInput.value = item.quantity;
-                    }
-                }
-            });
+            var row = document.querySelector(`tr[data-product-id="${item.id}"][data-product-type="${item.type}"]`);
+            if (row) {
+                var subtotalCell = row.querySelector('td:nth-child(5)');
+                var quantityInput = row.querySelector('.quantity-input');
+                if (subtotalCell) subtotalCell.textContent = '$' + rowSubtotal.toFixed(2);
+                if (quantityInput) quantityInput.value = item.quantity;
+            }
         });
     }
 }
 
 function removeItem(itemId, itemType) {
-    if (!itemId || !itemType) {
-        showNotification('Invalid item', 'error');
-        return;
-    }
+    if (!confirm('Remove this item from cart?')) return;
     
-    if (!confirm('Are you sure you want to remove this item from your cart?')) {
-        return;
-    }
-    
-    if (typeof CartManager === 'undefined') {
-        showNotification('Cart system not available. Please refresh the page.', 'error');
-        return;
-    }
-    
-    try {
+    if (typeof CartManager !== 'undefined') {
         var success = CartManager.removeItem(itemId, itemType);
         if (success) {
-            loadCartItems(); // Refresh display
-            showNotification('Item removed from cart', 'success');
-        } else {
-            showNotification('Failed to remove item', 'error');
+            loadCartItems();
+            showNotification('Item removed', 'success');
         }
-    } catch (e) {
-        console.error('Error removing item:', e);
-        showNotification('An error occurred. Please try again.', 'error');
     }
 }
 
-function clearCart() {
-    if (!confirm('Are you sure you want to clear your entire cart? This action cannot be undone.')) {
-        return;
-    }
-    
-    if (typeof CartManager === 'undefined') {
-        showNotification('Cart system not available. Please refresh the page.', 'error');
-        return;
-    }
-    
-    try {
-        var success = CartManager.clearCart();
-        if (success) {
-            loadCartItems(); // Refresh display
-            showNotification('Cart cleared successfully!', 'success');
-        } else {
-            showNotification('Failed to clear cart', 'error');
-        }
-    } catch (e) {
-        console.error('Error clearing cart:', e);
-        showNotification('An error occurred. Please try again.', 'error');
-    }
-}
-
-function proceedToCheckout() {
-    if (typeof CartManager === 'undefined') {
-        showNotification('Cart system not available. Please refresh the page.', 'error');
-        return;
-    }
-    
-    try {
-        var cart = CartManager.getCart();
-        
-        if (!cart || cart.length === 0) {
-            showNotification('Your cart is empty!', 'error');
-            return;
-        }
-        
-        // Calculate totals
-        var subtotal = CartManager.getTotalPrice();
-        var tax = subtotal * 0.08;
-        var total = subtotal + tax;
-        var totalItems = CartManager.getTotalItems();
-        
-        // Convert cart to Django format
-        var djangoCart = cart.map(function(item) {
-            return {
-                product_type: item.type,
-                product_id: parseInt(item.id),
-                qty: parseInt(item.quantity)
-            };
-        });
-        
-        // Show checkout summary notification instead of alert
-        var checkoutMessage = '🛒 CHECKOUT SUMMARY: ' + totalItems + ' items, Total: $' + total.toFixed(2);
-        showNotification(checkoutMessage, 'info');
-        
-        // Send cart data to Django backend first
-        fetch('/sync-cart/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': CartManager.getCSRFToken()
-            },
-            body: JSON.stringify({
-                cart: djangoCart
-            })
-        }).then(function(response) {
-            if (response.ok) {
-                // Redirect to checkout page after syncing
-                setTimeout(function() {
-                    window.location.href = '/checkout/';
-                }, 500);
-            } else {
-                showNotification('Failed to sync cart. Please try again.', 'error');
-            }
-        }).catch(function(error) {
-            console.error('Error syncing cart:', error);
-            showNotification('An error occurred. Please try again.', 'error');
-        });
-        
-    } catch (e) {
-        console.error('Error during checkout:', e);
-        showNotification('An error occurred. Please try again.', 'error');
-    }
-}
-
-// Notification system for cart page
 function showNotification(message, type) {
     var notification = document.createElement('div');
-    notification.className = `alert alert-${type === 'success' ? 'success' : 'danger'} position-fixed`;
-    notification.style.cssText = `
-        top: 20px;
-        right: 20px;
-        z-index: 9999;
-        min-width: 300px;
-        opacity: 0;
-        transform: translateX(100%);
-        transition: all 0.3s ease;
-    `;
-    notification.innerHTML = `
-        <i class="fas fa-${type === 'success' ? 'check-circle' : 'exclamation-circle'} me-2"></i>
-        ${message}
-    `;
+    notification.className = 'alert alert-' + (type === 'success' ? 'success' : 'danger') + ' position-fixed';
+    notification.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; opacity: 0; transform: translateX(100%); transition: all 0.3s ease;';
+    notification.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + ' me-2"></i>' + message;
     
     document.body.appendChild(notification);
     
-    // Animate in
     setTimeout(function() {
         notification.style.opacity = '1';
         notification.style.transform = 'translateX(0)';
     }, 100);
     
-    // Remove after 3 seconds
     setTimeout(function() {
         notification.style.opacity = '0';
         notification.style.transform = 'translateX(100%)';
         setTimeout(function() {
-            if (notification.parentNode) {
-                document.body.removeChild(notification);
-            }
+            if (notification.parentNode) document.body.removeChild(notification);
         }, 300);
     }, 3000);
 }

@@ -50,6 +50,7 @@ urlpatterns = [
     path('listing-payment/failure/<int:payment_id>/', views.listing_payment_failure, name='listing_payment_failure'),
     # Cart sync URL
     path('sync-cart/', views.sync_cart, name='sync_cart'),
-    # Debug URL
-    path('debug-cart/', views.debug_cart, name='debug_cart'),
+    # # Debug URL
+    # path('debug-cart/', views.debug_cart, name='debug_cart'),
+    path('get-product-stock/<str:product_type>/<int:product_id>/', views.get_product_stock, name='get_product_stock'),
 ]

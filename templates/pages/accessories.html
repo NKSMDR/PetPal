@@ -21,10 +21,11 @@
     <div class="category-pills mb-4 d-flex flex-nowrap overflow-auto">
       <a href="{% url 'accessories' %}" class="pill {% if not category_filter %}active{% endif %}">All</a>
       {% for cat in categories %}
-      <a href="?category={{ cat }}{% if search_query %}&q={{ search_query }}{% endif %}{% if price_min and price_min != min_price_db %}&price_min={{ price_min }}{% endif %}{% if price_max and price_max != max_price_db %}&price_max={{ price_max }}{% endif %}" class="pill {% if category_filter == cat %}active{% endif %}">{{ cat|title }}</a>
+      <a href="?category={{ cat }}{% if search_query %}&q={{ search_query }}{% endif %}{% if price_min and price_min != min_price_db %}&price_min={{ price_min }}{% endif %}{% if price_max and price_max != max_price_db %}&price_max={{ price_max }}{% endif %}"
+        class="pill {% if category_filter == cat %}active{% endif %}">{{ cat|title }}</a>
       {% endfor %}
     </div>
-<!-- For accessories -->
+    <!-- For accessories -->
 
 
     <div class="row">
@@ -32,7 +33,8 @@
       <div class="col-lg-3 mb-4">
         <form method="get" id="filterForm" class="filter-box p-4 rounded shadow-sm bg-white">
           <div class="mb-3">
-            <input type="text" name="q" class="form-control" placeholder="🔍 Search accessories..." value="{{ search_query }}">
+            <input type="text" name="q" class="form-control" placeholder="🔍 Search accessories..."
+              value="{{ search_query }}">
           </div>
           <div class="mb-3">
             <label class="form-label fw-bold">Category</label>
@@ -46,34 +48,25 @@
           <!-- Price Filter Section -->
           <div class="mb-4">
             <label class="form-label fw-bold mb-3">Price</label>
-            
+
             <!-- Price Range Display -->
             <div class="price-range-text mb-3">
-              $<span id="min-price-display">{{ price_min|default:min_price_db }}</span> - $<span id="max-price-display">{{ price_max|default:max_price_db }}</span>
+              $<span id="min-price-display">{{ price_min|default:min_price_db }}</span> - $<span
+                id="max-price-display">{{ price_max|default:max_price_db }}</span>
             </div>
-            
+
             <!-- Dual Range Slider -->
             <div class="price-slider-container">
               <div class="dual-range-slider">
-                <input type="range" 
-                       id="min-price-range" 
-                       name="price_min" 
-                       min="{{ min_price_db }}" 
-                       max="{{ max_price_db }}" 
-                       value="{{ price_min|default:min_price_db }}"
-                       class="range-slider range-min">
-                <input type="range" 
-                       id="max-price-range" 
-                       name="price_max" 
-                       min="{{ min_price_db }}" 
-                       max="{{ max_price_db }}" 
-                       value="{{ price_max|default:max_price_db }}"
-                       class="range-slider range-max">
+                <input type="range" id="min-price-range" name="price_min" min="{{ min_price_db }}"
+                  max="{{ max_price_db }}" value="{{ price_min|default:min_price_db }}" class="range-slider range-min">
+                <input type="range" id="max-price-range" name="price_max" min="{{ min_price_db }}"
+                  max="{{ max_price_db }}" value="{{ price_max|default:max_price_db }}" class="range-slider range-max">
                 <div class="slider-track"></div>
                 <div class="slider-range" id="slider-range"></div>
               </div>
             </div>
-            
+
             <!-- Apply Button -->
             <button type="submit" class="btn btn-primary w-100 mt-3 amazon-apply-btn">
               <i class="fas fa-filter me-2"></i>Apply Filters
@@ -89,7 +82,7 @@
             <div class="product-card flex-fill d-flex flex-column shadow-sm">
               <div class="product-img position-relative">
                 {% if item.is_discounted %}
-                  <span class="discount-badge">Sale</span>
+                <span class="discount-badge">Sale</span>
                 {% endif %}
                 <a href="{% url 'accessory_detail' item.slug %}">
                   <img src="{{ item.image.url }}" alt="{{ item.name }}">
@@ -99,24 +92,23 @@
                 <h6 class="product-title mb-1">{{ item.name }}</h6>
                 <p class="text-muted small mb-2">{{ item.category|title }}</p>
                 {% if item.is_discounted %}
-                  <div class="price mb-2">
-                    <span class="old-price">${{ item.original_price }}</span>
-                    <span class="new-price text-danger">${{ item.price }}</span>
-                  </div>
+                <div class="price mb-2">
+                  <span class="old-price">${{ item.original_price }}</span>
+                  <span class="new-price text-danger">${{ item.price }}</span>
+                </div>
                 {% else %}
-                  <div class="price fw-bold mb-2">${{ item.price }}</div>
+                <div class="price fw-bold mb-2">${{ item.price }}</div>
                 {% endif %}
-                {% if item.id %}
-                  <button class="btn btn-outline-primary btn-sm w-100 mt-auto add-to-cart-btn" 
-                          data-item-id="{{ item.id }}" 
-                          data-item-type="accessory"
-                          data-item-name="{{ item.name|escapejs }}"
-                          data-item-price="{{ item.price }}"
-                          data-item-image="{{ item.image.url }}">
-                    <i class="fas fa-cart-plus me-1"></i>Add to Cart
-                  </button>
+                {% if item.stock > 0 %}
+                <button class="btn btn-outline-primary btn-sm w-100 mt-auto add-to-cart-btn"
+                  data-item-id="{{ item.id }}" data-item-type="accessory" data-item-name="{{ item.name|escapejs }}"
+                  data-item-price="{{ item.price }}" data-item-image="{{ item.image.url }}">
+                  <i class="fas fa-cart-plus me-1"></i>Add to Cart
+                </button>
                 {% else %}
-                  <button class="btn btn-outline-secondary btn-sm w-100 mt-auto" disabled>Unavailable</button>
+                <button class="btn btn-outline-secondary btn-sm w-100 mt-auto" disabled>
+                  <i class="fas fa-times me-1"></i>Out of Stock
+                </button>
                 {% endif %}
               </div>
             </div>
@@ -137,47 +129,52 @@
         <nav aria-label="Page navigation" class="mt-5">
           <ul class="pagination justify-content-center">
             {% if accessories.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if price_min %}price_min={{ price_min }}&{% endif %}{% if price_max %}price_max={{ price_max }}&{% endif %}page={{ accessories.previous_page_number }}" aria-label="Previous">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
+            <li class="page-item">
+              <a class="page-link"
+                href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if price_min %}price_min={{ price_min }}&{% endif %}{% if price_max %}price_max={{ price_max }}&{% endif %}page={{ accessories.previous_page_number }}"
+                aria-label="Previous">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
             {% else %}
-              <li class="page-item disabled">
-                <span class="page-link">&laquo;</span>
-              </li>
+            <li class="page-item disabled">
+              <span class="page-link">&laquo;</span>
+            </li>
             {% endif %}
 
             {% for num in accessories.paginator.page_range %}
-              {% if accessories.number == num %}
-                <li class="page-item active">
-                  <span class="page-link">{{ num }}</span>
-                </li>
-              {% elif num > accessories.number|add:'-3' and num < accessories.number|add:'3' %}
-                <li class="page-item">
-                  <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if price_min %}price_min={{ price_min }}&{% endif %}{% if price_max %}price_max={{ price_max }}&{% endif %}page={{ num }}">{{ num }}</a>
-                </li>
+            {% if accessories.number == num %}
+            <li class="page-item active">
+              <span class="page-link">{{ num }}</span>
+            </li>
+            {% elif num > accessories.number|add:'-3' and num < accessories.number|add:'3' %} <li class="page-item">
+              <a class="page-link"
+                href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if price_min %}price_min={{ price_min }}&{% endif %}{% if price_max %}price_max={{ price_max }}&{% endif %}page={{ num }}">{{num }}</a>
+              </li>
               {% endif %}
-            {% endfor %}
+              {% endfor %}
 
-            {% if accessories.has_next %}
+              {% if accessories.has_next %}
               <li class="page-item">
-                <a class="page-link" href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if price_min %}price_min={{ price_min }}&{% endif %}{% if price_max %}price_max={{ price_max }}&{% endif %}page={{ accessories.next_page_number }}" aria-label="Next">
+                <a class="page-link"
+                  href="?{% if search_query %}q={{ search_query }}&{% endif %}{% if category_filter %}category={{ category_filter }}&{% endif %}{% if price_min %}price_min={{ price_min }}&{% endif %}{% if price_max %}price_max={{ price_max }}&{% endif %}page={{ accessories.next_page_number }}"
+                  aria-label="Next">
                   <span aria-hidden="true">&raquo;</span>
                 </a>
               </li>
-            {% else %}
+              {% else %}
               <li class="page-item disabled">
                 <span class="page-link">&raquo;</span>
               </li>
-            {% endif %}
+              {% endif %}
           </ul>
         </nav>
 
         <!-- Page Info -->
         <div class="text-center mt-3">
           <small class="text-muted">
-            Showing {{ accessories.start_index }} to {{ accessories.end_index }} of {{ accessories.paginator.count }} accessories
+            Showing {{ accessories.start_index }} to {{ accessories.end_index }} of {{ accessories.paginator.count }}
+            accessories
           </small>
         </div>
         {% endif %}
@@ -190,104 +187,213 @@
 {% block extra_js %}
 <script src="{% static 'js/accessories.js' %}"></script>
 <script>
-// Accessories page cart functionality - using CartManager
-(function() {
+  // Accessories page cart functionality - using CartManager
+  (function () {
     'use strict';
-    
-    var isInitialized = false;
-    
+
+    // Use a global flag to prevent duplicate event listeners across page loads
+    if (window.accessoriesCartInitialized) {
+      console.log('Accessories cart already initialized, skipping...');
+      return;
+    }
+
     function showNotification(message, type) {
-        var notification = document.createElement('div');
-        notification.className = 'notification notification-' + type;
-        notification.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + ' me-2"></i>' + message;
-        notification.style.cssText =
-            'position: fixed; top: 20px; right: 20px; z-index: 9999; ' +
-            'background: ' + (type === 'success' ? '#48bb78' : '#dc3545') + '; ' +
-            'color: white; padding: 15px 20px; border-radius: 10px; ' +
-            'box-shadow: 0 4px 15px rgba(0,0,0,0.2); ' +
-            'transform: translateX(100%); transition: transform 0.3s ease;';
-        document.body.appendChild(notification);
-        setTimeout(function() { notification.style.transform = 'translateX(0)'; }, 100);
-        setTimeout(function() {
-            notification.style.transform = 'translateX(100%)';
-            setTimeout(function() { if (notification.parentNode) { document.body.removeChild(notification); } }, 300);
-        }, 3000);
+      var notification = document.createElement('div');
+      notification.className = 'notification notification-' + type;
+      notification.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + ' me-2"></i>' + message;
+      notification.style.cssText =
+        'position: fixed; top: 20px; right: 20px; z-index: 9999; ' +
+        'background: ' + (type === 'success' ? '#48bb78' : '#dc3545') + '; ' +
+        'color: white; padding: 15px 20px; border-radius: 10px; ' +
+        'box-shadow: 0 4px 15px rgba(0,0,0,0.2); ' +
+        'transform: translateX(100%); transition: transform 0.3s ease;';
+      document.body.appendChild(notification);
+      setTimeout(function () { notification.style.transform = 'translateX(0)'; }, 100);
+      setTimeout(function () {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(function () { if (notification.parentNode) { document.body.removeChild(notification); } }, 300);
+      }, 3000);
     }
-    
-    function handleAddToCart(button) {
-        if (typeof CartManager === 'undefined') {
-            showNotification('Cart system not available. Please refresh the page.', 'error');
-            return;
-        }
-        var productId = button.getAttribute('data-item-id');
-        var productName = button.getAttribute('data-item-name');
-        var productPrice = button.getAttribute('data-item-price');
-        var productImage = button.getAttribute('data-item-image');
-        if (!productId || !productName || !productPrice) {
-            showNotification('Missing product information', 'error');
-            return;
-        }
-        var originalText = button.innerHTML;
-        button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding...';
-        button.disabled = true;
-        setTimeout(function() {
-            var item = {
-                id: String(productId),
-                type: 'accessory',
-                name: productName,
-                price: parseFloat(productPrice),
-                image: productImage,
-                quantity: 1
-            };
-            var success = CartManager.addItem(item);
-            if (success) {
-                button.innerHTML = '<i class="fas fa-check me-1"></i>Added!';
-                button.style.backgroundColor = '#28a745';
-                button.style.borderColor = '#28a745';
-                button.style.color = 'white';
-                showNotification('Added ' + productName + ' to cart!', 'success');
+
+  function handleAddToCart(button) {
+    // Prevent multiple clicks
+    if (button.disabled || button.classList.contains('processing')) {
+        console.log('Button already processing, ignoring click');
+        return;
+    }
+
+    if (typeof CartManager === 'undefined') {
+        showNotification('Cart system not available. Please refresh the page.', 'error');
+        return;
+    }
+
+    var productId = button.getAttribute('data-item-id');
+    var productName = button.getAttribute('data-item-name');
+    var productPrice = button.getAttribute('data-item-price');
+    var productImage = button.getAttribute('data-item-image');
+
+    if (!productId || !productName || !productPrice) {
+        showNotification('Missing product information', 'error');
+        return;
+    }
+
+    // Mark button as processing
+    button.classList.add('processing');
+    var originalText = button.innerHTML;
+    button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Checking...';
+    button.disabled = true;
+
+    // ✅ First, get FRESH cart data
+    var cart = CartManager.getCart();
+    var existingItem = cart.find(function(item) {
+        return String(item.id) === String(productId) && item.type === 'accessory';
+    });
+    var currentCartQty = existingItem ? existingItem.quantity : 0;
+
+    console.log('Current cart quantity for product ' + productId + ':', currentCartQty);
+
+    // ✅ Then check stock availability
+    fetch('/get-product-stock/accessory/' + productId + '/?t=' + Date.now())
+        .then(function(response) {
+            return response.json();
+        })
+        .then(function(data) {
+            if (data.stock === undefined) {
+                showNotification('Could not verify stock. Please try again.', 'error');
+                button.innerHTML = originalText;
+                button.disabled = false;
+                button.classList.remove('processing');
+                return;
+            }
+
+            var availableStock = data.stock;
+            
+            console.log('Available stock:', availableStock);
+            console.log('Trying to add: 1, Current in cart:', currentCartQty, 'Total would be:', currentCartQty + 1);
+
+            // Check if out of stock
+            if (availableStock <= 0) {
+                showNotification('Sorry, ' + productName + ' is out of stock!', 'error');
+                button.innerHTML = '<i class="fas fa-times me-1"></i>Out of Stock';
+                button.style.backgroundColor = '#6c757d';
+                button.style.borderColor = '#6c757d';
                 setTimeout(function() {
                     button.innerHTML = originalText;
                     button.style.backgroundColor = '';
                     button.style.borderColor = '';
-                    button.style.color = '';
-                    button.disabled = false;
+                    button.disabled = true; // Keep disabled
+                    button.classList.remove('processing');
                 }, 2000);
-            } else {
-                button.innerHTML = '<i class="fas fa-times me-1"></i>Error';
-                button.style.backgroundColor = '#dc3545';
-                button.style.borderColor = '#dc3545';
-                button.style.color = 'white';
-                showNotification('Failed to add item to cart', 'error');
+                return;
+            }
+            
+            // Check if adding 1 more would exceed stock
+            if (currentCartQty >= availableStock) {
+                showNotification('You already have the maximum available quantity (' + availableStock + ') in your cart!', 'error');
+                button.innerHTML = '<i class="fas fa-exclamation me-1"></i>Max in Cart';
+                button.style.backgroundColor = '#ffc107';
+                button.style.borderColor = '#ffc107';
                 setTimeout(function() {
                     button.innerHTML = originalText;
                     button.style.backgroundColor = '';
                     button.style.borderColor = '';
-                    button.style.color = '';
                     button.disabled = false;
+                    button.classList.remove('processing');
                 }, 2000);
+                return;
             }
-        }, 300);
-    }
-    
-    function initializeCartButtons() {
-        if (isInitialized) { return; }
-        document.body.addEventListener('click', function(e) {
-            var button = e.target.closest('.add-to-cart-btn');
-            if (button && !button.disabled) {
-                e.preventDefault();
-                e.stopPropagation();
-                handleAddToCart(button);
-            }
+            
+            // Stock is available, proceed to add
+            button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding...';
+            
+            setTimeout(function() {
+                var item = {
+                    id: String(productId),
+                    type: 'accessory',
+                    name: productName,
+                    price: parseFloat(productPrice),
+                    image: productImage,
+                    quantity: 1  // Always add 1 from accessories page
+                };
+
+                var success = CartManager.addItem(item);
+
+                if (success) {
+                    button.innerHTML = '<i class="fas fa-check me-1"></i>Added!';
+                    button.style.backgroundColor = '#28a745';
+                    button.style.borderColor = '#28a745';
+                    button.style.color = 'white';
+                    showNotification('Added ' + productName + ' to cart!', 'success');
+                    
+                    // Log final cart state
+                    console.log('Item added. New cart:', CartManager.getCart());
+                    
+                    setTimeout(function() {
+                        button.innerHTML = originalText;
+                        button.style.backgroundColor = '';
+                        button.style.borderColor = '';
+                        button.style.color = '';
+                        button.disabled = false;
+                        button.classList.remove('processing');
+                    }, 2000);
+                } else {
+                    button.innerHTML = '<i class="fas fa-times me-1"></i>Error';
+                    button.style.backgroundColor = '#dc3545';
+                    button.style.borderColor = '#dc3545';
+                    button.style.color = 'white';
+                    showNotification('Failed to add item to cart', 'error');
+                    setTimeout(function() {
+                        button.innerHTML = originalText;
+                        button.style.backgroundColor = '';
+                        button.style.borderColor = '';
+                        button.style.color = '';
+                        button.disabled = false;
+                        button.classList.remove('processing');
+                    }, 2000);
+                }
+            }, 300);
+        })
+        .catch(function(error) {
+            console.error('Error checking stock:', error);
+            showNotification('Could not verify stock. Please try again.', 'error');
+            button.innerHTML = originalText;
+            button.disabled = false;
+            button.classList.remove('processing');
         });
-        isInitialized = true;
+}
+
+    function initializeCartButtons() {
+      console.log('Initializing accessories cart buttons...');
+
+      // Remove any existing listener to prevent duplicates
+      if (window.accessoriesCartHandler) {
+        document.body.removeEventListener('click', window.accessoriesCartHandler, true);
+      }
+
+      // Create a single event handler function
+      window.accessoriesCartHandler = function (e) {
+        var button = e.target.closest('.add-to-cart-btn');
+        if (button && !button.disabled && !button.classList.contains('processing')) {
+          e.preventDefault();
+          e.stopPropagation();
+          e.stopImmediatePropagation(); // Prevent other listeners from firing
+          handleAddToCart(button);
+        }
+      };
+
+      // Single event listener using event delegation
+      document.body.addEventListener('click', window.accessoriesCartHandler, true); // Use capture phase to intercept early
+
+      // Mark as initialized globally
+      window.accessoriesCartInitialized = true;
+      console.log('Accessories cart initialized successfully');
     }
-    
+
     if (document.readyState === 'loading') {
-        document.addEventListener('DOMContentLoaded', function() { initializeCartButtons(); });
+      document.addEventListener('DOMContentLoaded', function () { initializeCartButtons(); });
     } else {
-        initializeCartButtons();
+      initializeCartButtons();
     }
-})();
+  })();
 </script>
 {% endblock %}

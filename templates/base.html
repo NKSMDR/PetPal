@@ -36,7 +36,7 @@
 
 
 </head>
-<body>
+<body {% if user.is_authenticated %}data-user-id="{{ user.id }}"{% endif %}>
 
 {% include 'includes/navbar.html' %}
 
@@ -57,6 +57,24 @@
 <!-- Global Cart Management -->
 <script src="{% static 'js/cart.js' %}"></script>
 
+<script>
+// Clear cart on logout
+(function() {
+    // Check if logout flag is set
+    var cookies = document.cookie.split(';');
+    for (var i = 0; i < cookies.length; i++) {
+        var cookie = cookies[i].trim();
+        if (cookie.indexOf('clear_cart=true') === 0) {
+            console.log('Logout detected - clearing cart');
+            if (typeof CartManager !== 'undefined') {
+                CartManager.clearCart();
+            }
+            // Clear the cookie
+            document.cookie = 'clear_cart=; max-age=0; path=/';
+            break;
+        }
+    }
+})();
 
 <!-- Page-specific JS -->
 {% block extra_js %}{% endblock %}

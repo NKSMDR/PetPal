@@ -87,7 +87,7 @@ class AccessoryAdmin(admin.ModelAdmin):
     list_filter = ['category', 'price', 'stock']
     prepopulated_fields = {'slug': ('name',)}
     readonly_fields = ['image_preview', 'discount_info', 'stock_status']
-    list_editable = ['stock']
+    list_editable = []
     
     fieldsets = (
         ('Product Information', {

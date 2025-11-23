@@ -4,174 +4,248 @@
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/accessory_detail.css' %}">
 <script>
-function switchMainImage(imageUrl, clickedThumbnail) {
+  function switchMainImage(imageUrl, clickedThumbnail) {
     var mainImage = document.getElementById('mainImage');
     if (mainImage && imageUrl) {
-        mainImage.src = imageUrl;
-        
-        // Update active thumbnail
-        var thumbnails = document.querySelectorAll('.thumbnail-item');
-        for (var i = 0; i < thumbnails.length; i++) {
-            thumbnails[i].classList.remove('active');
-        }
-        if (clickedThumbnail) {
-            clickedThumbnail.classList.add('active');
-        }
-    }
-}
+      mainImage.src = imageUrl;
 
-// Quantity controls functionality
-function initializeQuantityControls() {
+      // Update active thumbnail
+      var thumbnails = document.querySelectorAll('.thumbnail-item');
+      for (var i = 0; i < thumbnails.length; i++) {
+        thumbnails[i].classList.remove('active');
+      }
+      if (clickedThumbnail) {
+        clickedThumbnail.classList.add('active');
+      }
+    }
+  }
+
+  // Quantity controls functionality
+  function initializeQuantityControls() {
     var quantityInput = document.getElementById('quantity');
     var minusBtn = document.querySelector('.qty-btn.minus');
     var plusBtn = document.querySelector('.qty-btn.plus');
-    
-    if (minusBtn && plusBtn && quantityInput) {
-        minusBtn.addEventListener('click', function() {
-            var currentValue = parseInt(quantityInput.value) || 1;
-            if (currentValue > 1) {
-                quantityInput.value = currentValue - 1;
-            }
-        });
-        
-        plusBtn.addEventListener('click', function() {
-            var currentValue = parseInt(quantityInput.value) || 1;
-            if (currentValue < 99) {
-                quantityInput.value = currentValue + 1;
-            }
-        });
-        
-        // Validate quantity input
-        quantityInput.addEventListener('input', function() {
-            var value = parseInt(this.value);
-            if (isNaN(value) || value < 1) {
-                this.value = 1;
-            } else if (value > 99) {
-                this.value = 99;
-            }
-        });
-    }
-}
+    var maxStock = parseInt(quantityInput.getAttribute('data-max')) || 99;
 
-// Add to cart functionality
-function addToCart(productType, productId) {
-    if (typeof CartManager === 'undefined') {
-        showNotification('Cart system not available. Please refresh the page.', 'error');
-        return;
+    if (minusBtn && plusBtn && quantityInput) {
+      minusBtn.addEventListener('click', function () {
+        var currentValue = parseInt(quantityInput.value) || 1;
+        if (currentValue > 1) {
+          quantityInput.value = currentValue - 1;
+        }
+      });
+
+      plusBtn.addEventListener('click', function () {
+        var currentValue = parseInt(quantityInput.value) || 1;
+        if (currentValue < maxStock) {
+          quantityInput.value = currentValue + 1;
+        } else {
+          showNotification('Maximum available quantity is ' + maxStock, 'error');
+        }
+      });
+
+      // Validate quantity input
+      quantityInput.addEventListener('input', function () {
+        var value = parseInt(this.value);
+        if (isNaN(value) || value < 1) {
+          this.value = 1;
+        } else if (value > maxStock) {
+          this.value = maxStock;
+          showNotification('Maximum available quantity is ' + maxStock, 'error');
+        }
+      });
     }
-    
-    var quantityInput = document.getElementById('quantity');
-    var quantity = parseInt(quantityInput ? quantityInput.value : 1) || 1;
-    var button = document.querySelector('.add-to-cart-btn');
-    
-    if (!button) {
-        showNotification('Button not found', 'error');
+  }
+
+
+  // Add to cart functionality
+function addToCart(productType, productId, maxStock) {
+  if (typeof CartManager === 'undefined') {
+    showNotification('Cart system not available. Please refresh the page.', 'error');
+    return;
+  }
+
+  var quantityInput = document.getElementById('quantity');
+  var quantity = parseInt(quantityInput ? quantityInput.value : 1) || 1;
+  var button = document.querySelector('.add-to-cart-btn');
+
+  if (!button) {
+    showNotification('Button not found', 'error');
+    return;
+  }
+
+  // Validate quantity
+  if (quantity < 1 || quantity > 99) {
+    showNotification('Quantity must be between 1 and 99', 'error');
+    return;
+  }
+
+  // Show loading state
+  var originalText = button.innerHTML;
+  button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Checking stock...';
+  button.disabled = true;
+
+  // ✅ Fetch fresh stock data from server
+  fetch('/get-product-stock/' + productType + '/' + productId + '/?t=' + Date.now())
+    .then(function(response) {
+      return response.json();
+    })
+    .then(function(data) {
+      if (data.stock === undefined) {
+        showNotification('Could not verify stock. Please try again.', 'error');
+        button.innerHTML = originalText;
+        button.disabled = false;
         return;
-    }
-    
-    // Validate quantity
-    if (quantity < 1 || quantity > 99) {
-        showNotification('Quantity must be between 1 and 99', 'error');
+      }
+
+      var availableStock = data.stock;
+
+      // Check if out of stock
+      if (availableStock <= 0) {
+        showNotification('Sorry, this item is out of stock!', 'error');
+        button.innerHTML = '<i class="fas fa-times me-2"></i>Out of Stock';
+        button.style.background = '#6c757d';
+        setTimeout(function() {
+          button.innerHTML = originalText;
+          button.style.background = '#ffd700';
+          button.disabled = true; // Keep disabled
+        }, 2000);
         return;
-    }
-    
-    try {
+      }
+
+      // Check if quantity exceeds available stock
+      if (quantity > availableStock) {
+        showNotification('Only ' + availableStock + ' items available in stock!', 'error');
+        quantityInput.value = availableStock;
+        quantityInput.setAttribute('max', availableStock);
+        button.innerHTML = originalText;
+        button.disabled = false;
+        return;
+      }
+
+      // Check current cart quantity + new quantity
+      var existingItem = CartManager.getItem(String(productId), String(productType));
+      var currentCartQty = existingItem ? existingItem.quantity : 0;
+      var totalQty = currentCartQty + quantity;
+
+      if (totalQty > availableStock) {
+        var canAdd = availableStock - currentCartQty;
+        if (canAdd <= 0) {
+          showNotification('You already have the maximum available quantity (' + availableStock + ') in your cart!', 'error');
+          button.innerHTML = originalText;
+          button.disabled = false;
+          return;
+        } else {
+          showNotification('Can only add ' + canAdd + ' more. You already have ' + currentCartQty + ' in cart.', 'error');
+          quantityInput.value = canAdd;
+          button.innerHTML = originalText;
+          button.disabled = false;
+          return;
+        }
+      }
+
+      // Stock is sufficient, proceed to add
+      try {
         // Get product details from the page
         var productName = document.querySelector('.product-title').textContent.trim();
         var productPrice = document.querySelector('.current-price').textContent.replace('$', '').trim();
         var productImage = document.getElementById('mainImage').src;
-        
+
         // Validate product data
         if (!productName || !productPrice || !productImage) {
-            showNotification('Missing product information', 'error');
-            return;
+          showNotification('Missing product information', 'error');
+          button.innerHTML = originalText;
+          button.disabled = false;
+          return;
         }
-        
-        // Show loading state
-        var originalText = button.innerHTML;
+
         button.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Adding...';
-        button.disabled = true;
-        
+
         // Add to cart using CartManager
-        setTimeout(function() {
-            var item = {
-                id: String(productId),
-                type: String(productType),
-                name: productName,
-                price: parseFloat(productPrice),
-                image: productImage,
-                quantity: quantity
-            };
-            
-            var success = CartManager.addItem(item);
-            
-            if (success) {
-                // Success feedback
-                button.innerHTML = '<i class="fas fa-check me-2"></i>Added to Cart!';
-                button.style.background = '#48bb78';
-                
-                // Show success notification
-                showNotification('Added ' + quantity + ' item(s) to cart successfully!', 'success');
-            } else {
-                // Error feedback
-                button.innerHTML = '<i class="fas fa-times me-2"></i>Error';
-                button.style.background = '#dc3545';
-                
-                showNotification('Failed to add item to cart', 'error');
-            }
-            
-            // Reset button after 2 seconds
-            setTimeout(function() {
-                button.innerHTML = originalText;
-                button.style.background = '#ffd700';
-                button.disabled = false;
-            }, 2000);
+        setTimeout(function () {
+          var item = {
+            id: String(productId),
+            type: String(productType),
+            name: productName,
+            price: parseFloat(productPrice),
+            image: productImage,
+            quantity: quantity
+          };
+
+          var success = CartManager.addItem(item);
+
+          if (success) {
+            // Success feedback
+            button.innerHTML = '<i class="fas fa-check me-2"></i>Added to Cart!';
+            button.style.background = '#48bb78';
+
+            // Show success notification
+            showNotification('Added ' + quantity + ' item(s) to cart successfully!', 'success');
+          } else {
+            // Error feedback
+            button.innerHTML = '<i class="fas fa-times me-2"></i>Error';
+            button.style.background = '#dc3545';
+
+            showNotification('Failed to add item to cart', 'error');
+          }
+
+          // Reset button after 2 seconds
+          setTimeout(function () {
+            button.innerHTML = originalText;
+            button.style.background = '#ffd700';
+            button.disabled = false;
+          }, 2000);
         }, 300);
-    } catch (e) {
+      } catch (e) {
         console.error('Error adding to cart:', e);
         showNotification('An error occurred. Please try again.', 'error');
-        
-        if (button) {
-            button.disabled = false;
-        }
-    }
+        button.innerHTML = originalText;
+        button.disabled = false;
+      }
+    })
+    .catch(function(error) {
+      console.error('Error checking stock:', error);
+      showNotification('Could not verify stock. Please try again.', 'error');
+      button.innerHTML = originalText;
+      button.disabled = false;
+    });
 }
 
-// Notification system
-function showNotification(message, type) {
+  // Notification system
+  function showNotification(message, type) {
     var notification = document.createElement('div');
     notification.className = 'notification notification-' + type;
     notification.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'info-circle') + ' me-2"></i>' + message;
-    
-    notification.style.cssText = 
-        'position: fixed; top: 20px; right: 20px; z-index: 9999; ' +
-        'background: ' + (type === 'success' ? '#48bb78' : '#667eea') + '; ' +
-        'color: white; padding: 15px 20px; border-radius: 10px; ' +
-        'box-shadow: 0 4px 15px rgba(0,0,0,0.2); ' +
-        'transform: translateX(100%); transition: transform 0.3s ease;';
-    
-    document.body.appendChild(notification);
-    
-    // Animate in
-    setTimeout(function() {
-        notification.style.transform = 'translateX(0)';
-    }, 100);
-    
-    // Remove after 3 seconds
-    setTimeout(function() {
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(function() {
-            if (notification.parentNode) {
-                document.body.removeChild(notification);
-            }
-        }, 300);
-    }, 3000);
-}
 
-// Initialize when page loads
-document.addEventListener('DOMContentLoaded', function() {
+    notification.style.cssText =
+      'position: fixed; top: 20px; right: 20px; z-index: 9999; ' +
+      'background: ' + (type === 'success' ? '#48bb78' : '#667eea') + '; ' +
+      'color: white; padding: 15px 20px; border-radius: 10px; ' +
+      'box-shadow: 0 4px 15px rgba(0,0,0,0.2); ' +
+      'transform: translateX(100%); transition: transform 0.3s ease;';
+
+    document.body.appendChild(notification);
+
+    // Animate in
+    setTimeout(function () {
+      notification.style.transform = 'translateX(0)';
+    }, 100);
+
+    // Remove after 3 seconds
+    setTimeout(function () {
+      notification.style.transform = 'translateX(100%)';
+      setTimeout(function () {
+        if (notification.parentNode) {
+          document.body.removeChild(notification);
+        }
+      }, 300);
+    }, 3000);
+  }
+
+  // Initialize when page loads
+  document.addEventListener('DOMContentLoaded', function () {
     initializeQuantityControls();
-});
+  });
 </script>
 {% endblock %}
 
@@ -191,33 +265,38 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="product-gallery">
           <!-- Main Image Display -->
           <div class="main-image-container">
-            <img id="mainImage" src="{{ accessory.image.url }}" alt="{{ accessory.name }}" class="main-product-image" style="cursor: pointer;">
+            <img id="mainImage" src="{{ accessory.image.url }}" alt="{{ accessory.name }}" class="main-product-image"
+              style="cursor: pointer;">
             {% if accessory.is_discounted %}
             <div class="discount-badge">
               <span>SALE</span>
             </div>
             {% endif %}
           </div>
-          
+
           <!-- Thumbnail Gallery -->
           <div class="thumbnail-gallery">
             {% if accessory.image %}
-            <div class="thumbnail-item active" data-image="{{ accessory.image.url }}" onclick="switchMainImage('{{ accessory.image.url }}', this)" style="cursor: pointer;">
+            <div class="thumbnail-item active" data-image="{{ accessory.image.url }}"
+              onclick="switchMainImage('{{ accessory.image.url }}', this)" style="cursor: pointer;">
               <img src="{{ accessory.image.url }}" alt="{{ accessory.name }}" loading="lazy">
             </div>
             {% endif %}
             {% if accessory.image2 %}
-            <div class="thumbnail-item" data-image="{{ accessory.image2.url }}" onclick="switchMainImage('{{ accessory.image2.url }}', this)" style="cursor: pointer;">
+            <div class="thumbnail-item" data-image="{{ accessory.image2.url }}"
+              onclick="switchMainImage('{{ accessory.image2.url }}', this)" style="cursor: pointer;">
               <img src="{{ accessory.image2.url }}" alt="{{ accessory.name }}" loading="lazy">
             </div>
             {% endif %}
             {% if accessory.image3 %}
-            <div class="thumbnail-item" data-image="{{ accessory.image3.url }}" onclick="switchMainImage('{{ accessory.image3.url }}', this)" style="cursor: pointer;">
+            <div class="thumbnail-item" data-image="{{ accessory.image3.url }}"
+              onclick="switchMainImage('{{ accessory.image3.url }}', this)" style="cursor: pointer;">
               <img src="{{ accessory.image3.url }}" alt="{{ accessory.name }}" loading="lazy">
             </div>
             {% endif %}
             {% if accessory.image4 %}
-            <div class="thumbnail-item" data-image="{{ accessory.image4.url }}" onclick="switchMainImage('{{ accessory.image4.url }}', this)" style="cursor: pointer;">
+            <div class="thumbnail-item" data-image="{{ accessory.image4.url }}"
+              onclick="switchMainImage('{{ accessory.image4.url }}', this)" style="cursor: pointer;">
               <img src="{{ accessory.image4.url }}" alt="{{ accessory.name }}" loading="lazy">
             </div>
             {% endif %}
@@ -228,7 +307,7 @@ document.addEventListener('DOMContentLoaded', function() {
         <div class="product-info">
           <div class="product-category">{{ accessory.category }}</div>
           <h1 class="product-title">{{ accessory.name }}</h1>
-          
+
           <div class="product-pricing">
             {% if accessory.is_discounted %}
             <span class="original-price">${{ accessory.original_price }}</span>
@@ -247,14 +326,27 @@ document.addEventListener('DOMContentLoaded', function() {
               <label for="quantity">Quantity:</label>
               <div class="quantity-controls">
                 <button type="button" class="qty-btn minus">-</button>
-                <input type="number" id="quantity" value="1" min="1" max="10">
+                <input type="number" id="quantity" value="1" min="1" max="{{ accessory.stock }}" data-max="{{ accessory.stock }}">
                 <button type="button" class="qty-btn plus">+</button>
               </div>
+              {% if accessory.stock > 0 and accessory.stock <= 20 %}
+              <small class="text-warning d-block mt-1">
+                <i class="fas fa-exclamation-triangle me-1"></i>Only {{ accessory.stock }} available - Order soon!
+              </small>
+              {% endif %}
             </div>
-            
-            <a href="{% url 'add_to_cart' 'accessory' accessory.id %}" class="add-to-cart-btn">
-              <i class="fas fa-shopping-cart me-2"></i>Add to Cart
-            </a>
+
+            {% if accessory.stock > 0 %}
+              <button type="button" class="add-to-cart-btn" 
+                      onclick="addToCart('accessory', {{ accessory.id }}, {{ accessory.stock }})"
+                      data-max-stock="{{ accessory.stock }}">
+                <i class="fas fa-shopping-cart me-2"></i>Add to Cart
+              </button>
+            {% else %}
+              <button type="button" class="add-to-cart-btn" disabled style="background: #6c757d; cursor: not-allowed;">
+                <i class="fas fa-times me-2"></i>Out of Stock
+              </button>
+            {% endif %}
           </div>
 
           <div class="product-features">
@@ -302,7 +394,19 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
             <div class="spec-item">
               <span class="spec-label">Availability:</span>
-              <span class="spec-value in-stock">In Stock</span>
+              {% if accessory.stock > 10 %}
+                <span class="spec-value in-stock" style="color: #28a745; font-weight: bold;">
+                  <i class="fas fa-check-circle me-1"></i>In Stock
+                </span>
+              {% elif accessory.stock > 0 %}
+                <span class="spec-value in-stock" style="color: #ffc107; font-weight: bold;">
+                  <i class="fas fa-exclamation-triangle me-1"></i>Only {{ accessory.stock }} left!
+                </span>
+              {% else %}
+                <span class="spec-value out-of-stock" style="color: #dc3545; font-weight: bold;">
+                  <i class="fas fa-times-circle me-1"></i>Out of Stock
+                </span>
+              {% endif %}
             </div>
           </div>
         </div>
