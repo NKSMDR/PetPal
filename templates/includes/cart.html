@@ -3,6 +3,61 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/components/cart.css' %}">
+<style>
+/* Additional styles for checkboxes */
+.checkbox-cell {
+    width: 50px;
+    text-align: center;
+}
+
+.item-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #ffd700;
+}
+
+.select-all-container {
+    background: #f8f9fa;
+    padding: 15px 20px;
+    border-radius: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.select-all-checkbox {
+    width: 20px;
+    height: 20px;
+    cursor: pointer;
+    accent-color: #ffd700;
+}
+
+.select-all-label {
+    font-weight: 600;
+    color: #495057;
+    margin: 0;
+    cursor: pointer;
+    user-select: none;
+}
+
+.cart-item-row.disabled {
+    opacity: 0.5;
+    background: #f8f9fa;
+}
+
+.checkout-btn:disabled {
+    background: #6c757d !important;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.selected-count {
+    color: #ffd700;
+    font-weight: bold;
+}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -16,20 +71,32 @@
       </div>
     </div>
     
-    <!-- Cart Content - Always empty, filled by JavaScript -->
+    <!-- Cart Content -->
     <div id="cart-container">
       <!-- Loading state -->
-      <div id="cart-loading" style="text-center py-5">
+      <div id="cart-loading" style="text-align: center; padding: 50px;">
         <i class="fas fa-spinner fa-spin fa-3x text-primary"></i>
         <p class="mt-3">Loading your cart...</p>
       </div>
       
       <!-- Cart items section (hidden initially) -->
       <div id="cart-items-section" style="display: none;">
+        <!-- Select All Checkbox -->
+        <div class="select-all-container">
+          <input type="checkbox" id="select-all-checkbox" class="select-all-checkbox" checked>
+          <label for="select-all-checkbox" class="select-all-label">
+            Select All Items
+          </label>
+          <span class="ms-auto">
+            <span class="selected-count" id="selected-count">0</span> items selected
+          </span>
+        </div>
+
         <div class="cart-table-container">
           <table class="table cart-table">
             <thead>
               <tr>
+                <th class="checkbox-cell">Select</th>
                 <th>Product</th>
                 <th>Details</th>
                 <th>Price</th>
@@ -49,7 +116,7 @@
           <!-- Cart Totals -->
           <div class="cart-total-section">
             <div class="total-row">
-              <span>Subtotal:</span>
+              <span>Subtotal (Selected Items):</span>
               <span id="cart-subtotal">$0.00</span>
             </div>
             <div class="total-row">
@@ -57,7 +124,7 @@
               <span id="cart-shipping">Free</span>
             </div>
             <div class="total-row">
-              <span>Tax:</span>
+              <span>Tax (8%):</span>
               <span id="cart-tax">$0.00</span>
             </div>
             <div class="total-row">
@@ -74,10 +141,10 @@
                 Continue Shopping
               </a>
             </div>
-            <a href="{% url 'checkout' %}" class="checkout-btn">
+            <button id="checkout-btn" class="checkout-btn" onclick="proceedToCheckout()">
               <i class="fas fa-credit-card"></i>
-              Proceed to Checkout
-            </a>
+              Checkout Selected Items
+            </button>
           </div>
         </div>
       </div>
@@ -99,9 +166,12 @@
 </div>
 
 <script>
-// Cart page functionality
+// Cart page functionality with selective checkout
 (function() {
     'use strict';
+    
+    // Store selected items
+    window.selectedItems = new Set();
     
     // Initialize cart page
     function initCartPage() {
@@ -118,6 +188,14 @@
         if (loadingEl) loadingEl.style.display = 'none';
         
         loadCartItems();
+        
+        // Setup select all checkbox
+        var selectAllCheckbox = document.getElementById('select-all-checkbox');
+        if (selectAllCheckbox) {
+            selectAllCheckbox.addEventListener('change', function() {
+                toggleSelectAll(this.checked);
+            });
+        }
     }
     
     // Show error message
@@ -133,6 +211,13 @@
         try {
             var cart = CartManager.getCart();
             console.log('Loading cart items from localStorage:', cart);
+            
+            // Select all items by default
+            window.selectedItems.clear();
+            cart.forEach(function(item) {
+                window.selectedItems.add(item.id + '-' + item.type);
+            });
+            
             displayCartItems(cart);
         } catch (e) {
             console.error('Error loading cart:', e);
@@ -170,20 +255,30 @@ function displayCartItems(cart) {
     // Clear existing items
     tbody.innerHTML = '';
     
-    var subtotal = 0;
     var totalItems = 0;
     
     cart.forEach(function(item) {
         console.log('Adding item to display:', item);
-        var itemSubtotal = item.price * item.quantity;
-        subtotal += itemSubtotal;
+        var itemKey = item.id + '-' + item.type;
+        var isSelected = window.selectedItems.has(itemKey);
         totalItems += item.quantity;
         
         var row = document.createElement('tr');
-        row.className = 'cart-item-row';
+        row.className = 'cart-item-row' + (isSelected ? '' : ' disabled');
         row.setAttribute('data-product-id', item.id);
         row.setAttribute('data-product-type', item.type);
+        row.setAttribute('data-item-key', itemKey);
+        
+        var itemSubtotal = item.price * item.quantity;
+        
         row.innerHTML = `
+            <td class="checkbox-cell">
+                <input type="checkbox" 
+                       class="item-checkbox" 
+                       data-item-key="${itemKey}"
+                       ${isSelected ? 'checked' : ''}
+                       onchange="toggleItemSelection('${itemKey}')">
+            </td>
             <td>
                 <img src="${item.image}" alt="${item.name}" style="width: 80px; height: 80px; object-fit: cover; border-radius: 8px;">
             </td>
@@ -217,25 +312,172 @@ function displayCartItems(cart) {
         tbody.appendChild(row);
     });
     
-    console.log('Cart displayed. Subtotal:', subtotal, 'Total items:', totalItems);
+    console.log('Cart displayed. Total items:', totalItems);
     
-    // Calculate tax
-    var tax = subtotal * 0.08;
-    var total = subtotal + tax;
+    // Update totals based on selected items
+    updateCartTotals(cart);
     
-    // Update totals
-    var subtotalEl = document.getElementById('cart-subtotal');
-    var taxEl = document.getElementById('cart-tax');
-    var totalEl = document.getElementById('cart-total');
-    
-    if (subtotalEl) subtotalEl.textContent = '$' + subtotal.toFixed(2);
-    if (taxEl) taxEl.textContent = '$' + tax.toFixed(2);
-    if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
     if (itemsCount) itemsCount.textContent = totalItems;
     
     // Show cart sections
     if (cartItemsSection) cartItemsSection.style.display = 'block';
     if (emptyCart) emptyCart.style.display = 'none';
+}
+
+function toggleItemSelection(itemKey) {
+    console.log('Toggling item selection:', itemKey);
+    
+    if (window.selectedItems.has(itemKey)) {
+        window.selectedItems.delete(itemKey);
+    } else {
+        window.selectedItems.add(itemKey);
+    }
+    
+    // Update row styling
+    var row = document.querySelector(`tr[data-item-key="${itemKey}"]`);
+    if (row) {
+        if (window.selectedItems.has(itemKey)) {
+            row.classList.remove('disabled');
+        } else {
+            row.classList.add('disabled');
+        }
+    }
+    
+    // Update select all checkbox
+    var totalItems = document.querySelectorAll('.item-checkbox').length;
+    var selectAllCheckbox = document.getElementById('select-all-checkbox');
+    if (selectAllCheckbox) {
+        selectAllCheckbox.checked = window.selectedItems.size === totalItems;
+    }
+    
+    // Recalculate totals
+    var cart = CartManager.getCart();
+    updateCartTotals(cart);
+}
+
+function toggleSelectAll(checked) {
+    console.log('Toggle select all:', checked);
+    
+    var checkboxes = document.querySelectorAll('.item-checkbox');
+    window.selectedItems.clear();
+    
+    checkboxes.forEach(function(checkbox) {
+        checkbox.checked = checked;
+        var itemKey = checkbox.getAttribute('data-item-key');
+        
+        if (checked) {
+            window.selectedItems.add(itemKey);
+        }
+        
+        // Update row styling
+        var row = checkbox.closest('tr');
+        if (row) {
+            if (checked) {
+                row.classList.remove('disabled');
+            } else {
+                row.classList.add('disabled');
+            }
+        }
+    });
+    
+    // Recalculate totals
+    var cart = CartManager.getCart();
+    updateCartTotals(cart);
+}
+
+function updateCartTotals(cart) {
+    var subtotal = 0;
+    var selectedCount = 0;
+    
+    // Calculate only for selected items
+    cart.forEach(function(item) {
+        var itemKey = item.id + '-' + item.type;
+        if (window.selectedItems.has(itemKey)) {
+            subtotal += item.price * item.quantity;
+            selectedCount++;
+        }
+    });
+    
+    var tax = subtotal * 0.08;
+    var total = subtotal + tax;
+    
+    // Update displays
+    var subtotalEl = document.getElementById('cart-subtotal');
+    var taxEl = document.getElementById('cart-tax');
+    var totalEl = document.getElementById('cart-total');
+    var selectedCountEl = document.getElementById('selected-count');
+    var checkoutBtn = document.getElementById('checkout-btn');
+    
+    if (subtotalEl) subtotalEl.textContent = '$' + subtotal.toFixed(2);
+    if (taxEl) taxEl.textContent = '$' + tax.toFixed(2);
+    if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
+    if (selectedCountEl) selectedCountEl.textContent = selectedCount;
+    
+    // Enable/disable checkout button
+    if (checkoutBtn) {
+        if (selectedCount === 0) {
+            checkoutBtn.disabled = true;
+            checkoutBtn.innerHTML = '<i class="fas fa-exclamation-circle"></i> Select Items to Checkout';
+        } else {
+            checkoutBtn.disabled = false;
+            checkoutBtn.innerHTML = '<i class="fas fa-credit-card"></i> Checkout ' + selectedCount + ' Item(s)';
+        }
+    }
+}
+
+// Replace the proceedToCheckout function in cart.html with this improved version
+
+function proceedToCheckout() {
+    if (window.selectedItems.size === 0) {
+        showNotification('Please select at least one item to checkout', 'error');
+        return;
+    }
+    
+    // Get selected items array
+    var selectedItemsArray = Array.from(window.selectedItems);
+    
+    console.log('Proceeding to checkout with selected items:', selectedItemsArray);
+    
+    // Send selected items to server via hidden form
+    var form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '{% url "checkout" %}';
+    
+    // Add CSRF token
+    var csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (!csrfToken) {
+        // Get CSRF from cookie
+        var cookieValue = null;
+        var cookies = document.cookie.split(';');
+        for (var i = 0; i < cookies.length; i++) {
+            var cookie = cookies[i].trim();
+            if (cookie.indexOf('csrftoken=') === 0) {
+                cookieValue = cookie.substring('csrftoken='.length);
+                break;
+            }
+        }
+        
+        if (cookieValue) {
+            var csrfInput = document.createElement('input');
+            csrfInput.type = 'hidden';
+            csrfInput.name = 'csrfmiddlewaretoken';
+            csrfInput.value = cookieValue;
+            form.appendChild(csrfInput);
+        }
+    } else {
+        form.appendChild(csrfToken.cloneNode());
+    }
+    
+    // Add selected items as JSON
+    var itemsInput = document.createElement('input');
+    itemsInput.type = 'hidden';
+    itemsInput.name = 'selected_items';
+    itemsInput.value = JSON.stringify(selectedItemsArray);
+    form.appendChild(itemsInput);
+    
+    // Submit form
+    document.body.appendChild(form);
+    form.submit();
 }
 
 function showEmptyCart() {
@@ -317,8 +559,14 @@ function removeItem(itemId, itemType) {
         console.log('Remove result:', success);
         
         if (success) {
-            // Immediately reload to show updated cart
-            loadCartItems();
+            // Remove from selected items
+            var itemKey = itemId + '-' + itemType;
+            window.selectedItems.delete(itemKey);
+            
+            // Reload cart
+            setTimeout(function() {
+                loadCartItems();
+            }, 100);
             showNotification('Item removed', 'success');
         } else {
             showNotification('Failed to remove item', 'error');

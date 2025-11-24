@@ -627,9 +627,11 @@ def about_us(request):
 
 # eSewa Payment Views
 @login_required
-@ensure_csrf_cookie
+@ensure_csrf_cookie  
+@login_required
+@ensure_csrf_cookie  
 def checkout(request):
-    """Process checkout and create order"""
+    """Process checkout for SELECTED items only"""
     print(f"DEBUG Checkout: Method={request.method}, User={request.user}")
     
     # Get user's database cart
@@ -637,27 +639,100 @@ def checkout(request):
     
     if not user_cart or not user_cart.items.exists():
         messages.error(request, 'Your cart is empty! Please add some items to your cart first.')
-        print(f"DEBUG Checkout: Cart is empty for user {request.user}")
         return redirect('cart')
     
-    # Calculate total and prepare cart items
+    # Get selected items from POST data or session
+    if request.method == 'POST' and 'selected_items' in request.POST:
+        # First time - coming from cart page
+        selected_items_json = request.POST.get('selected_items')
+        try:
+            selected_item_keys = json.loads(selected_items_json)
+            request.session['checkout_items'] = selected_item_keys
+        except json.JSONDecodeError:
+            messages.error(request, 'Invalid selection data.')
+            return redirect('cart')
+    else:
+        # Coming from GET request (showing checkout form)
+        selected_item_keys = request.session.get('checkout_items', [])
+    
+    if not selected_item_keys:
+        messages.error(request, 'No items selected for checkout. Please select items from your cart.')
+        return redirect('cart')
+    
+    # Parse selected items (format: "itemId-itemType")
+    selected_items = []
+    for key in selected_item_keys:
+        try:
+            item_id, item_type = key.split('-')
+            selected_items.append({'id': item_id, 'type': item_type})
+        except ValueError:
+            continue
+    
+    if not selected_items:
+        messages.error(request, 'Invalid selection. Please try again.')
+        return redirect('cart')
+    
+    # Calculate total and prepare ONLY selected cart items with stock validation
     total = 0
     cart_items = []
+    stock_errors = []
+    
     for cart_item in user_cart.items.all():
+        # Check if this item is in selected list
+        is_selected = any(
+            s['id'] == str(cart_item.product_id) and s['type'] == cart_item.product_type 
+            for s in selected_items
+        )
+        
+        if not is_selected:
+            continue  # Skip non-selected items
+        
         product = cart_item.get_product()
         if product:
+            # Validate stock availability
+            if cart_item.product_type == 'accessory':
+                if product.stock < cart_item.quantity:
+                    stock_errors.append(
+                        f"{product.name} - Only {product.stock} available, you have {cart_item.quantity} in cart"
+                    )
+                    # Update cart to available quantity
+                    if product.stock > 0:
+                        cart_item.quantity = product.stock
+                        cart_item.save()
+                    else:
+                        cart_item.delete()
+                    continue
+                elif product.stock == 0:
+                    stock_errors.append(f"{product.name} is out of stock")
+                    cart_item.delete()
+                    continue
+            
             subtotal = cart_item.get_subtotal()
             cart_items.append({
                 'product': product,
                 'qty': cart_item.quantity,
                 'subtotal': subtotal,
+                'cart_item': cart_item,  # Store reference for later deletion
             })
             total += subtotal
     
-    print(f"DEBUG Checkout: Total={total}, Items={len(cart_items)}")
+    # If there were stock errors, redirect back to cart
+    if stock_errors:
+        for error in stock_errors:
+            messages.error(request, error)
+        messages.warning(request, 'Some selected items are no longer available. Please review your cart.')
+        return redirect('cart')
+    
+    # Check if any items remain after validation
+    if not cart_items:
+        messages.error(request, 'No valid items selected for checkout!')
+        return redirect('cart')
+    
+    print(f"DEBUG Checkout: Total={total}, Selected Items={len(cart_items)}")
     
     if request.method == 'POST':
         print(f"DEBUG Checkout: Processing POST request")
+        
         # Create order
         order = Order.objects.create(
             customer=request.user,
@@ -667,7 +742,7 @@ def checkout(request):
             notes=request.POST.get('notes', '')
         )
         
-        # Create order items
+        # Create order items (only for selected items)
         for item in cart_items:
             OrderItem.objects.create(
                 order=order,
@@ -678,6 +753,10 @@ def checkout(request):
                 unit_price=item['product'].price,
                 total_price=item['subtotal']
             )
+        
+        # Store selected cart item IDs for deletion after payment
+        selected_cart_item_ids = [item['cart_item'].id for item in cart_items]
+        request.session['purchased_cart_items'] = selected_cart_item_ids
         
         # Create transaction
         transaction_uuid = str(uuid.uuid4())
@@ -704,14 +783,10 @@ def checkout(request):
         
         epayment.create_signature()
         
-        # Generate form HTML (django-esewa returns HTML string)
+        # Generate form HTML
         form_html = epayment.generate_form()
         
-        # Debug: Print form HTML
-        print("DEBUG: eSewa Form HTML:")
-        print(form_html)
-        
-        # Note: Cart will be cleared after successful payment, not here
+        print("DEBUG: eSewa Form HTML generated for selected items")
         
         context = {
             'order': order,
@@ -720,6 +795,9 @@ def checkout(request):
         }
         return render(request, 'pages/checkout.html', context)
     
+    # Clear checkout items from session after displaying form
+    request.session.pop('checkout_items', None)
+    
     context = {
         'cart_items': cart_items,
         'total': total,
@@ -727,7 +805,7 @@ def checkout(request):
     return render(request, 'pages/checkout_form.html', context)
 
 def payment_success(request, transaction_id):
-    """Handle successful payment"""
+    """Handle successful payment - decrease stock and remove ONLY purchased items"""
     transaction = get_object_or_404(Transaction, id=transaction_id)
     order = transaction.order
     
@@ -746,59 +824,109 @@ def payment_success(request, transaction_id):
     )
     epayment.create_signature()
     
-    # Verify payment (in production, you would verify with eSewa API)
+    # Verify payment
     if epayment.is_completed(True):
-        transaction.transaction_status = 'SUCCESS'
-        order.status = 'processing'
-        transaction.save()
-        order.save()
+        # Check if stock was already decreased (prevent double processing)
+        if transaction.transaction_status != 'SUCCESS':
+            # Update transaction and order status
+            transaction.transaction_status = 'SUCCESS'
+            order.status = 'processing'
+            transaction.save()
+            order.save()
+            
+            # ✅ DECREASE STOCK FOR EACH PURCHASED ITEM
+            stock_errors = []
+            purchased_items = []  # Store purchased items for localStorage removal
+            
+            for order_item in order.items.all():
+                if order_item.product_type == 'accessory':
+                    try:
+                        accessory = Accessory.objects.get(id=order_item.product_id)
+                        
+                        # Check if sufficient stock is available
+                        if accessory.stock >= order_item.quantity:
+                            # Decrease stock
+                            accessory.stock -= order_item.quantity
+                            accessory.save()
+                            print(f"✅ Decreased stock for {accessory.name}: {order_item.quantity} units (New stock: {accessory.stock})")
+                            
+                            # Add to purchased items list
+                            purchased_items.append({
+                                'id': str(order_item.product_id),
+                                'type': order_item.product_type
+                            })
+                        else:
+                            stock_errors.append(f"{accessory.name} - Only {accessory.stock} available, ordered {order_item.quantity}")
+                            print(f"⚠️ Insufficient stock for {accessory.name}")
+                    
+                    except Accessory.DoesNotExist:
+                        stock_errors.append(f"Product ID {order_item.product_id} not found")
+                        print(f"❌ Accessory {order_item.product_id} not found")
+            
+            # ✅ REMOVE ONLY PURCHASED ITEMS FROM DATABASE CART
+            user_cart = get_or_create_cart(request)
+            purchased_cart_item_ids = request.session.get('purchased_cart_items', [])
+            
+            if user_cart and purchased_cart_item_ids:
+                # Delete only the cart items that were purchased
+                deleted_count = user_cart.items.filter(id__in=purchased_cart_item_ids).delete()
+                print(f"✅ Removed {deleted_count[0]} purchased items from database cart")
+                
+                # Clear session
+                request.session.pop('purchased_cart_items', None)
+            
+            # Show warning if there were stock errors
+            if stock_errors:
+                messages.warning(request, f"Payment successful, but some items had stock issues: {', '.join(stock_errors)}")
+        else:
+            # Payment already processed, still get purchased items for display
+            purchased_items = []
+            for order_item in order.items.all():
+                purchased_items.append({
+                    'id': str(order_item.product_id),
+                    'type': order_item.product_type
+                })
+            print(f"⚠️ Payment already processed for transaction {transaction_id}")
         
-        # Clear cart after successful payment
-        user_cart = get_or_create_cart(request)
-        if user_cart:
-            user_cart.items.all().delete()
-            print(f"DEBUG: Cart cleared for user {request.user} after successful payment")
-        
+        # Pass purchased items to template for localStorage cleanup
         context = {
             'order': order,
             'transaction': transaction,
+            'purchased_items': purchased_items,  # Convert to JSON string for template
         }
+        
+        # Render the correct template path
         return render(request, 'pages/payment_success.html', context)
     else:
         return redirect('payment_failure', transaction_id=transaction.id)
 
+
 def payment_failure(request, transaction_id):
-    """Handle failed payment"""
+    """Handle failed payment - DO NOT decrease stock"""
     transaction = get_object_or_404(Transaction, id=transaction_id)
     order = transaction.order
     
+    # Update status to failed
     transaction.transaction_status = 'FAILURE'
     order.status = 'cancelled'
     transaction.save()
     order.save()
     
+    # ❌ DO NOT decrease stock on failed payment
+    print(f"❌ Payment failed for transaction {transaction_id} - Stock NOT decreased")
+    
+    # Show error message to user
+    messages.error(request, 'Payment failed. Your cart items are still saved. Please try again.')
+    
+    # Context for failure page
     context = {
-            'error': 'User not authenticated',
-            'user': 'Anonymous'
-        }
+        'order': order,
+        'transaction': transaction,
+        'error_message': 'Payment was unsuccessful. Please try again or contact support if the issue persists.',
+    }
     
-    user_cart = get_or_create_cart(request)
-    cart_items = []
-    
-    for item in user_cart.items.all():
-        cart_items.append({
-            'product_type': item.product_type,
-            'product_id': item.product_id,
-            'quantity': item.quantity
-        })
-    
-    return JsonResponse({
-        'user': request.user.username,
-        'cart_id': user_cart.id,
-        'item_count': user_cart.get_item_count(),
-        'total': float(user_cart.get_total()),
-        'items': cart_items
-    })
+    # ✅ Render a user-friendly HTML page (NOT JSON)
+    return render(request, 'pages/payment_failure.html', context)
 
 
 # Listing Payment Views
@@ -822,7 +950,8 @@ def listing_payment_checkout(request):
         # Initialize eSewa payment
         epayment = EsewaPayment(
             product_code="EPAYTEST",
-            success_url=f'http://localhost:8000/listing-payment/success/{listing_payment.id}/',
+            success_url=request.build_absolute_uri(f'/listing-payment/success/{listing_payment.id}/'),
+            # success_url=f'http://localhost:8000/listing-payment/success/{listing_payment.id}/',
             failure_url=f'http://localhost:8000/listing-payment/failure/{listing_payment.id}/',
             secret_key='8gBm/:&EnhH.1/q',
             amount=str(listing_price),
@@ -854,7 +983,8 @@ def listing_payment_success(request, payment_id):
     # Initialize eSewa payment for verification
     epayment = EsewaPayment(
         product_code="EPAYTEST",
-        success_url=f'http://localhost:8000/listing-payment/success/{listing_payment.id}/',
+        success_url=request.build_absolute_uri(f'/listing-payment/success/{listing_payment.id}/'),
+        # success_url=f'http://localhost:8000/listing-payment/success/{listing_payment.id}/',
         failure_url=f'http://localhost:8000/listing-payment/failure/{listing_payment.id}/',
         secret_key='8gBm/:&EnhH.1/q',
         amount=str(listing_payment.amount),

@@ -50,3 +50,72 @@
     </div>
 </div>
 {% endblock %}
+
+{% block extra_js %}
+<!-- Remove only purchased items from localStorage cart -->
+<script>
+(function() {
+    'use strict';
+    
+    console.log('Payment success - Removing purchased items from localStorage...');
+    
+    // Get purchased items from Django context
+    var purchasedItems = {{ purchased_items|safe }};
+    console.log('Purchased items to remove:', purchasedItems);
+    
+    // Get cart from localStorage
+    var userId = '{% if user.is_authenticated %}{{ user.id }}{% else %}anonymous{% endif %}';
+    var cartKey = 'petstore_cart_' + userId;
+    var cartData = localStorage.getItem(cartKey);
+    
+    if (cartData) {
+        try {
+            var cart = JSON.parse(cartData);
+            console.log('Current cart before removal:', cart);
+            
+            // Filter out purchased items
+            var updatedCart = cart.filter(function(item) {
+                var isPurchased = purchasedItems.some(function(purchased) {
+                    return String(item.id) === String(purchased.id) && 
+                           String(item.type) === String(purchased.type);
+                });
+                
+                if (isPurchased) {
+                    console.log('Removing purchased item:', item.name);
+                }
+                
+                return !isPurchased;  // Keep items that were NOT purchased
+            });
+            
+            console.log('Cart after removal:', updatedCart);
+            
+            // Save updated cart back to localStorage
+            localStorage.setItem(cartKey, JSON.stringify(updatedCart));
+            console.log('✅ Purchased items removed, remaining items saved');
+            
+        } catch (e) {
+            console.error('Error updating cart:', e);
+        }
+    }
+    
+    // Clear selected items from session storage (if used)
+    try {
+        sessionStorage.removeItem('checkout_items');
+    } catch (e) {
+        console.log('No session storage to clear');
+    }
+    
+    // Update cart counter
+    setTimeout(function() {
+        // Trigger cart counter update
+        window.dispatchEvent(new Event('storage'));
+        
+        // Also manually update if CartManager is available
+        if (typeof CartManager !== 'undefined' && typeof CartManager.updateCartCounter === 'function') {
+            CartManager.updateCartCounter();
+        }
+    }, 500);
+    
+})();
+</script>
+{% endblock %}
