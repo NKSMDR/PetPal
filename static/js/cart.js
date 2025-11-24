@@ -198,11 +198,14 @@ var CART_STORAGE_KEY = getCartStorageKey();
             }
 
             var cart = this.getCart();
+            console.log('Before removal:', cart); 
             var originalLength = cart.length;
 
             cart = cart.filter(function (item) {
                 return !(String(item.id) === String(itemId) && String(item.type) === String(itemType));
             });
+
+            console.log('After removal:', cart); 
 
             if (cart.length === originalLength) {
                 console.warn('Item not found in cart:', itemId, itemType);
@@ -211,6 +214,7 @@ var CART_STORAGE_KEY = getCartStorageKey();
 
             // Save to localStorage first
             var saved = this.saveCart(cart);
+            console.log('save result:', saved);
 
             // Then sync with Django backend (debounced)
             if (saved) {

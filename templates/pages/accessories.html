@@ -215,8 +215,18 @@
       }, 3000);
     }
 
-  function handleAddToCart(button) {
-    // Prevent multiple clicks
+  // Global lock to prevent simultaneous cart additions
+var isAddingToCart = false;
+
+function handleAddToCart(button) {
+    // Prevent multiple simultaneous additions
+    if (isAddingToCart) {
+        console.log('Already adding to cart, please wait...');
+        showNotification('Please wait, processing...', 'error');
+        return;
+    }
+
+    // Prevent multiple clicks on same button
     if (button.disabled || button.classList.contains('processing')) {
         console.log('Button already processing, ignoring click');
         return;
@@ -237,22 +247,28 @@
         return;
     }
 
+    // Set global lock
+    isAddingToCart = true;
+
     // Mark button as processing
     button.classList.add('processing');
     var originalText = button.innerHTML;
     button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Checking...';
     button.disabled = true;
 
-    // ✅ First, get FRESH cart data
+    // Get FRESH cart data RIGHT before checking
     var cart = CartManager.getCart();
     var existingItem = cart.find(function(item) {
         return String(item.id) === String(productId) && item.type === 'accessory';
     });
     var currentCartQty = existingItem ? existingItem.quantity : 0;
 
-    console.log('Current cart quantity for product ' + productId + ':', currentCartQty);
+    console.log('=== ADD TO CART DEBUG ===');
+    console.log('Product ID:', productId);
+    console.log('Current cart:', cart);
+    console.log('Current cart quantity for this product:', currentCartQty);
 
-    // ✅ Then check stock availability
+    // Check stock availability
     fetch('/get-product-stock/accessory/' + productId + '/?t=' + Date.now())
         .then(function(response) {
             return response.json();
@@ -263,6 +279,7 @@
                 button.innerHTML = originalText;
                 button.disabled = false;
                 button.classList.remove('processing');
+                isAddingToCart = false;
                 return;
             }
 
@@ -281,8 +298,9 @@
                     button.innerHTML = originalText;
                     button.style.backgroundColor = '';
                     button.style.borderColor = '';
-                    button.disabled = true; // Keep disabled
+                    button.disabled = true;
                     button.classList.remove('processing');
+                    isAddingToCart = false;
                 }, 2000);
                 return;
             }
@@ -299,6 +317,7 @@
                     button.style.borderColor = '';
                     button.disabled = false;
                     button.classList.remove('processing');
+                    isAddingToCart = false;
                 }, 2000);
                 return;
             }
@@ -335,6 +354,7 @@
                         button.style.color = '';
                         button.disabled = false;
                         button.classList.remove('processing');
+                        isAddingToCart = false; // Release lock
                     }, 2000);
                 } else {
                     button.innerHTML = '<i class="fas fa-times me-1"></i>Error';
@@ -349,6 +369,7 @@
                         button.style.color = '';
                         button.disabled = false;
                         button.classList.remove('processing');
+                        isAddingToCart = false; // Release lock
                     }, 2000);
                 }
             }, 300);
@@ -359,6 +380,7 @@
             button.innerHTML = originalText;
             button.disabled = false;
             button.classList.remove('processing');
+            isAddingToCart = false; // Release lock on error
         });
 }
 
