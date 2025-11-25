@@ -148,7 +148,7 @@ function addToCart(productType, productId, maxStock) {
       try {
         // Get product details from the page
         var productName = document.querySelector('.product-title').textContent.trim();
-        var productPrice = document.querySelector('.current-price').textContent.replace('$', '').trim();
+        var productPrice = document.querySelector('.current-price').textContent.replace('NRS', '').trim();
         var productImage = document.getElementById('mainImage').src;
 
         // Validate product data
@@ -310,14 +310,14 @@ function addToCart(productType, productId, maxStock) {
 
           <div class="product-pricing">
             {% if accessory.is_discounted %}
-            <span class="original-price">${{ accessory.original_price }}</span>
-            <span class="current-price">${{ accessory.price }}</span>
+            <span class="original-price">NRS {{ accessory.original_price }}</span>
+            <span class="current-price">NRS {{ accessory.price }}</span>
             <span class="discount-percent">
               {% widthratio accessory.original_price|floatformat:0|add:0 accessory.price|floatformat:0|add:0 100 as discount_ratio %}
               {{ discount_ratio|floatformat:0 }}% OFF
             </span>
             {% else %}
-            <span class="current-price">${{ accessory.price }}</span>
+            <span class="current-price">NRS {{ accessory.price }}</span>
             {% endif %}
           </div>
 
@@ -352,7 +352,7 @@ function addToCart(productType, productId, maxStock) {
           <div class="product-features">
             <div class="feature-item">
               <i class="fas fa-shipping-fast"></i>
-              <span>Free Shipping on orders over $50</span>
+              <span>Free Shipping on orders over NRS 50</span>
             </div>
             <div class="feature-item">
               <i class="fas fa-undo"></i>
@@ -422,7 +422,7 @@ function addToCart(productType, productId, maxStock) {
                 <img src="{{ related.image.url }}" alt="{{ related.name }}" class="related-image">
                 <div class="related-info">
                   <h6>{{ related.name|truncatechars:30 }}</h6>
-                  <span class="related-price">${{ related.price }}</span>
+                  <span class="related-price">NRS {{ related.price }}</span>
                 </div>
               </a>
             </div>

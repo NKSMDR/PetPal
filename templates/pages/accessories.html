@@ -51,7 +51,7 @@
 
             <!-- Price Range Display -->
             <div class="price-range-text mb-3">
-              $<span id="min-price-display">{{ price_min|default:min_price_db }}</span> - $<span
+              NRS <span id="min-price-display">{{ price_min|default:min_price_db }}</span> - NRS <span
                 id="max-price-display">{{ price_max|default:max_price_db }}</span>
             </div>
 
@@ -93,11 +93,11 @@
                 <p class="text-muted small mb-2">{{ item.category|title }}</p>
                 {% if item.is_discounted %}
                 <div class="price mb-2">
-                  <span class="old-price">${{ item.original_price }}</span>
-                  <span class="new-price text-danger">${{ item.price }}</span>
+                  <span class="old-price">NRS {{ item.original_price }}</span>
+                  <span class="new-price text-danger">NRS {{ item.price }}</span>
                 </div>
                 {% else %}
-                <div class="price fw-bold mb-2">${{ item.price }}</div>
+                <div class="price fw-bold mb-2">NRS {{ item.price }}</div>
                 {% endif %}
                 {% if item.stock > 0 %}
                 <button class="btn btn-outline-primary btn-sm w-100 mt-auto add-to-cart-btn"

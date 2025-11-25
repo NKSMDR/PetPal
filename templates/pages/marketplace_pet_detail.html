@@ -90,7 +90,7 @@
                 <!-- Pet Name and Price -->
                 <h1 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h1>
                 <div class="pet-price mb-3">
-                    <span class="price">${{ pet.price }}</span>
+                    <span class="price">NRS {{ pet.price }}</span>
                 </div>
 
                 <!-- Seller Information -->
@@ -231,7 +231,7 @@
                         <h6 class="card-title">{{ related_pet.breed.name }} - {{ related_pet.get_gender_display }}</h6>
                         <p class="card-text">
                             <small class="text-muted">{{ related_pet.age }} months • {{ related_pet.get_gender_display }}</small><br>
-                            <strong class="text-success">${{ related_pet.price }}</strong>
+                            <strong class="text-success">NRS {{ related_pet.price }}</strong>
                         </p>
                         <a href="{% url 'marketplace_pet_detail' related_pet.pk %}" class="btn btn-sm btn-outline-primary">View Details</a>
                     </div>

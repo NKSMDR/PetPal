@@ -113,11 +113,11 @@ class AccessoryAdmin(admin.ModelAdmin):
     def price_display(self, obj):
         if obj.is_discounted():
             return format_html(
-                '<span style="color: #e74c3c; font-weight: bold;">${}</span> '
-                '<span style="text-decoration: line-through; color: #7f8c8d;">${}</span>',
+                '<span style="color: #e74c3c; font-weight: bold;">NRS {}</span> '
+                '<span style="text-decoration: line-through; color: #7f8c8d;">NRS {}</span>',
                 obj.price, obj.original_price
             )
-        return f"${obj.price}"
+        return f"NRS {obj.price}"
     price_display.short_description = "Price"
     
     def discount_badge(self, obj):
@@ -135,7 +135,7 @@ class AccessoryAdmin(admin.ModelAdmin):
             discount_amount = obj.original_price - obj.price
             discount_percent = int(((obj.original_price - obj.price) / obj.original_price) * 100)
             return format_html(
-                '<div style="color: #27ae60; font-weight: bold;">Discount: ${} ({}% off)</div>',
+                '<div style="color: #27ae60; font-weight: bold;">Discount: NRS {} ({}% off)</div>',
                 discount_amount, discount_percent
             )
         return "No discount applied"
@@ -443,7 +443,7 @@ class CartAdmin(admin.ModelAdmin):
     get_item_count.short_description = 'Items'
     
     def get_total(self, obj):
-        return f"${obj.get_total():.2f}"
+        return f"NRS {obj.get_total():.2f}"
     get_total.short_description = 'Total'
 
 

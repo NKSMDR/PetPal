@@ -117,7 +117,7 @@
                     <div class="cart-total-section">
                         <div class="total-row">
                             <span>Subtotal (Selected Items):</span>
-                            <span id="cart-subtotal">$0.00</span>
+                            <span id="cart-subtotal">NRS 0.00</span>
                         </div>
                         <div class="total-row">
                             <span>Shipping:</span>
@@ -125,11 +125,11 @@
                         </div>
                         <div class="total-row">
                             <span>Tax (8%):</span>
-                            <span id="cart-tax">$0.00</span>
+                            <span id="cart-tax">NRS 0.00</span>
                         </div>
                         <div class="total-row">
                             <span>Total:</span>
-                            <span id="cart-total">$0.00</span>
+                            <span id="cart-total">NRS 0.00</span>
                         </div>
                     </div>
 
@@ -286,7 +286,7 @@
                 <h6>${item.name}</h6>
                 <small class="text-muted">${item.type}</small>
             </td>
-            <td>$${item.price.toFixed(2)}</td>
+            <td>NRS ${item.price.toFixed(2)}</td>
             <td>
                 <div class="quantity-controls" style="display: flex; align-items: center; gap: 5px;">
                     <button class="quantity-btn btn btn-sm btn-outline-secondary" onclick="updateQuantity('${item.id}', '${item.type}', ${item.quantity - 1})" type="button">
@@ -302,7 +302,7 @@
                     </button>
                 </div>
             </td>
-            <td>$${itemSubtotal.toFixed(2)}</td>
+            <td>NRS ${itemSubtotal.toFixed(2)}</td>
             <td>
                 <button class="btn btn-sm btn-danger" onclick="removeItem('${item.id}', '${item.type}')">
                     <i class="fas fa-trash"></i>
@@ -408,9 +408,9 @@
         var selectedCountEl = document.getElementById('selected-count');
         var checkoutBtn = document.getElementById('checkout-btn');
 
-        if (subtotalEl) subtotalEl.textContent = '$' + subtotal.toFixed(2);
-        if (taxEl) taxEl.textContent = '$' + tax.toFixed(2);
-        if (totalEl) totalEl.textContent = '$' + total.toFixed(2);
+        if (subtotalEl) subtotalEl.textContent = 'NRS ' + subtotal.toFixed(2);
+        if (taxEl) taxEl.textContent = 'NRS ' + tax.toFixed(2);
+        if (totalEl) totalEl.textContent = 'NRS ' + total.toFixed(2);
         if (selectedCountEl) selectedCountEl.textContent = selectedCount;
 
         // Enable/disable checkout button

@@ -22,7 +22,7 @@
                         <h5>Transaction Details</h5>
                         <p><strong>Order ID:</strong> {{ order.order_id }}</p>
                         <p><strong>Transaction ID:</strong> {{ transaction.transaction_uuid }}</p>
-                        <p><strong>Amount:</strong> ${{ transaction.transaction_amount }}</p>
+                        <p><strong>Amount:</strong> NRS {{ transaction.transaction_amount }}</p>
                         <p><strong>Status:</strong> <span class="badge bg-danger">{{ transaction.get_transaction_status_display }}</span></p>
                     </div>
                     
