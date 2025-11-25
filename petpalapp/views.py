@@ -892,7 +892,7 @@ def payment_success(request, transaction_id):
         context = {
             'order': order,
             'transaction': transaction,
-            'purchased_items': purchased_items,  # Convert to JSON string for template
+            'purchased_items': json.dumps(purchased_items),  # Convert to JSON string for template
         }
         
         # Render the correct template path
