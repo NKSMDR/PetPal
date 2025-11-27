@@ -58,6 +58,14 @@
             {% endif %}
           </a>
         </li>
+        {% if user.is_authenticated %}
+        <li class="nav-item">
+          <a href="{% url 'wishlist' %}" class="nav-link position-relative">
+            <i class="bi bi-heart"></i>
+            Wishlist
+          </a>
+        </li>
+        {% endif %}
       </ul>
     </div>
   </div>

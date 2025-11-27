@@ -51,12 +51,6 @@
                 <div class="d-flex justify-content-between align-items-start mb-3">
                     <h1 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h1>
                     <div class="pet-badges">
-                        {% if pet.is_featured %}
-                            <span class="badge bg-warning text-dark">Featured</span>
-                        {% endif %}
-                        {% if pet.is_urgent %}
-                            <span class="badge bg-danger">Urgent</span>
-                        {% endif %}
                         <span class="badge bg-success">{{ pet.get_status_display }}</span>
                     </div>
                 </div>
@@ -189,12 +183,6 @@
                                 <img src="{{ related_pet.image.url }}" class="card-img-top" alt="{{ related_pet.breed.name }}">
                             {% else %}
                                 <img src="{% static 'images/default-pet.jpg' %}" class="card-img-top" alt="No image">
-                            {% endif %}
-                            {% if related_pet.is_featured %}
-                                <span class="badge bg-warning position-absolute top-0 start-0 m-2">Featured</span>
-                            {% endif %}
-                            {% if related_pet.is_urgent %}
-                                <span class="badge bg-danger position-absolute top-0 end-0 m-2">Urgent</span>
                             {% endif %}
                         </div>
                         <div class="card-body">

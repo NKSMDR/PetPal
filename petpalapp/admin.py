@@ -158,12 +158,12 @@ admin.site.register(Accessory, AccessoryAdmin)
 
 # Separate admin for Browse Pets (Admin-added pets only)
 class BrowsePetAdmin(admin.ModelAdmin):
-    list_display = ['breed', 'age', 'gender', 'price', 'status', 'is_featured', 'image_preview', 'view_detail']
-    list_filter = ['breed', 'gender', 'status', 'is_featured', 'is_urgent', 'vaccination_status', 'created_at']
+    list_display = ['breed', 'age', 'gender', 'price', 'status', 'image_preview', 'view_detail']
+    list_filter = ['breed', 'gender', 'status', 'vaccination_status', 'created_at']
     search_fields = ['breed__name', 'description', 'seller__username', 'seller__first_name', 'seller__last_name']
     prepopulated_fields = {'slug': ('breed',)}
     readonly_fields = ['image_preview', 'created_at', 'updated_at', 'is_user_submitted']
-    list_editable = ['is_featured', 'status']
+    list_editable = ['status']
     
     def get_queryset(self, request):
         
@@ -182,8 +182,8 @@ class BrowsePetAdmin(admin.ModelAdmin):
         ('Media', {
             'fields': ('image', 'image2', 'image3', 'image_preview')
         }),
-        ('Status & Features', {
-            'fields': ('status', 'is_featured', 'is_urgent')
+        ('Status', {
+            'fields': ('status',)
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
