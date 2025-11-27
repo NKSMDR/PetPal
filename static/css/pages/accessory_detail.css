@@ -1,7 +1,8 @@
 /* Accessory Detail Page Styling */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 
-body {
+/* Body styles moved to avoid conflicts with base.css */
+.accessory-detail-page {
   font-family: 'Inter', sans-serif;
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   min-height: 100vh;
@@ -30,7 +31,7 @@ body {
 .accessory-detail-hero {
   background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
-  padding: 60px 0;
+  padding: 20px 0 60px 0;
   position: relative;
 }
 
@@ -508,7 +509,7 @@ body {
 /* Responsive Design */
 @media (max-width: 768px) {
   .accessory-detail-hero {
-    padding: 40px 0;
+    padding: 15px 0 40px 0;
   }
   
   .main-product-image {
