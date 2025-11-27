@@ -37,22 +37,7 @@
             {% endfor %}
           </select>
         </div>
-        <div class="col-md-2">
-          <select name="gender" class="form-select">
-            <option value="">Any Gender</option>
-            <option value="male" {% if gender_filter == 'male' %}selected{% endif %}>Male</option>
-            <option value="female" {% if gender_filter == 'female' %}selected{% endif %}>Female</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <select name="city" class="form-select">
-            <option value="">All Cities</option>
-            {% for city in cities %}
-            <option value="{{ city }}" {% if city_filter == city %}selected{% endif %}>{{ city }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="col-md-2">
+        <div class="col-md-6">
           <button type="submit" class="btn btn-primary w-100">Search</button>
         </div>
       </div>
@@ -77,12 +62,10 @@
               <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="pet-image">
             </div>
             <div class="pet-card-body">
-              <h5 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h5>
+              <h5 class="pet-name">{{ pet.breed.name }}</h5>
               <p class="pet-breed">{{ pet.breed.name }}</p>
               <div class="pet-details">
                 <span class="detail-item">📅 {{ pet.age }}</span>
-                <span class="detail-item">⚥ {{ pet.get_gender_display }}</span>
-                <span class="detail-item">📍 {{ pet.city }}, {{ pet.state }}</span>
               </div>
               <div class="pet-health">
                 {% if pet.vaccination_status %}

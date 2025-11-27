@@ -158,9 +158,9 @@ admin.site.register(Accessory, AccessoryAdmin)
 
 # Separate admin for Browse Pets (Admin-added pets only)
 class BrowsePetAdmin(admin.ModelAdmin):
-    list_display = ['breed', 'age', 'gender', 'price', 'status', 'image_preview', 'view_detail']
-    list_filter = ['breed', 'gender', 'status', 'vaccination_status', 'created_at']
-    search_fields = ['breed__name', 'description', 'seller__username', 'seller__first_name', 'seller__last_name']
+    list_display = ['breed', 'age', 'price', 'status', 'image_preview', 'view_detail']
+    list_filter = ['breed', 'status', 'vaccination_status', 'created_at']
+    search_fields = ['breed__name', 'description']
     prepopulated_fields = {'slug': ('breed',)}
     readonly_fields = ['image_preview', 'created_at', 'updated_at', 'is_user_submitted']
     list_editable = ['status']
@@ -174,7 +174,7 @@ class BrowsePetAdmin(admin.ModelAdmin):
     
     fieldsets = (
         ('Basic Information', {
-            'fields': ('slug', 'breed', 'age', 'gender', 'price', 'seller', 'description')
+            'fields': ('slug', 'breed', 'age', 'price', 'description')
         }),
         ('Pet Details', {
             'fields': ('weight', 'color', 'vaccination_status', 'health_certificate')
@@ -204,6 +204,8 @@ class BrowsePetAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         # Ensure admin-added pets are marked correctly
         obj.is_user_submitted = False
+        # Set seller to the current admin user (shop owner)
+        obj.seller = request.user
         if not change:  # New pet
             obj.status = 'available'  # Admin pets are available by default
         super().save_model(request, obj, form, change)

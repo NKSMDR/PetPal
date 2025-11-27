@@ -624,8 +624,6 @@ def browse_pets(request):
     age = request.GET.get('age')
     size = request.GET.get('size')
     search_query = request.GET.get('q')
-    gender = request.GET.get('gender')  # Add this
-    city = request.GET.get('city')      # Add this
 
     if breed:
         pets = pets.filter(breed__name__iexact=breed)
@@ -633,22 +631,12 @@ def browse_pets(request):
         pets = pets.filter(age__iexact=age)
     if size:
         pets = pets.filter(size__iexact=size)
-    if gender:  # Add this filter
-        pets = pets.filter(gender__iexact=gender)
-    if city:  # Add this filter
-        pets = pets.filter(city__icontains=city)
     if search_query:
         pets = pets.filter(Q(name__icontains=search_query) | Q(description__icontains=search_query))
 
     # Get all breeds for dropdown
     from .models import Breed
     breeds = Breed.objects.all().order_by('name')
-    
-    # Get all cities for dropdown
-    cities = Pet.objects.filter(
-        is_user_submitted=False, 
-        status='available'
-    ).values_list('city', flat=True).distinct().order_by('city')
 
     wishlist_breed_ids = []
     if request.user.is_authenticated:
@@ -659,12 +647,9 @@ def browse_pets(request):
     context = {
         'pets': pets,
         'breeds': breeds,
-        'cities': cities,
         'breed_filter': breed,
         'age': age,
         'size': size,
-        'gender_filter': gender,
-        'city_filter': city,
         'search_query': search_query,
         'wishlist_breed_ids': wishlist_breed_ids,
     }
