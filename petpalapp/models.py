@@ -172,10 +172,8 @@ class Pet(models.Model):
     latitude = models.DecimalField(max_digits=10, decimal_places=8, blank=True, null=True, help_text="Latitude coordinate")
     longitude = models.DecimalField(max_digits=11, decimal_places=8, blank=True, null=True, help_text="Longitude coordinate")
     
-    # Status and features
+    # Status
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending_review')
-    is_featured = models.BooleanField(default=False, help_text="Show in featured section")
-    is_urgent = models.BooleanField(default=False, help_text="Urgent adoption/sale")
     is_user_submitted = models.BooleanField(default=False, help_text="Submitted by user (not admin)")
     
     # Admin review fields
@@ -471,3 +469,33 @@ class HomePageSettings(models.Model):
         if not settings:
             settings = cls.objects.create()
         return settings
+
+
+class Wishlist(models.Model):
+    """Wishlist linked to a single user"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='wishlist')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.user.username}'s Wishlist"
+
+
+class WishlistItem(models.Model):
+    """Individual breed entries in a wishlist"""
+    SOURCE_CHOICES = [
+        ('browse_pets', 'Browse Pets'),
+        ('marketplace', 'Marketplace'),
+    ]
+    
+    wishlist = models.ForeignKey(Wishlist, on_delete=models.CASCADE, related_name='items')
+    breed = models.ForeignKey(Breed, on_delete=models.CASCADE)
+    source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='browse_pets')
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-added_at']
+        unique_together = ('wishlist', 'breed', 'source')
+
+    def __str__(self):
+        return f"{self.breed.name} ({self.get_source_display()}) in {self.wishlist.user.username}'s wishlist"

@@ -90,18 +90,6 @@
                                         </div>
                                     {% endif %}
                                     
-                                    <div class="pet-badges">
-                                        {% if pet.is_featured %}
-                                            <span class="badge featured-badge">
-                                                <i class="fas fa-star me-1"></i>Featured
-                                            </span>
-                                        {% endif %}
-                                        {% if pet.is_urgent %}
-                                            <span class="badge urgent-badge">
-                                                <i class="fas fa-exclamation me-1"></i>Urgent
-                                            </span>
-                                        {% endif %}
-                                    </div>
                                     
                                     <div class="price-tag">
                                         NRS {{ pet.price }}
@@ -158,6 +146,15 @@
                                         <button class="btn btn-outline-success" onclick="contactSeller('{{ pet.seller.first_name }}')">
                                             <i class="fas fa-phone me-1"></i>Contact
                                         </button>
+                                        <button type="button"
+                                                class="btn btn-outline-danger wishlist-btn {% if pet.breed.id in wishlist_breed_ids %}active btn-danger text-white{% endif %}"
+                                                data-add-url="{% url 'add_to_wishlist' pet.id %}"
+                                                data-breed-id="{{ pet.breed.id }}">
+                                            <i class="fas fa-heart me-1{% if pet.breed.id in wishlist_breed_ids %} text-white{% endif %}"></i>
+                                            <span class="wishlist-btn-label">
+                                                {% if pet.breed.id in wishlist_breed_ids %}Saved{% else %}Favorite{% endif %}
+                                            </span>
+                                        </button>
                                     </div>
                                 </div>
                             </div>
@@ -190,5 +187,94 @@
 function contactSeller(sellerName) {
     alert(`Contact feature coming soon! You can reach out to ${sellerName} through our messaging system.`);
 }
+
+(function() {
+    const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+    const loginUrl = "{% url 'login' %}?next={{ request.get_full_path|urlencode }}";
+    const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+
+    function getCsrfToken() {
+        const name = 'csrftoken=';
+        const cookies = document.cookie ? document.cookie.split(';') : [];
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name)) {
+                return decodeURIComponent(cookie.substring(name.length));
+            }
+        }
+        return '';
+    }
+
+    function showWishlistToast(message, type = 'success') {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed top-0 end-0 m-3 shadow wishlist-toast`;
+        toast.style.minWidth = '240px';
+        toast.innerHTML = `
+            <div class="d-flex align-items-center">
+                <i class="fas fa-heart me-2"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        document.body.appendChild(toast);
+        setTimeout(() => toast.classList.add('show'), 10);
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 300);
+        }, 2500);
+    }
+
+    function setButtonState(button, saved) {
+        button.classList.toggle('btn-outline-danger', !saved);
+        button.classList.toggle('btn-danger', saved);
+        button.classList.toggle('text-white', saved);
+        button.classList.toggle('active', saved);
+
+        const icon = button.querySelector('i');
+        if (icon) {
+            icon.classList.toggle('text-white', saved);
+        }
+        const label = button.querySelector('.wishlist-btn-label');
+        if (label) {
+            label.textContent = saved ? 'Saved' : 'Favorite';
+        }
+    }
+
+    wishlistButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            if (!isAuthenticated) {
+                window.location.href = loginUrl;
+                return;
+            }
+
+            const url = button.dataset.addUrl;
+            if (!url) return;
+
+            button.disabled = true;
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCsrfToken(),
+                    'X-Requested-With': 'XMLHttpRequest',
+                },
+                credentials: 'same-origin',
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        setButtonState(button, true);
+                        showWishlistToast(data.message, 'success');
+                    } else {
+                        showWishlistToast(data.message || 'Could not update wishlist', 'error');
+                    }
+                })
+                .catch(() => {
+                    showWishlistToast('Something went wrong. Please try again.', 'error');
+                })
+                .finally(() => {
+                    button.disabled = false;
+                });
+        });
+    });
+})();
 </script>
 {% endblock %}

@@ -49,14 +49,8 @@
             <div class="pet-info">
                 <!-- Pet Name and Status -->
                 <div class="d-flex justify-content-between align-items-start mb-3">
-                    <h1 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h1>
+                    <h1 class="pet-name">{{ pet.breed.name }}</h1>
                     <div class="pet-badges">
-                        {% if pet.is_featured %}
-                            <span class="badge bg-warning text-dark">Featured</span>
-                        {% endif %}
-                        {% if pet.is_urgent %}
-                            <span class="badge bg-danger">Urgent</span>
-                        {% endif %}
                         <span class="badge bg-success">{{ pet.get_status_display }}</span>
                     </div>
                 </div>
@@ -85,13 +79,6 @@
                                 <span class="value">{{ pet.age }} years</span>
                             </div>
                         </div>
-                        <div class="col-6">
-                            <div class="info-item">
-                                <i class="fas fa-venus-mars text-muted"></i>
-                                <span class="label">Gender:</span>
-                                <span class="value">{{ pet.get_gender_display }}</span>
-                            </div>
-                        </div>
                         {% if pet.weight %}
                         <div class="col-6">
                             <div class="info-item">
@@ -110,13 +97,6 @@
                             </div>
                         </div>
                         {% endif %}
-                        <div class="col-6">
-                            <div class="info-item">
-                                <i class="fas fa-map-marker-alt text-muted"></i>
-                                <span class="label">Location:</span>
-                                <span class="value">{{ pet.city }}{% if pet.state %}, {{ pet.state }}{% endif %}</span>
-                            </div>
-                        </div>
                     </div>
                 </div>
 
@@ -145,17 +125,10 @@
 
                 <!-- Contact Seller -->
                 <div class="contact-seller mb-4">
-                    <h5>Contact Seller</h5>
-                    <div class="seller-info">
-                        <i class="fas fa-user text-muted"></i>
-                        <span class="seller-name">{{ pet.seller.get_full_name|default:pet.seller.username }}</span>
-                    </div>
+                    <h5>Contact Us</h5>
                     <div class="contact-buttons mt-3">
-                        <button class="btn btn-primary btn-lg me-2">
+                        <button class="btn btn-primary btn-lg">
                             <i class="fas fa-phone"></i> Contact Seller
-                        </button>
-                        <button class="btn btn-outline-primary btn-lg">
-                            <i class="fas fa-envelope"></i> Send Message
                         </button>
                     </div>
                 </div>
@@ -190,20 +163,13 @@
                             {% else %}
                                 <img src="{% static 'images/default-pet.jpg' %}" class="card-img-top" alt="No image">
                             {% endif %}
-                            {% if related_pet.is_featured %}
-                                <span class="badge bg-warning position-absolute top-0 start-0 m-2">Featured</span>
-                            {% endif %}
-                            {% if related_pet.is_urgent %}
-                                <span class="badge bg-danger position-absolute top-0 end-0 m-2">Urgent</span>
-                            {% endif %}
                         </div>
                         <div class="card-body">
-                            <h5 class="card-title">{{ related_pet.breed.name }} - {{ related_pet.get_gender_display }}</h5>
-                            <p class="card-text text-muted">{{ related_pet.breed.name }} • {{ related_pet.age }} years</p>
+                            <h5 class="card-title">{{ related_pet.breed.name }}</h5>
+                            <p class="card-text text-muted">{{ related_pet.breed.name }} • {{ related_pet.age }}</p>
                             {% if related_pet.price %}
                                 <p class="card-text"><strong class="text-primary">${{ related_pet.price }}</strong></p>
                             {% endif %}
-                            <p class="card-text"><small class="text-muted">{{ related_pet.city }}{% if related_pet.state %}, {{ related_pet.state }}{% endif %}</small></p>
                         </div>
                         <div class="card-footer bg-transparent">
                             <a href="{% url 'pet_detail' related_pet.pk %}" class="btn btn-outline-primary btn-sm w-100">View Details</a>

@@ -1,0 +1,242 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}My Wishlist{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/browse_pets.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/accessories.css' %}">
+<style>
+.filter-pill {
+    border: none;
+    background: inherit;
+    cursor: pointer;
+}
+.filter-pill:hover {
+    background: inherit;
+}
+.filter-pill:focus {
+    outline: none;
+    box-shadow: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="mb-4">
+        <h1 class="h3 mb-2">My Wishlist</h1>
+        <p class="text-muted mb-3">Keep track of pets you love.</p>
+        
+        <!-- Navigation Pills -->
+        <div class="category-pills mb-4 d-flex flex-nowrap">
+            <button type="button" class="pill filter-pill" data-section="marketplace" onclick="filterWishlist('marketplace')">
+                <i class="fas fa-store me-1"></i>Marketplace
+            </button>
+            <button type="button" class="pill filter-pill" data-section="browse_pets" onclick="filterWishlist('browse_pets')">
+                <i class="fas fa-paw me-1"></i>Browse Pets
+            </button>
+        </div>
+    </div>
+
+    {% if browse_pets_entries or marketplace_entries %}
+
+    <!-- Browse Pets Section -->
+    {% if browse_pets_entries %}
+    <div class="wishlist-section" id="browse_pets-section" data-section="browse_pets">
+        <h3 class="mb-4 fw-bold">
+            <i class="fas fa-paw me-2"></i>Browse Pets
+            <span class="badge bg-primary ms-2">{{ browse_pets_entries|length }}</span>
+        </h3>
+        <div class="row g-4">
+            {% for entry in browse_pets_entries %}
+            <div class="col-lg-3 col-md-6">
+                <div class="pet-card">
+                    <div class="pet-image-container">
+                        {% if entry.sample_pet and entry.sample_pet.image %}
+                        <img src="{{ entry.sample_pet.image.url }}" alt="{{ entry.item.breed.name }}" class="pet-image">
+                        {% else %}
+                        <div class="d-flex flex-column justify-content-center align-items-center bg-light h-100">
+                            <i class="fas fa-paw fa-3x text-muted mb-2"></i>
+                            <span class="text-muted">No image available</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="pet-card-body">
+                        <h5 class="pet-name">{{ entry.item.breed.name }}{% if entry.sample_pet %} - {{ entry.sample_pet.get_gender_display }}{% endif %}</h5>
+                        <p class="pet-breed">{{ entry.item.breed.name }}</p>
+                        {% if entry.sample_pet %}
+                        <div class="pet-details">
+                            <span class="detail-item">📅 {{ entry.sample_pet.age }}</span>
+                            <span class="detail-item">⚥ {{ entry.sample_pet.get_gender_display }}</span>
+                            <span class="detail-item">📍 {{ entry.sample_pet.city }}{% if entry.sample_pet.state %}, {{ entry.sample_pet.state }}{% endif %}</span>
+                        </div>
+                        <div class="pet-health">
+                            {% if entry.sample_pet.vaccination_status %}
+                            <span class="health-badge vaccinated">
+                                <i class="fas fa-shield-alt me-1"></i>Vaccinated
+                            </span>
+                            {% endif %}
+                            {% if entry.sample_pet.health_certificate %}
+                            <span class="health-badge certified">
+                                <i class="fas fa-certificate me-1"></i>Health Cert
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="pet-price">NRS {{ entry.sample_pet.price }}</div>
+                        <div class="pet-actions d-flex gap-2 mt-2">
+                            <a href="{% url 'pet_detail' entry.sample_pet.pk %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>View Details
+                            </a>
+                            <a href="{% url 'remove_from_wishlist' entry.item.breed.id %}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to remove {{ entry.item.breed.name }} from your wishlist?');">
+                                <i class="fas fa-trash me-1"></i>Remove
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="pet-details">
+                            <span class="text-muted">No listings available</span>
+                        </div>
+                        <p class="text-muted small">We will notify you when a new listing for this breed becomes available.</p>
+                        <div class="pet-actions d-flex gap-2 mt-2">
+                            <a href="{% url 'browse_pets' %}?breed={{ entry.item.breed.name|urlencode }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-search me-1"></i>Search Browse Pets
+                            </a>
+                            <a href="{% url 'remove_from_wishlist' entry.item.breed.id %}?source=browse_pets" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to remove {{ entry.item.breed.name }} from your wishlist?');">
+                                <i class="fas fa-trash me-1"></i>Remove
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Marketplace Section -->
+    {% if marketplace_entries %}
+    <div class="wishlist-section" id="marketplace-section" data-section="marketplace">
+        <h3 class="mb-4 fw-bold mt-5">
+            <i class="fas fa-store me-2"></i>Marketplace
+            <span class="badge bg-success ms-2">{{ marketplace_entries|length }}</span>
+        </h3>
+        <div class="row g-4">
+            {% for entry in marketplace_entries %}
+            <div class="col-lg-3 col-md-6">
+                <div class="pet-card">
+                    <div class="pet-image-container">
+                        {% if entry.sample_pet and entry.sample_pet.image %}
+                        <img src="{{ entry.sample_pet.image.url }}" alt="{{ entry.item.breed.name }}" class="pet-image">
+                        {% else %}
+                        <div class="d-flex flex-column justify-content-center align-items-center bg-light h-100">
+                            <i class="fas fa-paw fa-3x text-muted mb-2"></i>
+                            <span class="text-muted">No image available</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                    <div class="pet-card-body">
+                        <h5 class="pet-name">{{ entry.item.breed.name }}{% if entry.sample_pet %} - {{ entry.sample_pet.get_gender_display }}{% endif %}</h5>
+                        <p class="pet-breed">{{ entry.item.breed.name }}</p>
+                        {% if entry.sample_pet %}
+                        <div class="pet-details">
+                            <span class="detail-item">📅 {{ entry.sample_pet.age }}</span>
+                            <span class="detail-item">⚥ {{ entry.sample_pet.get_gender_display }}</span>
+                            <span class="detail-item">📍 {{ entry.sample_pet.city }}{% if entry.sample_pet.state %}, {{ entry.sample_pet.state }}{% endif %}</span>
+                        </div>
+                        <div class="pet-health">
+                            {% if entry.sample_pet.vaccination_status %}
+                            <span class="health-badge vaccinated">
+                                <i class="fas fa-shield-alt me-1"></i>Vaccinated
+                            </span>
+                            {% endif %}
+                            {% if entry.sample_pet.health_certificate %}
+                            <span class="health-badge certified">
+                                <i class="fas fa-certificate me-1"></i>Health Certificate
+                            </span>
+                            {% endif %}
+                        </div>
+                        <div class="pet-price">NRS {{ entry.sample_pet.price }}</div>
+                        <div class="pet-actions d-flex gap-2 mt-2">
+                            <a href="{% url 'marketplace_pet_detail' entry.sample_pet.pk %}" class="btn btn-primary btn-sm">
+                                <i class="fas fa-eye me-1"></i>View Details
+                            </a>
+                            <a href="{% url 'remove_from_wishlist' entry.item.breed.id %}?source=marketplace" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to remove {{ entry.item.breed.name }} from your wishlist?');">
+                                <i class="fas fa-trash me-1"></i>Remove
+                            </a>
+                        </div>
+                        {% else %}
+                        <div class="pet-details">
+                            <span class="text-muted">No listings available</span>
+                        </div>
+                        <p class="text-muted small">We will notify you when a new listing for this breed becomes available.</p>
+                        <div class="pet-actions d-flex gap-2 mt-2">
+                            <a href="{% url 'marketplace' %}?breed={{ entry.item.breed.name|urlencode }}" class="btn btn-outline-primary btn-sm">
+                                <i class="fas fa-search me-1"></i>Search Marketplace
+                            </a>
+                            <a href="{% url 'remove_from_wishlist' entry.item.breed.id %}" class="btn btn-outline-danger btn-sm" onclick="return confirm('Are you sure you want to remove {{ entry.item.breed.name }} from your wishlist?');">
+                                <i class="fas fa-trash me-1"></i>Remove
+                            </a>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    {% else %}
+    <div class="empty-state text-center">
+        <div class="empty-icon">
+            <i class="fas fa-heart text-danger" style="font-size: 4rem;"></i>
+        </div>
+        <h3>No favorites yet</h3>
+        <p class="text-muted">Start adding pets to your wishlist to revisit them quickly.</p>
+        <a href="{% url 'browse_pets' %}" class="btn btn-primary mt-3">
+            <i class="fas fa-search me-2"></i>Browse Pets
+        </a>
+    </div>
+    {% endif %}
+</div>
+
+<script>
+function filterWishlist(section) {
+    // Update active pill
+    document.querySelectorAll('.filter-pill').forEach(pill => {
+        pill.classList.remove('active');
+    });
+    document.querySelector(`.filter-pill[data-section="${section}"]`).classList.add('active');
+    
+    // Show/hide sections
+    const browseSection = document.getElementById('browse_pets-section');
+    const marketplaceSection = document.getElementById('marketplace-section');
+    
+    if (section === 'browse_pets') {
+        if (browseSection) browseSection.style.display = 'block';
+        if (marketplaceSection) marketplaceSection.style.display = 'none';
+    } else if (section === 'marketplace') {
+        if (browseSection) browseSection.style.display = 'none';
+        if (marketplaceSection) marketplaceSection.style.display = 'block';
+    }
+    
+    // Update URL without reload
+    const url = new URL(window.location);
+    url.searchParams.set('section', section);
+    window.history.pushState({}, '', url);
+}
+
+// Initialize on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const activeSection = '{{ active_section }}';
+    // Default to marketplace if no section specified
+    if (activeSection && (activeSection === 'browse_pets' || activeSection === 'marketplace')) {
+        filterWishlist(activeSection);
+    } else {
+        // Default to marketplace
+        filterWishlist('marketplace');
+    }
+});
+</script>
+{% endblock %}
+

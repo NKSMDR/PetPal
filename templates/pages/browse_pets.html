@@ -37,143 +37,13 @@
             {% endfor %}
           </select>
         </div>
-        <div class="col-md-2">
-          <select name="gender" class="form-select">
-            <option value="">Any Gender</option>
-            <option value="male" {% if gender_filter == 'male' %}selected{% endif %}>Male</option>
-            <option value="female" {% if gender_filter == 'female' %}selected{% endif %}>Female</option>
-          </select>
-        </div>
-        <div class="col-md-2">
-          <select name="city" class="form-select">
-            <option value="">All Cities</option>
-            {% for city in cities %}
-            <option value="{{ city }}" {% if city_filter == city %}selected{% endif %}>{{ city }}</option>
-            {% endfor %}
-          </select>
-        </div>
-        <div class="col-md-2">
+        <div class="col-md-6">
           <button type="submit" class="btn btn-primary w-100">Search</button>
         </div>
       </div>
     </form>
   </div>
 </section>
-
-<!-- Featured Pets Section -->
-{% if featured_pets %}
-<section class="py-5">
-  <div class="container">
-    <div class="section-header text-center mb-5">
-      <h2 class="fw-bold">⭐ Featured Pets</h2>
-      <p class="text-muted">Our specially selected pets looking for loving homes</p>
-    </div>
-    <div class="row g-4">
-      {% for pet in featured_pets %}
-      <div class="col-lg-4 col-md-6">
-        <div class="pet-card featured-card">
-          <div class="pet-image-container">
-            <span class="featured-badge">Featured</span>
-            {% if pet.is_urgent %}
-            <span class="urgent-badge">Urgent</span>
-            {% endif %}
-            <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="pet-image">
-          </div>
-          <div class="pet-card-body">
-            <h5 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h5>
-            <p class="pet-breed">{{ pet.breed.name }}</p>
-            <div class="pet-details">
-              <span class="detail-item">📅 {{ pet.age }}</span>
-              <span class="detail-item">⚥ {{ pet.get_gender_display }}</span>
-              <span class="detail-item">📍 {{ pet.city }}</span>
-            </div>
-            <div class="pet-price">${{ pet.price }}</div>
-            <div class="pet-actions">
-              <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-primary btn-sm">View Details</a>
-              <button class="btn btn-outline-danger btn-sm">❤️</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-{% endif %}
-
-<!-- Recently Added Pets Section -->
-{% if recent_pets %}
-<section class="py-5 bg-light">
-  <div class="container">
-    <div class="section-header text-center mb-5">
-      <h2 class="fw-bold">🆕 Recently Added</h2>
-      <p class="text-muted">Fresh arrivals looking for their new families</p>
-    </div>
-    <div class="row g-4">
-      {% for pet in recent_pets %}
-      <div class="col-lg-3 col-md-6">
-        <div class="pet-card">
-          <div class="pet-image-container">
-            {% if pet.is_urgent %}
-            <span class="urgent-badge">Urgent</span>
-            {% endif %}
-            <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="pet-image">
-          </div>
-          <div class="pet-card-body">
-            <h6 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h6>
-            <p class="pet-breed">{{ pet.breed.name }}</p>
-            <div class="pet-details">
-              <span class="detail-item">📅 {{ pet.age }}</span>
-              <span class="detail-item">📍 {{ pet.city }}</span>
-            </div>
-            <div class="pet-price">${{ pet.price }}</div>
-            <div class="pet-actions">
-              <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-outline-primary btn-sm">View</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-{% endif %}
-
-<!-- Urgent Pets Section -->
-{% if urgent_pets %}
-<section class="py-5">
-  <div class="container">
-    <div class="section-header text-center mb-5">
-      <h2 class="fw-bold text-danger">🚨 Urgent Adoptions</h2>
-      <p class="text-muted">These pets need homes urgently - can you help?</p>
-    </div>
-    <div class="row g-4">
-      {% for pet in urgent_pets %}
-      <div class="col-lg-3 col-md-6">
-        <div class="pet-card urgent-card">
-          <div class="pet-image-container">
-            <span class="urgent-badge">Urgent</span>
-            <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="pet-image">
-          </div>
-          <div class="pet-card-body">
-            <h6 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h6>
-            <p class="pet-breed">{{ pet.breed.name }}</p>
-            <div class="pet-details">
-              <span class="detail-item">📅 {{ pet.age }}</span>
-              <span class="detail-item">📍 {{ pet.city }}</span>
-            </div>
-            <div class="pet-price">${{ pet.price }}</div>
-            <div class="pet-actions">
-              <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-danger btn-sm">Help Now</a>
-            </div>
-          </div>
-        </div>
-      </div>
-      {% endfor %}
-    </div>
-  </div>
-</section>
-{% endif %}
 
 <!-- All Pets Section -->
 <section class="py-5">
@@ -186,88 +56,42 @@
     {% if pets %}
       <div class="row g-4">
         {% for pet in pets %}
-        <div class="col-lg-4 col-md-6">
-          <div class="browse-pet-card">
-            <div class="browse-pet-image">
-              {% if pet.image %}
-                <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="card-img-top">
-              {% else %}
-                <div class="no-image">
-                  <i class="fas fa-paw"></i>
-                  <p>No Image</p>
-                </div>
-              {% endif %}
-              
-              <div class="browse-pet-badges">
-                {% if pet.is_featured %}
-                  <span class="badge featured-badge">
-                    <i class="fas fa-star me-1"></i>Featured
-                  </span>
-                {% endif %}
-                {% if pet.is_urgent %}
-                  <span class="badge urgent-badge">
-                    <i class="fas fa-exclamation me-1"></i>Urgent
-                  </span>
-                {% endif %}
-                <span class="badge professional-badge">
-                  <i class="fas fa-certificate me-1"></i>Professional
-                </span>
-              </div>
-              
-              <div class="browse-price-tag">
-                ${{ pet.price }}
-              </div>
+        <div class="col-lg-3 col-md-6">
+          <div class="pet-card">
+            <div class="pet-image-container">
+              <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="pet-image">
             </div>
-            
-            <div class="card-body">
-              <h5 class="card-title">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h5>
-              <p class="breed-info">{{ pet.breed.name }}</p>
-              
+            <div class="pet-card-body">
+              <h5 class="pet-name">{{ pet.breed.name }}</h5>
+              <p class="pet-breed">{{ pet.breed.name }}</p>
               <div class="pet-details">
-                <div class="detail-item">
-                  <i class="fas fa-birthday-cake me-1"></i>
-                  <span>{{ pet.age }}</span>
-                </div>
-                <div class="detail-item">
-                  <i class="fas fa-venus-mars me-1"></i>
-                  <span>{{ pet.get_gender_display }}</span>
-                </div>
-                <div class="detail-item">
-                  <i class="fas fa-map-marker-alt me-1"></i>
-                  <span>{{ pet.city }}, {{ pet.state }}</span>
-                </div>
+                <span class="detail-item">📅 {{ pet.age }}</span>
               </div>
-              
               <div class="pet-health">
                 {% if pet.vaccination_status %}
-                  <span class="health-badge vaccinated">
-                    <i class="fas fa-shield-alt me-1"></i>Vaccinated
-                  </span>
+                <span class="health-badge vaccinated">
+                  <i class="fas fa-shield-alt me-1"></i>Vaccinated
+                </span>
                 {% endif %}
                 {% if pet.health_certificate %}
-                  <span class="health-badge certified">
-                    <i class="fas fa-certificate me-1"></i>Health Cert
-                  </span>
+                <span class="health-badge certified">
+                  <i class="fas fa-certificate me-1"></i>Health Cert
+                </span>
                 {% endif %}
               </div>
-              
-              <p class="pet-description">
-                {{ pet.description|truncatewords:12 }}
-              </p>
-              
-              <div class="professional-info">
-                <small class="text-primary">
-                  <i class="fas fa-building me-1"></i>
-                  Professional Listing
-                </small>
-              </div>
-              
-              <div class="card-actions mt-3">
-                <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-primary">
+              <div class="pet-price">NRS {{ pet.price }}</div>
+              <div class="pet-actions d-flex gap-2 mt-2">
+                <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-primary btn-sm">
                   <i class="fas fa-eye me-1"></i>View Details
                 </a>
-                <button class="btn btn-outline-primary" onclick="addToFavorites({{ pet.id }})">
-                  <i class="fas fa-heart me-1"></i>Favorite
+                <button type="button"
+                        class="btn btn-sm wishlist-btn {% if pet.breed.id in wishlist_breed_ids %}btn-danger text-white active{% else %}btn-outline-danger{% endif %}"
+                        data-add-url="{% url 'add_to_wishlist' pet.id %}"
+                        data-breed-id="{{ pet.breed.id }}">
+                  <i class="fas fa-heart me-1{% if pet.breed.id in wishlist_breed_ids %} text-danger{% endif %}"></i>
+                  <span class="wishlist-btn-label">
+                    {% if pet.breed.id in wishlist_breed_ids %}Saved{% else %}Favorite{% endif %}
+                  </span>
                 </button>
               </div>
             </div>
@@ -297,9 +121,98 @@
 </section>
 
 <script>
-function addToFavorites(petId) {
-    alert(`Added pet ${petId} to favorites! (Feature coming soon)`);
-}
+(function() {
+  const isAuthenticated = {{ user.is_authenticated|yesno:"true,false" }};
+  const loginUrl = "{% url 'login' %}?next={% url 'browse_pets' %}";
+  const wishlistButtons = document.querySelectorAll('.wishlist-btn');
+
+  function getCsrfToken() {
+    const name = 'csrftoken=';
+    const cookies = document.cookie ? document.cookie.split(';') : [];
+    for (let cookie of cookies) {
+      cookie = cookie.trim();
+      if (cookie.startsWith(name)) {
+        return decodeURIComponent(cookie.substring(name.length));
+      }
+    }
+    return '';
+  }
+
+  function showWishlistToast(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed top-0 end-0 m-3 shadow wishlist-toast`;
+    toast.style.minWidth = '240px';
+    toast.innerHTML = `
+      <div class="d-flex align-items-center">
+        <i class="fas fa-heart me-2"></i>
+        <span>${message}</span>
+      </div>
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 10);
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => toast.remove(), 300);
+    }, 2500);
+  }
+
+  function updateButtonState(button, favorited) {
+    if (favorited) {
+      button.classList.add('active', 'btn-danger', 'text-white');
+      button.classList.remove('btn-outline-danger');
+    } else {
+      button.classList.remove('active', 'btn-danger', 'text-white');
+      button.classList.add('btn-outline-danger');
+    }
+    const icon = button.querySelector('i');
+    if (icon) {
+      icon.classList.toggle('text-danger', favorited);
+    }
+    const label = button.querySelector('.wishlist-btn-label');
+    if (label) {
+      label.textContent = favorited ? 'Saved' : 'Favorite';
+    }
+  }
+
+  wishlistButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      if (!isAuthenticated) {
+        window.location.href = loginUrl;
+        return;
+      }
+
+      const url = button.dataset.addUrl;
+      if (!url) return;
+
+      button.disabled = true;
+      fetch(url, {
+        method: 'POST',
+        headers: {
+          'X-CSRFToken': getCsrfToken(),
+          'X-Requested-With': 'XMLHttpRequest',
+        },
+        credentials: 'same-origin',
+      })
+        .then(response => response.json())
+        .then(data => {
+          if (data.status === 'success') {
+            updateButtonState(button, true);
+            showWishlistToast(data.message, 'success');
+          } else {
+            showWishlistToast(data.message || 'Could not update wishlist', 'error');
+          }
+        })
+        .catch(() => {
+          showWishlistToast('Something went wrong. Please try again.', 'error');
+        })
+        .finally(() => {
+          button.disabled = false;
+        });
+    });
+  });
+})();
 </script>
 
 {% endblock %}

@@ -13,7 +13,21 @@ from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
 from django.views.decorators.http import require_http_methods
 import json
 import uuid
-from .models import Breed, Accessory, UserProfile, Pet, Order, OrderItem, Transaction, Cart, CartItem, ListingPayment, ListingPrice
+from .models import (
+    Breed,
+    Accessory,
+    UserProfile,
+    Pet,
+    Order,
+    OrderItem,
+    Transaction,
+    Cart,
+    CartItem,
+    ListingPayment,
+    ListingPrice,
+    Wishlist,
+    WishlistItem,
+)
 from .forms import PetSubmissionForm
 from django_esewa import EsewaPayment
 
@@ -258,6 +272,47 @@ def profile(request):
     }
     return render(request, 'pages/profile.html', context)
 
+
+@login_required
+def wishlist(request):
+    """Display wishlist items for the logged-in user, separated by source."""
+    wishlist = get_or_create_wishlist(request)
+    browse_pets_entries = []
+    marketplace_entries = []
+
+    if wishlist:
+        items = wishlist.items.select_related('breed')
+        for item in items:
+            # Get sample pets from both sources
+            browse_pet = item.breed.pets.filter(status='available', is_user_submitted=False).first()
+            marketplace_pet = item.breed.pets.filter(status='available', is_user_submitted=True).first()
+            
+            # Check which source has pets (for categorization)
+            has_marketplace_pets = item.breed.pets.filter(is_user_submitted=True).exists()
+            has_browse_pets = item.breed.pets.filter(is_user_submitted=False).exists()
+            
+            # Create entries for both sections if they have pets from that source
+            if has_browse_pets:
+                browse_pets_entries.append({
+                    'item': item,
+                    'sample_pet': browse_pet if browse_pet else None,
+                    'source': 'browse_pets',
+                })
+            
+            if has_marketplace_pets:
+                marketplace_entries.append({
+                    'item': item,
+                    'sample_pet': marketplace_pet if marketplace_pet else None,
+                    'source': 'marketplace',
+                })
+
+    context = {
+        'browse_pets_entries': browse_pets_entries,
+        'marketplace_entries': marketplace_entries,
+        'active_section': request.GET.get('section', 'marketplace'),  # 'browse_pets', 'marketplace'
+    }
+    return render(request, 'pages/wishlist.html', context)
+
 def get_or_create_cart(request):
     """Get or create cart for authenticated user"""
     if not request.user.is_authenticated:
@@ -265,6 +320,14 @@ def get_or_create_cart(request):
     
     cart, created = Cart.objects.get_or_create(user=request.user)
     return cart
+
+
+def get_or_create_wishlist(request):
+    """Helper to fetch or create a wishlist for the authenticated user."""
+    if not request.user.is_authenticated:
+        return None
+    wishlist, _ = Wishlist.objects.get_or_create(user=request.user)
+    return wishlist
 
 @login_required
 def add_to_cart(request, product_type, product_id):
@@ -333,6 +396,135 @@ def update_cart(request, product_type, product_id):
             messages.error(request, 'Item not found in cart')
     
     return redirect('cart')
+
+
+@login_required
+def add_to_wishlist(request, pet_id):
+    """Handle AJAX request to add a pet's breed to the user's wishlist."""
+    if request.method != 'POST':
+        return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
+
+    pet = get_object_or_404(Pet, pk=pet_id, status='available')
+    wishlist = get_or_create_wishlist(request)
+    
+    # Determine source based on pet type
+    source = 'marketplace' if pet.is_user_submitted else 'browse_pets'
+
+    # Check if this breed already exists in wishlist with the same source
+    existing_item = WishlistItem.objects.filter(
+        wishlist=wishlist,
+        breed=pet.breed,
+        source=source
+    ).first()
+    
+    if existing_item:
+        message = f"{pet.breed.name} is already in your {source.replace('_', ' ').title()} wishlist."
+        return JsonResponse({
+            'status': 'success',
+            'message': message,
+            'already_exists': True,
+            'breed_id': pet.breed.id,
+        })
+    
+    # Create new wishlist item with source
+    WishlistItem.objects.create(
+        wishlist=wishlist,
+        breed=pet.breed,
+        source=source
+    )
+    
+    message = f"{pet.breed.name} added to your {source.replace('_', ' ').title()} wishlist!"
+
+    return JsonResponse({
+        'status': 'success',
+        'message': message,
+        'already_exists': False,
+        'breed_id': pet.breed.id,
+    })
+
+
+@login_required
+def remove_from_wishlist(request, breed_id):
+    """Remove a breed from the user's wishlist."""
+    # Get source from query parameter
+    source = request.GET.get('source', '')
+    
+    wishlist = get_or_create_wishlist(request)
+    
+    if not wishlist:
+        messages.error(request, 'Wishlist not found.')
+        return redirect('wishlist')
+    
+    try:
+        # Filter by both breed and source
+        if source in ['browse_pets', 'marketplace']:
+            wishlist_item = WishlistItem.objects.get(
+                wishlist=wishlist, 
+                breed_id=breed_id,
+                source=source
+            )
+        else:
+            # Fallback if source not provided (remove first match)
+            wishlist_item = WishlistItem.objects.filter(
+                wishlist=wishlist, 
+                breed_id=breed_id
+            ).first()
+            
+        if wishlist_item:
+            breed_name = wishlist_item.breed.name
+            source_display = wishlist_item.get_source_display()
+            wishlist_item.delete()
+            messages.success(request, f'{breed_name} removed from your {source_display} wishlist.')
+        else:
+            messages.error(request, 'Item not found in your wishlist.')
+    except WishlistItem.DoesNotExist:
+        messages.error(request, 'Item not found in your wishlist.')
+    
+    return redirect('wishlist')
+
+
+@login_required
+def wishlist(request):
+    """Display wishlist items for the logged-in user, separated by source."""
+    wishlist = get_or_create_wishlist(request)
+    browse_pets_entries = []
+    marketplace_entries = []
+
+    if wishlist:
+        items = wishlist.items.select_related('breed')
+        
+        for item in items:
+            # Get sample pet from the correct source based on item.source
+            if item.source == 'browse_pets':
+                sample_pet = item.breed.pets.filter(
+                    status='available', 
+                    is_user_submitted=False
+                ).first()
+                
+                browse_pets_entries.append({
+                    'item': item,
+                    'sample_pet': sample_pet,
+                    'source': 'browse_pets',
+                })
+            
+            elif item.source == 'marketplace':
+                sample_pet = item.breed.pets.filter(
+                    status='available', 
+                    is_user_submitted=True
+                ).first()
+                
+                marketplace_entries.append({
+                    'item': item,
+                    'sample_pet': sample_pet,
+                    'source': 'marketplace',
+                })
+
+    context = {
+        'browse_pets_entries': browse_pets_entries,
+        'marketplace_entries': marketplace_entries,
+        'active_section': request.GET.get('section', 'marketplace'),
+    }
+    return render(request, 'pages/wishlist.html', context)
 
 @login_required
 def cart(request):
@@ -442,12 +634,24 @@ def browse_pets(request):
     if search_query:
         pets = pets.filter(Q(name__icontains=search_query) | Q(description__icontains=search_query))
 
+    # Get all breeds for dropdown
+    from .models import Breed
+    breeds = Breed.objects.all().order_by('name')
+
+    wishlist_breed_ids = []
+    if request.user.is_authenticated:
+        wishlist = Wishlist.objects.filter(user=request.user).first()
+        if wishlist:
+            wishlist_breed_ids = list(wishlist.items.values_list('breed_id', flat=True))
+
     context = {
         'pets': pets,
-        'breed': breed,
+        'breeds': breeds,
+        'breed_filter': breed,
         'age': age,
         'size': size,
         'search_query': search_query,
+        'wishlist_breed_ids': wishlist_breed_ids,
     }
     return render(request, 'pages/browse_pets.html', context)
 
@@ -590,6 +794,12 @@ def marketplace(request):
         is_user_submitted=True
     ).values_list('city', flat=True).distinct().order_by('city')
 
+    wishlist_breed_ids = []
+    if request.user.is_authenticated:
+        wishlist = Wishlist.objects.filter(user=request.user).first()
+        if wishlist:
+            wishlist_breed_ids = list(wishlist.items.values_list('breed_id', flat=True))
+
     context = {
         'pets': pets,
         'breeds': breeds,
@@ -600,6 +810,7 @@ def marketplace(request):
         'search_query': search_query,
         'min_price': min_price,
         'max_price': max_price,
+        'wishlist_breed_ids': wishlist_breed_ids,
     }
     return render(request, 'pages/marketplace.html', context)
 
