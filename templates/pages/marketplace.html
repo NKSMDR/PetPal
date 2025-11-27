@@ -30,9 +30,11 @@
                             <select class="form-control" id="breed" name="breed">
                                 <option value="">All Breeds</option>
                                 {% for breed_obj in breeds %}
-                                    <option value="{{ breed_obj.name }}" {% if breed == breed_obj.name %}selected{% endif %}>
-                                        {{ breed_obj.name }}
-                                    </option>
+                                {% if breed == breed_obj.name %}
+                                <option value="{{ breed_obj.name }}" selected>{{ breed_obj.name }}</option>
+                                {% else %}
+                                <option value="{{ breed_obj.name }}">{{ breed_obj.name }}</option>
+                                {% endif %}
                                 {% endfor %}
                             </select>
                         </div>
@@ -45,9 +47,11 @@
                             <select class="form-control" id="city" name="city">
                                 <option value="">All Cities</option>
                                 {% for city_name in cities %}
-                                    <option value="{{ city_name }}" {% if city == city_name %}selected{% endif %}>
-                                        {{ city_name }}
-                                    </option>
+                                {% if city == city_name %}
+                                <option value="{{ city_name }}" selected>{{ city_name }}</option>
+                                {% else %}
+                                <option value="{{ city_name }}">{{ city_name }}</option>
+                                {% endif %}
                                 {% endfor %}
                             </select>
                         </div>

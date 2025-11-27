@@ -3,9 +3,30 @@
     "python.terminal.activateEnvInCurrentTerminal": true,
     "extensions.experimental.deferredStartupFinishedActivation": true,
     "terminal.integrated.stickyScroll.enabled": true,
-    "json.schemas": [
-
-    ],
+    "json.schemas": [],
     "python-envs.pythonProjects": [],
-    "workbench.settings.editor": "ui" // For existing terminals
+    "workbench.settings.editor": "ui", // For existing terminals
+    
+    // Django HTML settings to prevent auto-formatting issues
+    "files.associations": {
+        "*.html": "django-html"
+    },
+    "[django-html]": {
+        "editor.formatOnSave": false,
+        "editor.quickSuggestions": {
+            "other": true,
+            "comments": false,
+            "strings": true
+        }
+    },
+    "[html]": {
+        "editor.formatOnSave": false
+    },
+    "beautify.ignore": [
+        "**/*.html"
+    ],
+    "html.format.enable": false,
+    "emmet.includeLanguages": {
+        "django-html": "html"
+    }
 }

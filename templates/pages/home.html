@@ -29,13 +29,85 @@
 {% endblock %}
 
 {% block content %}
-<!-- ✅ Hero Section -->
-<section class="hero-banner fade-in-section">
-  <div>
-    <h1 class="mb-3">Find Your Perfect Dog 🐶</h1>
-    <p class="lead mb-4">Buy. Sell. Love. Everything your dog needs in one place!</p>
-    <a href="{% url 'browse_pets' %}" class="btn btn-warning">Browse Dogs</a>
-    <a href="{% url 'marketplace' %}" class="btn btn-outline-light">Marketplace</a>
+<!-- Image Carousel Section -->
+<section class="home-carousel-section">
+  <div id="homeCarousel" class="carousel slide" data-bs-ride="carousel">
+    <div class="carousel-indicators">
+      <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="0" class="active"></button>
+      <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="1"></button>
+      <button type="button" data-bs-target="#homeCarousel" data-bs-slide-to="2"></button>
+    </div>
+    
+    <div class="carousel-inner">
+      <!-- Slide 1 -->
+      <div class="carousel-item active">
+        <img src="{% static 'img/dog.jpg' %}" class="d-block w-100" alt="Find Your Perfect Dog">
+        <div class="carousel-caption">
+          <div class="carousel-content">
+            <h2 class="display-4 fw-bold mb-3">Find Your Perfect Companion</h2>
+            <p class="lead mb-4">Browse hundreds of healthy, happy dogs waiting for their forever home</p>
+            <a href="{% url 'browse_pets' %}" class="btn btn-warning btn-lg me-3">
+              <i class="fas fa-search me-2"></i>Browse Dogs
+            </a>
+            <a href="{% url 'marketplace' %}" class="btn btn-outline-light btn-lg">
+              <i class="fas fa-store me-2"></i>Marketplace
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Slide 2 -->
+      <div class="carousel-item">
+        <img src="{% static 'img/golden.jpg' %}" class="d-block w-100" alt="Quality Accessories">
+        <div class="carousel-caption">
+          <div class="carousel-content">
+            <h2 class="display-4 fw-bold mb-3">Everything Your Dog Needs</h2>
+            <p class="lead mb-4">Premium food, toys, and accessories for your furry friend</p>
+            <a href="{% url 'accessories' %}" class="btn btn-warning btn-lg me-3">
+              <i class="fas fa-shopping-bag me-2"></i>Shop Accessories
+            </a>
+            <a href="{% url 'browse_pets' %}" class="btn btn-outline-light btn-lg">
+              <i class="fas fa-dog me-2"></i>View Breeds
+            </a>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Slide 3 -->
+      <div class="carousel-item">
+        <img src="{% static 'img/labrador.jpg' %}" class="d-block w-100" alt="Join Community">
+        <div class="carousel-caption">
+          <div class="carousel-content">
+            <h2 class="display-4 fw-bold mb-3">Join Our Community</h2>
+            <p class="lead mb-4">Connect with fellow dog lovers and trusted sellers nationwide</p>
+            {% if user.is_authenticated %}
+              <a href="{% url 'sell_pet' %}" class="btn btn-warning btn-lg me-3">
+                <i class="fas fa-plus-circle me-2"></i>Sell Your Dog
+              </a>
+              <a href="{% url 'my_pets' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-list me-2"></i>My Listings
+              </a>
+            {% else %}
+              <a href="{% url 'register' %}" class="btn btn-warning btn-lg me-3">
+                <i class="fas fa-user-plus me-2"></i>Sign Up Now
+              </a>
+              <a href="{% url 'login' %}" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-sign-in-alt me-2"></i>Login
+              </a>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <button class="carousel-control-prev" type="button" data-bs-target="#homeCarousel" data-bs-slide="prev">
+      <span class="carousel-control-prev-icon"></span>
+      <span class="visually-hidden">Previous</span>
+    </button>
+    <button class="carousel-control-next" type="button" data-bs-target="#homeCarousel" data-bs-slide="next">
+      <span class="carousel-control-next-icon"></span>
+      <span class="visually-hidden">Next</span>
+    </button>
   </div>
 </section>
 
@@ -121,32 +193,79 @@
   </div>
 </section>
 
-<!-- Featured Testimonials -->
+<!-- Featured Testimonials - Dynamic from Admin -->
+{% if settings.show_testimonials and testimonials %}
 <section class="py-5 text-center bg-light">
   <div class="container">
     <h2 class="mb-4 fw-bold">Our Happy Customers</h2>
     <div class="row g-4">
+      {% for testimonial in testimonials %}
       <div class="col-md-4">
-        <div class="testimonial-card p-4 bg-white">
-          <p>"I adopted a Labrador from here – smooth experience!"</p>
-          <h6 class="mt-3">– Aarti Singh</h6>
+        <div class="testimonial-card p-4 bg-white rounded shadow-sm">
+          {% if testimonial.customer_image %}
+          <img src="{{ testimonial.customer_image.url }}" alt="{{ testimonial.customer_name }}" 
+               class="rounded-circle mb-3" style="width: 80px; height: 80px; object-fit: cover;">
+          {% endif %}
+          <div class="mb-2">
+            {% for i in "12345"|slice:":"|make_list %}
+              {% if forloop.counter <= testimonial.rating %}
+                <i class="fas fa-star text-warning"></i>
+              {% else %}
+                <i class="far fa-star text-warning"></i>
+              {% endif %}
+            {% endfor %}
+          </div>
+          <p>"{{ testimonial.testimonial_text }}"</p>
+          <h6 class="mt-3">– {{ testimonial.customer_name }}</h6>
+          {% if testimonial.location %}
+          <small class="text-muted">{{ testimonial.location }}</small>
+          {% endif %}
         </div>
       </div>
-      <div class="col-md-4">
-        <div class="testimonial-card p-4 bg-white">
-          <p>"The accessories store has everything I need for my dog."</p>
-          <h6 class="mt-3">– Soham Patel</h6>
-        </div>
-      </div>
-      <div class="col-md-4">
-        <div class="testimonial-card p-4 bg-white">
-          <p>"Selling my puppies was easy. They found loving homes!"</p>
-          <h6 class="mt-3">– Rekha Verma</h6>
-        </div>
-      </div>
+      {% endfor %}
     </div>
   </div>
 </section>
+{% endif %}
+
+<!-- Featured Pets - Dynamic from Admin -->
+{% if settings.show_featured_pets and featured_pets %}
+<section class="py-5 bg-white">
+  <div class="container">
+    <h2 class="fw-bold mb-4 text-center">Featured Pets</h2>
+    <div class="row g-4">
+      {% for pet in featured_pets %}
+      <div class="col-lg-4 col-md-6">
+        <div class="card h-100 shadow-sm">
+          {% if pet.image %}
+          <img src="{{ pet.image.url }}" class="card-img-top" alt="{{ pet.breed.name }}" style="height: 250px; object-fit: cover;">
+          {% else %}
+          <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
+            <i class="fas fa-paw fa-3x text-muted"></i>
+          </div>
+          {% endif %}
+          <div class="card-body">
+            <h5 class="card-title">{{ pet.breed.name }}</h5>
+            <p class="text-muted mb-2">
+              <i class="fas fa-venus-mars"></i> {{ pet.get_gender_display }} | 
+              <i class="fas fa-birthday-cake"></i> {{ pet.age }}
+            </p>
+            <p class="card-text text-truncate">{{ pet.description|default:"Lovely pet looking for a home" }}</p>
+            <div class="d-flex justify-content-between align-items-center">
+              <span class="h5 mb-0 text-primary">NRS {{ pet.price }}</span>
+              <a href="{% url 'pet_detail' pet.id %}" class="btn btn-sm btn-outline-primary">View Details</a>
+            </div>
+          </div>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="text-center mt-4">
+      <a href="{% url 'browse_pets' %}" class="btn btn-primary">View All Pets</a>
+    </div>
+  </div>
+</section>
+{% endif %}
 
 <!-- Popular Dog Breeds -->
 <section class="py-5">
