@@ -27,12 +27,41 @@ from .models import (
     ListingPrice,
     Wishlist,
     WishlistItem,
+    HeroSection,
+    FeatureCard,
+    Testimonial,
+    HomePageSettings,
 )
 from .forms import PetSubmissionForm
 from django_esewa import EsewaPayment
 
 def Home(request):
-    return render(request, 'pages/home.html')
+    # Get homepage settings
+    settings = HomePageSettings.get_settings()
+    
+    # Get active hero sections
+    hero_sections = HeroSection.objects.filter(is_active=True).order_by('order')
+    
+    # Get active feature cards
+    features = FeatureCard.objects.filter(is_active=True).order_by('order')
+    
+    # Get active testimonials
+    testimonials = Testimonial.objects.filter(is_active=True).order_by('order')
+    
+    # Get featured pets if enabled
+    featured_pets = None
+    if settings.show_featured_pets:
+        featured_pets = Pet.objects.filter(status='available').order_by('-created_at')[:6]
+    
+    context = {
+        'settings': settings,
+        'hero_sections': hero_sections,
+        'features': features,
+        'testimonials': testimonials,
+        'featured_pets': featured_pets,
+    }
+    
+    return render(request, 'pages/home.html', context)
 
 def Login(request):
     if request.method == 'POST':
