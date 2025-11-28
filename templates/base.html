@@ -31,6 +31,9 @@
   <!-- Font Awesome for Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 
+  <!-- Chat component CSS -->
+  <link rel="stylesheet" href="{% static 'css/components/chat.css' %}">
+
   <!-- Page-specific CSS -->
   {% block extra_css %}{% endblock %}
 
@@ -39,6 +42,9 @@
 <body {% if user.is_authenticated %}data-user-id="{{ user.id }}"{% endif %}>
 
 {% include 'includes/navbar.html' %}
+
+<!-- Global chat modal available on all pages -->
+{% include 'includes/chat_modal.html' %}
 
 
 <!-- ✅ Content -->
@@ -56,6 +62,9 @@
 
 <!-- Global Cart Management -->
 <script src="{% static 'js/cart.js' %}"></script>
+
+<!-- Global Chat (AJAX polling skeleton) -->
+<script src="{% static 'js/chat.js' %}"></script>
 
 <script>
 // Clear cart on logout
