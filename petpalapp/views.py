@@ -157,6 +157,42 @@ def Register(request):
     
     return render(request, 'pages/register.html')
 
+@login_required
+def change_password(request):
+    """Allow logged-in users to change their password"""
+    if request.method == 'POST':
+        old_password = request.POST.get('old_password', '')
+        new_password1 = request.POST.get('new_password1', '')
+        new_password2 = request.POST.get('new_password2', '')
+        
+        user = request.user
+        errors = []
+        
+        # Validate old password
+        if not user.check_password(old_password):
+            errors.append('Your current password is incorrect.')
+        
+        # Validate new password
+        if not new_password1:
+            errors.append('New password is required.')
+        elif len(new_password1) < 8:
+            errors.append('New password must be at least 8 characters long.')
+        
+        if new_password1 != new_password2:
+            errors.append('New passwords do not match.')
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+            # Change password
+            user.set_password(new_password1)
+            user.save()
+            messages.success(request, 'Your password has been changed successfully! Please log in again.')
+            return redirect('login')
+    
+    return render(request, 'pages/change_password.html')
+
 def Logout(request):
     # Get username BEFORE logging out
     display_name = ''

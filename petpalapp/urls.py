@@ -15,13 +15,35 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.contrib.auth import views as auth_views
 from petpalapp import views
 
 urlpatterns = [
     path('',views.Home,name='home'),
     path('login/', views.Login, name='login'),
     path('register/', views.Register, name='register'),
+    
+    # Password Reset URLs
+    path('password-reset/', auth_views.PasswordResetView.as_view(
+        template_name='pages/password_reset.html',
+        email_template_name='pages/password_reset_email.html',
+        subject_template_name='pages/password_reset_subject.txt',
+        success_url='/password-reset/done/'
+    ), name='password_reset'),
+    path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(
+        template_name='pages/password_reset_done.html'
+    ), name='password_reset_done'),
+    path('password-reset-confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='pages/password_reset_confirm.html',
+        success_url='/password-reset-complete/'
+    ), name='password_reset_confirm'),
+    path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='pages/password_reset_complete.html'
+    ), name='password_reset_complete'),
+    
+    # Change Password (for logged-in users)
+    path('change-password/', views.change_password, name='change_password'),
     path('breeds/', views.breed_list, name='breed_list'),
     path('breeds/<slug:slug>/', views.breed_detail, name='breed_detail'),
     path('browse-pets/', views.browse_pets, name='browse_pets'),
