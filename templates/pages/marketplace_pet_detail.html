@@ -1,45 +1,12 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load humanize %}
 
 {% block title %}{{ pet.breed.name }} - {{ pet.get_gender_display }} - Marketplace Pet{% endblock %}
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/marketplace_pet_detail.css' %}">
 <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-<style>
-.location-map-section {
-    margin-top: 2rem;
-}
-
-.location-map-container {
-    height: 450px;
-    border-radius: 10px;
-    overflow: hidden;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-    border: 2px solid #e9ecef;
-}
-
-.location-info-card {
-    background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
-    border-radius: 10px;
-    padding: 1.5rem;
-    margin-bottom: 1rem;
-}
-
-.location-detail {
-    display: flex;
-    align-items: center;
-    margin-bottom: 0.5rem;
-}
-
-.location-detail i {
-    font-size: 1.1rem;
-    margin-right: 0.75rem;
-    width: 20px;
-    text-align: center;
-    color: #007bff;
-}
-</style>
 {% endblock %}
 
 {% block content %}
@@ -57,25 +24,36 @@
         <!-- Pet Images -->
         <div class="col-lg-6">
             <div class="pet-images">
-                <div class="main-image mb-3">
+                <div class="main-image-container mb-3" onclick="openLightbox(0)" style="cursor: pointer;">
                     {% if pet.image %}
-                        <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }} - {{ pet.get_gender_display }}" class="img-fluid rounded main-pet-image">
+                        <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }} - {{ pet.get_gender_display }}" class="img-fluid rounded main-pet-image" id="main-image">
                     {% else %}
-                        <img src="{% static 'images/default-pet.jpg' %}" alt="No image" class="img-fluid rounded main-pet-image">
+                        <img src="{% static 'images/default-pet.jpg' %}" alt="No image" class="img-fluid rounded main-pet-image" id="main-image">
                     {% endif %}
+                    <div class="image-count-indicator">
+                        <i class="fas fa-images"></i>
+                        <span id="current-image-number">1</span> / <span id="total-images">{% if pet.image3 %}3{% elif pet.image2 %}2{% else %}1{% endif %}</span>
+                    </div>
                 </div>
                 
                 <!-- Additional Images -->
-                {% if pet.image2 or pet.image3 %}
                 <div class="additional-images d-flex gap-2">
+                    {% if pet.image %}
+                        <div class="additional-image-container" onclick="changeMainImage('{{ pet.image.url }}', 0); event.stopPropagation();" ondblclick="openLightbox(0)">
+                            <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }} - {{ pet.get_gender_display }}" class="img-thumbnail additional-image" data-index="0">
+                        </div>
+                    {% endif %}
                     {% if pet.image2 %}
-                        <img src="{{ pet.image2.url }}" alt="{{ pet.breed.name }} - {{ pet.get_gender_display }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
+                        <div class="additional-image-container" onclick="changeMainImage('{{ pet.image2.url }}', 1); event.stopPropagation();" ondblclick="openLightbox(1)">
+                            <img src="{{ pet.image2.url }}" alt="{{ pet.breed.name }} - {{ pet.get_gender_display }}" class="img-thumbnail additional-image" data-index="1">
+                        </div>
                     {% endif %}
                     {% if pet.image3 %}
-                        <img src="{{ pet.image3.url }}" alt="{{ pet.breed.name }} - {{ pet.get_gender_display }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
+                        <div class="additional-image-container" onclick="changeMainImage('{{ pet.image3.url }}', 2); event.stopPropagation();" ondblclick="openLightbox(2)">
+                            <img src="{{ pet.image3.url }}" alt="{{ pet.breed.name }} - {{ pet.get_gender_display }}" class="img-thumbnail additional-image" data-index="2">
+                        </div>
                     {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -91,6 +69,30 @@
                 <h1 class="pet-name">{{ pet.breed.name }} - {{ pet.get_gender_display }}</h1>
                 <div class="pet-price mb-3">
                     <span class="price">NRS {{ pet.price }}</span>
+                </div>
+
+                <!-- Listed Date -->
+                <div class="listing-date mb-4">
+                    {% if pet.created_at %}
+                        {% with time_ago=pet.created_at|timesince %}
+                            {% if "minute" in time_ago or "hour" in time_ago or time_ago|slice:":1" == "0" %}
+                                <span class="badge listing-badge new-listing">
+                                    <i class="fas fa-star me-1"></i>New Listing
+                                </span>
+                                <span class="text-muted ms-2" style="font-size: 0.9rem;">
+                                    <i class="far fa-clock me-1"></i>{{ time_ago }} ago
+                                </span>
+                            {% elif "day" in time_ago and time_ago|slice:":1" == "1" %}
+                                <span class="listing-info">
+                                    <i class="far fa-clock me-1"></i>Listed {{ time_ago }} ago
+                                </span>
+                            {% else %}
+                                <span class="listing-info">
+                                    <i class="far fa-clock me-1"></i>Listed {{ time_ago }} ago
+                                </span>
+                            {% endif %}
+                        {% endwith %}
+                    {% endif %}
                 </div>
 
                 <!-- Seller Information -->
@@ -154,9 +156,23 @@
                         <h5 class="mb-0"><i class="fas fa-heart"></i> Health Information</h5>
                     </div>
                     <div class="card-body">
-                        <div class="health-badge">
+                        <div class="health-badge mb-3">
                             <span class="badge bg-success"><i class="fas fa-check-circle"></i> Health Certificate Available</span>
                         </div>
+                        {% if pet.health_certificate_file %}
+                        <div class="d-flex gap-2 flex-wrap">
+                            <button class="btn btn-primary btn-sm" onclick="viewHealthCertificate('{{ pet.health_certificate_file.url }}')">
+                                <i class="fas fa-eye me-1"></i>View Certificate
+                            </button>
+                            <a href="{{ pet.health_certificate_file.url }}" download class="btn btn-success btn-sm">
+                                <i class="fas fa-download me-1"></i>Download
+                            </a>
+                        </div>
+                        {% else %}
+                        <p class="text-muted small mb-0">
+                            <i class="fas fa-info-circle me-1"></i>Certificate file not uploaded yet. Contact seller for details.
+                        </p>
+                        {% endif %}
                     </div>
                 </div>
                 {% endif %}
@@ -243,6 +259,35 @@
     {% endif %}
 </div>
 
+<!-- Image Lightbox Modal -->
+<div class="lightbox" id="lightbox" onclick="closeLightbox(event)">
+    <span class="lightbox-close" onclick="closeLightbox(event)">&times;</span>
+    <img class="lightbox-content" id="lightbox-img">
+    <button class="lightbox-nav lightbox-prev" onclick="changeLightboxImage(-1); event.stopPropagation();">
+        <i class="fas fa-chevron-left"></i>
+    </button>
+    <button class="lightbox-nav lightbox-next" onclick="changeLightboxImage(1); event.stopPropagation();">
+        <i class="fas fa-chevron-right"></i>
+    </button>
+    <div class="lightbox-counter" id="lightbox-counter"></div>
+</div>
+
+<!-- Health Certificate Viewer Modal -->
+<div class="lightbox" id="certificate-modal" onclick="closeCertificateModal(event)">
+    <span class="lightbox-close" onclick="closeCertificateModal(event)">&times;</span>
+    <div class="certificate-content">
+        <div class="certificate-header">
+            <h4><i class="fas fa-certificate me-2"></i>Health Certificate</h4>
+        </div>
+        <div class="certificate-viewer" id="certificate-viewer"></div>
+        <div class="certificate-actions">
+            <a id="certificate-download-btn" href="#" download class="btn btn-success">
+                <i class="fas fa-download me-2"></i>Download Certificate
+            </a>
+        </div>
+    </div>
+</div>
+
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
 // Auth flag for JS logic
@@ -262,8 +307,138 @@ var userLocation = null;
 const petLat = {{ pet.latitude|default:"27.7172" }};
 const petLng = {{ pet.longitude|default:"85.3240" }};
 
-function changeMainImage(src) {
-    document.querySelector('.main-pet-image').src = src;
+// Image gallery arrays
+const allImages = [
+    {% if pet.image %}"{{ pet.image.url }}"{% endif %}
+    {% if pet.image2 %},"{{ pet.image2.url }}"{% endif %}
+    {% if pet.image3 %},"{{ pet.image3.url }}"{% endif %}
+];
+let currentLightboxIndex = 0;
+
+function changeMainImage(src, index) {
+    const mainImage = document.getElementById('main-image');
+    if (mainImage) {
+        mainImage.src = src;
+        document.getElementById('current-image-number').textContent = index + 1;
+    }
+}
+
+function openLightbox(index) {
+    currentLightboxIndex = index;
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const counter = document.getElementById('lightbox-counter');
+    
+    if (lightbox && lightboxImg) {
+        lightboxImg.src = allImages[currentLightboxIndex];
+        counter.textContent = `${currentLightboxIndex + 1} / ${allImages.length}`;
+        lightbox.style.display = 'flex';
+        document.body.style.overflow = 'hidden';
+    }
+}
+
+function closeLightbox(event) {
+    if (event.target.id === 'lightbox' || event.target.className === 'lightbox-close') {
+        const lightbox = document.getElementById('lightbox');
+        if (lightbox) {
+            lightbox.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
+}
+
+function changeLightboxImage(direction) {
+    currentLightboxIndex += direction;
+    
+    if (currentLightboxIndex >= allImages.length) {
+        currentLightboxIndex = 0;
+    } else if (currentLightboxIndex < 0) {
+        currentLightboxIndex = allImages.length - 1;
+    }
+    
+    const lightboxImg = document.getElementById('lightbox-img');
+    const counter = document.getElementById('lightbox-counter');
+    
+    if (lightboxImg) {
+        lightboxImg.src = allImages[currentLightboxIndex];
+        counter.textContent = `${currentLightboxIndex + 1} / ${allImages.length}`;
+    }
+}
+
+// Keyboard navigation for lightbox
+document.addEventListener('keydown', function(event) {
+    const lightbox = document.getElementById('lightbox');
+    const certificateModal = document.getElementById('certificate-modal');
+    
+    if (lightbox && lightbox.style.display === 'flex') {
+        if (event.key === 'ArrowLeft') {
+            changeLightboxImage(-1);
+        } else if (event.key === 'ArrowRight') {
+            changeLightboxImage(1);
+        } else if (event.key === 'Escape') {
+            closeLightbox({target: lightbox});
+        }
+    }
+    
+    if (certificateModal && certificateModal.style.display === 'flex') {
+        if (event.key === 'Escape') {
+            closeCertificateModal({target: certificateModal});
+        }
+    }
+});
+
+// Health Certificate Viewer Functions
+function viewHealthCertificate(fileUrl) {
+    const modal = document.getElementById('certificate-modal');
+    const viewer = document.getElementById('certificate-viewer');
+    const downloadBtn = document.getElementById('certificate-download-btn');
+    
+    if (!modal || !viewer) return;
+    
+    // Set download button URL
+    downloadBtn.href = fileUrl;
+    
+    // Clear previous content
+    viewer.innerHTML = '';
+    
+    // Detect file type
+    const fileExtension = fileUrl.split('.').pop().toLowerCase();
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'].includes(fileExtension)) {
+        // Display image
+        const img = document.createElement('img');
+        img.src = fileUrl;
+        img.alt = 'Health Certificate';
+        img.style.maxWidth = '100%';
+        img.style.maxHeight = '70vh';
+        img.style.objectFit = 'contain';
+        viewer.appendChild(img);
+    } else if (fileExtension === 'pdf') {
+        // Display PDF
+        const iframe = document.createElement('iframe');
+        iframe.src = fileUrl;
+        iframe.style.width = '100%';
+        iframe.style.height = '70vh';
+        iframe.style.border = 'none';
+        viewer.appendChild(iframe);
+    } else {
+        // Unsupported format
+        viewer.innerHTML = '<p class="text-center"><i class="fas fa-file me-2"></i>Preview not available. Please download to view.</p>';
+    }
+    
+    // Show modal
+    modal.style.display = 'flex';
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCertificateModal(event) {
+    if (event.target.id === 'certificate-modal' || event.target.className === 'lightbox-close') {
+        const modal = document.getElementById('certificate-modal');
+        if (modal) {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+    }
 }
 
 function contactSeller() {

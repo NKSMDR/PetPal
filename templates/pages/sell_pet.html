@@ -234,6 +234,22 @@
                                         </div>
                                     </div>
                                 </div>
+                                
+                                <div class="mb-3" id="certificate-upload-section" style="display: none;">
+                                    <label for="{{ form.health_certificate_file.id_for_label }}" class="form-label">
+                                        <i class="fas fa-certificate me-2"></i>Upload Health Certificate
+                                    </label>
+                                    <div class="certificate-upload-wrapper">
+                                        {{ form.health_certificate_file }}
+                                        <small class="form-text text-muted d-block mt-2">
+                                            <i class="fas fa-info-circle me-1"></i>
+                                            Upload your pet's health certificate (PDF or Image). Max size: 10MB
+                                        </small>
+                                    </div>
+                                    {% if form.health_certificate_file.errors %}
+                                        <div class="text-danger small">{{ form.health_certificate_file.errors.0 }}</div>
+                                    {% endif %}
+                                </div>
                             </div>
 
                             <!-- Location -->
@@ -620,6 +636,34 @@
     // Error handling
     window.addEventListener('error', function(e) {
         console.error('JavaScript error:', e.error);
+    });
+
+    // Toggle health certificate upload field
+    document.addEventListener('DOMContentLoaded', function() {
+        const healthCertCheckbox = document.getElementById('id_health_certificate');
+        const certificateSection = document.getElementById('certificate-upload-section');
+        
+        if (healthCertCheckbox && certificateSection) {
+            // Show/hide on checkbox change
+            healthCertCheckbox.addEventListener('change', function() {
+                if (this.checked) {
+                    certificateSection.style.display = 'block';
+                    certificateSection.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+                } else {
+                    certificateSection.style.display = 'none';
+                    // Clear the file input if unchecked
+                    const fileInput = document.getElementById('id_health_certificate_file');
+                    if (fileInput) {
+                        fileInput.value = '';
+                    }
+                }
+            });
+            
+            // Check initial state (in case of form errors or editing)
+            if (healthCertCheckbox.checked) {
+                certificateSection.style.display = 'block';
+            }
+        }
     });
 </script>
 {% endblock %}

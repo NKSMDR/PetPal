@@ -1,5 +1,65 @@
 /* Marketplace Pet Detail Styles */
 
+/* Page Background with Gradient */
+body {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e8f4f8 100%);
+    position: relative;
+    min-height: 100vh;
+}
+
+body::before {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image:
+        radial-gradient(circle at 20% 50%, rgba(147, 197, 253, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(196, 181, 253, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 40% 90%, rgba(252, 211, 77, 0.08) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.container {
+    position: relative;
+    z-index: 1;
+}
+
+/* Frosted Glass Breadcrumb */
+.breadcrumb {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    padding: 12px 20px;
+    margin-bottom: 30px;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.breadcrumb-item a {
+    color: #007bff;
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.breadcrumb-item a:hover {
+    text-decoration: underline;
+    color: #0056b3;
+}
+
+.breadcrumb-item.active {
+    color: #495057;
+    font-weight: 500;
+}
+
+.breadcrumb-item+.breadcrumb-item::before {
+    color: #6c757d;
+}
+
 .marketplace-badge {
     text-align: left;
 }
@@ -32,10 +92,70 @@
     background-clip: text;
 }
 
+/* Listing Date */
+.listing-date {
+    display: flex;
+    align-items: center;
+}
+
+.listing-badge {
+    font-size: 0.95rem;
+    padding: 10px 18px;
+    border-radius: 25px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    animation: pulse 2s ease-in-out infinite;
+}
+
+.listing-badge.new-listing {
+    background: linear-gradient(135deg, #17a2b8, #138496);
+    color: white;
+    box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+}
+
+.listing-info {
+    font-size: 1rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    padding: 8px 16px;
+    background: #f8f9fa;
+    border-radius: 20px;
+    border: 2px solid #e9ecef;
+}
+
+.listing-info i {
+    color: #6c757d;
+}
+
+@keyframes pulse {
+
+    0%,
+    100% {
+        transform: scale(1);
+        box-shadow: 0 4px 15px rgba(23, 162, 184, 0.3);
+    }
+
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 6px 20px rgba(23, 162, 184, 0.5);
+    }
+}
+
 /* Pet Images */
 .pet-images {
     position: sticky;
     top: 20px;
+}
+
+.main-image-container {
+    position: relative;
+    cursor: pointer;
+}
+
+.main-image {
+    position: relative;
 }
 
 .main-pet-image {
@@ -43,7 +163,7 @@
     height: 400px;
     object-fit: cover;
     border-radius: 15px;
-    box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
     transition: transform 0.3s ease;
 }
 
@@ -55,9 +175,14 @@
     gap: 10px;
 }
 
+.additional-image-container {
+    cursor: pointer;
+    position: relative;
+}
+
 .additional-image {
-    width: 80px;
-    height: 80px;
+    width: 100px;
+    height: 75px;
     object-fit: cover;
     cursor: pointer;
     border-radius: 8px;
@@ -67,15 +192,188 @@
 
 .additional-image:hover {
     border-color: #28a745;
-    transform: scale(1.1);
+    transform: scale(1.05);
+}
+
+/* Image Count Indicator */
+.image-count-indicator {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    background: rgba(0, 0, 0, 0.7);
+    color: white;
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 10;
+}
+
+.image-count-indicator i {
+    font-size: 1rem;
+}
+
+/* Lightbox Styles */
+.lightbox {
+    display: none;
+    position: fixed;
+    z-index: 9999;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.95);
+    align-items: center;
+    justify-content: center;
+}
+
+/* Health Certificate Modal */
+.certificate-content {
+    background: white;
+    border-radius: 15px;
+    max-width: 90%;
+    max-height: 90vh;
+    overflow: auto;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.5);
+    animation: zoomIn 0.3s ease;
+}
+
+.certificate-header {
+    background: linear-gradient(135deg, #28a745, #20c997);
+    color: white;
+    padding: 20px 30px;
+    border-radius: 15px 15px 0 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.certificate-header h4 {
+    margin: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+.certificate-viewer {
+    padding: 30px;
+    min-height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #f8f9fa;
+}
+
+.certificate-actions {
+    padding: 20px 30px;
+    border-top: 2px solid #e9ecef;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    background: white;
+    border-radius: 0 0 15px 15px;
+}
+
+.certificate-actions .btn {
+    border-radius: 25px;
+    padding: 10px 25px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.certificate-actions .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(40, 167, 69, 0.3);
+}
+
+.lightbox-content {
+    max-width: 90%;
+    max-height: 90%;
+    object-fit: contain;
+    animation: zoomIn 0.3s ease;
+}
+
+@keyframes zoomIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+.lightbox-close {
+    position: absolute;
+    top: 20px;
+    right: 35px;
+    color: #fff;
+    font-size: 40px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    z-index: 10001;
+}
+
+.lightbox-close:hover {
+    color: #28a745;
+}
+
+.lightbox-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(40, 167, 69, 0.8);
+    color: white;
+    border: none;
+    padding: 15px 20px;
+    cursor: pointer;
+    border-radius: 5px;
+    font-size: 1.5rem;
+    transition: all 0.3s ease;
+    z-index: 10001;
+}
+
+.lightbox-nav:hover {
+    background: rgba(40, 167, 69, 1);
+    transform: translateY(-50%) scale(1.1);
+}
+
+.lightbox-prev {
+    left: 30px;
+}
+
+.lightbox-next {
+    right: 30px;
+}
+
+.lightbox-counter {
+    position: absolute;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(40, 167, 69, 0.9);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 25px;
+    font-size: 1rem;
+    font-weight: 600;
+    z-index: 10001;
 }
 
 /* Seller Information Card */
 .seller-info {
     border: none;
-    box-shadow: 0 4px 15px rgba(40, 167, 69, 0.1);
+    box-shadow: 0 4px 20px rgba(40, 167, 69, 0.15);
     border-radius: 15px;
-    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
 }
 
 .seller-info .card-header {
@@ -114,14 +412,20 @@
 }
 
 /* Pet Details Cards */
-.pet-details, .health-info, .pet-description {
+.pet-details,
+.health-info,
+.pet-description {
     border: none;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     border-radius: 15px;
     transition: transform 0.3s ease;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
 }
 
-.pet-details:hover, .health-info:hover, .pet-description:hover {
+.pet-details:hover,
+.health-info:hover,
+.pet-description:hover {
     transform: translateY(-2px);
 }
 
@@ -164,7 +468,7 @@
 /* Related Pets Section */
 .related-pets {
     padding-top: 2rem;
-    border-top: 2px solid #e9ecef;
+    border-top: 2px solid rgba(233, 236, 239, 0.5);
 }
 
 .related-pets h3 {
@@ -179,13 +483,15 @@
     border-radius: 15px;
     overflow: hidden;
     transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
     height: 100%;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
 }
 
 .pet-card:hover {
     transform: translateY(-5px);
-    box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
 }
 
 .card-img-container {
@@ -226,30 +532,85 @@
     transform: translateY(-2px);
 }
 
+/* Location Map Styles */
+.location-map-section {
+    margin-top: 2rem;
+}
+
+.location-map-section h3 {
+    color: #2c3e50;
+    font-weight: 700;
+}
+
+.location-map-container {
+    height: 450px;
+    border-radius: 15px;
+    overflow: hidden;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+}
+
+.location-info-card {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(10px);
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+.location-detail {
+    display: flex;
+    align-items: center;
+    margin-bottom: 0.5rem;
+}
+
+.location-detail i {
+    font-size: 1.1rem;
+    margin-right: 0.75rem;
+    width: 20px;
+    text-align: center;
+    color: #007bff;
+}
+
 /* Responsive Design */
 @media (max-width: 768px) {
     .pet-name {
         font-size: 2rem;
     }
-    
+
     .pet-price .price {
         font-size: 1.5rem;
     }
-    
+
     .main-pet-image {
         height: 300px;
     }
-    
+
     .additional-image {
         width: 60px;
         height: 60px;
     }
-    
+
     .seller-info .card-body,
     .pet-details .card-body,
     .health-info .card-body,
     .pet-description .card-body {
         padding: 15px;
+    }
+
+    .lightbox-nav {
+        padding: 10px 15px;
+        font-size: 1.2rem;
+    }
+
+    .lightbox-prev {
+        left: 10px;
+    }
+
+    .lightbox-next {
+        right: 10px;
     }
 }
 
@@ -257,15 +618,15 @@
     .pet-name {
         font-size: 1.8rem;
     }
-    
+
     .pet-price .price {
         font-size: 1.3rem;
     }
-    
+
     .main-pet-image {
         height: 250px;
     }
-    
+
     .marketplace-badge .badge {
         font-size: 0.8rem;
         padding: 6px 12px;
@@ -278,19 +639,37 @@
         opacity: 0;
         transform: translateY(30px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-.pet-info > * {
+.pet-info>* {
     animation: fadeInUp 0.6s ease forwards;
 }
 
-.pet-info > *:nth-child(1) { animation-delay: 0.1s; }
-.pet-info > *:nth-child(2) { animation-delay: 0.2s; }
-.pet-info > *:nth-child(3) { animation-delay: 0.3s; }
-.pet-info > *:nth-child(4) { animation-delay: 0.4s; }
-.pet-info > *:nth-child(5) { animation-delay: 0.5s; }
-.pet-info > *:nth-child(6) { animation-delay: 0.6s; }
+.pet-info>*:nth-child(1) {
+    animation-delay: 0.1s;
+}
+
+.pet-info>*:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.pet-info>*:nth-child(3) {
+    animation-delay: 0.3s;
+}
+
+.pet-info>*:nth-child(4) {
+    animation-delay: 0.4s;
+}
+
+.pet-info>*:nth-child(5) {
+    animation-delay: 0.5s;
+}
+
+.pet-info>*:nth-child(6) {
+    animation-delay: 0.6s;
+}
