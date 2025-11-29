@@ -7,8 +7,8 @@ class PetSubmissionForm(forms.ModelForm):
         fields = [
             'breed', 'age', 'gender', 'price', 'description',
             'image', 'image2', 'image3', 'weight', 'color',
-            'vaccination_status', 'health_certificate', 'city', 'state',
-            'address', 'latitude', 'longitude'
+            'vaccination_status', 'health_certificate', 'health_certificate_file',
+            'city', 'state', 'address', 'latitude', 'longitude'
         ]
         widgets = {
             'breed': forms.Select(attrs={
@@ -56,6 +56,10 @@ class PetSubmissionForm(forms.ModelForm):
             }),
             'health_certificate': forms.CheckboxInput(attrs={
                 'class': 'form-check-input'
+            }),
+            'health_certificate_file': forms.FileInput(attrs={
+                'class': 'form-control',
+                'accept': 'image/*,.pdf'
             }),
             'city': forms.TextInput(attrs={
                 'class': 'form-control',

@@ -104,20 +104,68 @@ input[type="file"] {
     padding: 0.5rem;
 }
 
+/* Certificate Upload Section */
+#certificate-upload-section {
+    background: linear-gradient(135deg, #e7f5ff 0%, #d0ebff 100%);
+    border: 2px dashed #339af0;
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.certificate-upload-wrapper {
+    position: relative;
+}
+
+#certificate-upload-section .form-label {
+    color: #1971c2;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+}
+
+#certificate-upload-section .form-control {
+    background: white;
+    border: 2px solid #74c0fc;
+    cursor: pointer;
+}
+
+#certificate-upload-section .form-control:hover {
+    border-color: #339af0;
+    background: #f8f9fa;
+}
+
+#certificate-upload-section .form-text {
+    color: #1971c2;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .sell-pet-container {
         padding: 1rem 0;
     }
-    
+
     .card-body {
         padding: 2rem !important;
     }
-    
+
     .sell-pet-header h1 {
         font-size: 2rem;
     }
-    
+
     .btn-primary {
         padding: 0.75rem 1.5rem;
         font-size: 0.9rem;
