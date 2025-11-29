@@ -431,7 +431,7 @@ def update_cart(request, product_type, product_id):
 
 @login_required
 def add_to_wishlist(request, pet_id):
-    """Handle AJAX request to add a pet's breed to the user's wishlist."""
+    """Handle AJAX request to add a specific pet to the user's wishlist."""
     if request.method != 'POST':
         return JsonResponse({'status': 'error', 'message': 'Invalid request method'}, status=400)
 
@@ -441,36 +441,36 @@ def add_to_wishlist(request, pet_id):
     # Determine source based on pet type
     source = 'marketplace' if pet.is_user_submitted else 'browse_pets'
 
-    # Check if this breed already exists in wishlist with the same source
+    # Check if this specific pet already exists in wishlist
     existing_item = WishlistItem.objects.filter(
         wishlist=wishlist,
-        breed=pet.breed,
-        source=source
+        pet=pet
     ).first()
     
     if existing_item:
-        message = f"{pet.breed.name} is already in your {source.replace('_', ' ').title()} wishlist."
+        message = f"This {pet.breed.name} is already in your wishlist."
         return JsonResponse({
             'status': 'success',
             'message': message,
             'already_exists': True,
-            'breed_id': pet.breed.id,
+            'pet_id': pet.id,
         })
     
-    # Create new wishlist item with source
+    # Create new wishlist item for this specific pet
     WishlistItem.objects.create(
         wishlist=wishlist,
+        pet=pet,
         breed=pet.breed,
         source=source
     )
     
-    message = f"{pet.breed.name} added to your {source.replace('_', ' ').title()} wishlist!"
+    message = f"{pet.breed.name} added to your wishlist!"
 
     return JsonResponse({
         'status': 'success',
         'message': message,
         'already_exists': False,
-        'breed_id': pet.breed.id,
+        'pet_id': pet.id,
     })
 
 
@@ -649,8 +649,10 @@ def sync_cart(request):
         return JsonResponse({'status': 'error', 'message': 'Sync failed'}, status=500)
 
 def browse_pets(request):
+    from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+    
     # Only show admin-added pets (not user-submitted ones)
-    pets = Pet.objects.filter(is_user_submitted=False, status='available')
+    pets = Pet.objects.filter(is_user_submitted=False, status='available').select_related('breed')
     breed = request.GET.get('breed')
     age = request.GET.get('age')
     size = request.GET.get('size')
@@ -663,26 +665,43 @@ def browse_pets(request):
     if size:
         pets = pets.filter(size__iexact=size)
     if search_query:
-        pets = pets.filter(Q(name__icontains=search_query) | Q(description__icontains=search_query))
+        pets = pets.filter(
+            Q(breed__name__icontains=search_query) | 
+            Q(description__icontains=search_query) |
+            Q(city__icontains=search_query) |
+            Q(color__icontains=search_query)
+        )
+
+    # Pagination: 12 pets per page
+    paginator = Paginator(pets, 12)
+    page = request.GET.get('page', 1)
+    
+    try:
+        pets_page = paginator.page(page)
+    except PageNotAnInteger:
+        pets_page = paginator.page(1)
+    except EmptyPage:
+        pets_page = paginator.page(paginator.num_pages)
 
     # Get all breeds for dropdown
     from .models import Breed
     breeds = Breed.objects.all().order_by('name')
 
-    wishlist_breed_ids = []
+    wishlist_pet_ids = []
     if request.user.is_authenticated:
         wishlist = Wishlist.objects.filter(user=request.user).first()
         if wishlist:
-            wishlist_breed_ids = list(wishlist.items.values_list('breed_id', flat=True))
+            wishlist_pet_ids = list(wishlist.items.values_list('pet_id', flat=True))
 
     context = {
-        'pets': pets,
+        'pets': pets_page,
         'breeds': breeds,
         'breed_filter': breed,
         'age': age,
         'size': size,
         'search_query': search_query,
-        'wishlist_breed_ids': wishlist_breed_ids,
+        'wishlist_pet_ids': wishlist_pet_ids,
+        'total_pets': paginator.count,
     }
     return render(request, 'pages/browse_pets.html', context)
 
@@ -1327,6 +1346,8 @@ def chat_messages(request):
 
     messages_payload = []
     last_id = None
+    messages_to_mark_read = []
+    
     for msg in messages_qs.select_related('sender'):
         last_id = msg.id
         messages_payload.append({
@@ -1337,6 +1358,14 @@ def chat_messages(request):
             'created_at': timezone.localtime(msg.created_at).strftime('%Y-%m-%d %H:%M'),
             'is_self': msg.sender_id == buyer.id,
         })
+        
+        # Mark messages from seller as read
+        if msg.sender_id != buyer.id and not msg.is_read:
+            messages_to_mark_read.append(msg.id)
+    
+    # Bulk update messages as read
+    if messages_to_mark_read:
+        ChatMessage.objects.filter(id__in=messages_to_mark_read).update(is_read=True)
 
     return JsonResponse({
         'status': 'success',
@@ -1371,17 +1400,32 @@ def chat_threads(request):
         last_text = last_msg.text if last_msg else ''
         last_time = timezone.localtime(last_msg.created_at).strftime('%Y-%m-%d %H:%M') if last_msg else ''
 
+        # Get pet image and breed
+        pet_image_url = thread.pet.image.url if thread.pet.image else None
+        breed_name = thread.pet.breed.name if thread.pet.breed else 'Unknown Breed'
+        pet_price = float(thread.pet.price) if thread.pet.price else 0
+
+        # Count unread messages for this user
+        unread_count = thread.messages.filter(is_read=False).exclude(sender=request.user).count()
+
         items.append({
             'id': thread.id,
             'pet_id': thread.pet_id,
             'pet_display': str(thread.pet),
+            'pet_image': pet_image_url,
+            'breed_name': breed_name,
+            'pet_price': pet_price,
             'role': role,
             'other_user_name': other_user.get_full_name() or other_user.username,
             'last_message': last_text,
             'last_time': last_time,
+            'unread_count': unread_count,
         })
 
-    return JsonResponse({'status': 'success', 'threads': items})
+    # Calculate total unread count
+    total_unread = sum(item['unread_count'] for item in items)
+
+    return JsonResponse({'status': 'success', 'threads': items, 'total_unread': total_unread})
 
 
 @login_required
@@ -1411,6 +1455,8 @@ def chat_thread_messages(request):
 
     messages_payload = []
     last_id = None
+    messages_to_mark_read = []
+    
     for msg in messages_qs.select_related('sender'):
         last_id = msg.id
         messages_payload.append({
@@ -1421,6 +1467,14 @@ def chat_thread_messages(request):
             'created_at': timezone.localtime(msg.created_at).strftime('%Y-%m-%d %H:%M'),
             'is_self': msg.sender_id == request.user.id,
         })
+        
+        # Mark messages from others as read
+        if msg.sender_id != request.user.id and not msg.is_read:
+            messages_to_mark_read.append(msg.id)
+    
+    # Bulk update messages as read
+    if messages_to_mark_read:
+        ChatMessage.objects.filter(id__in=messages_to_mark_read).update(is_read=True)
 
     return JsonResponse({
         'status': 'success',

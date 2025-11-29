@@ -46,14 +46,26 @@
 </section>
 
 <!-- All Pets Section -->
-<section class="py-5">
+<section class="py-5 all-pets-section">
   <div class="container">
-    <div class="section-header text-center mb-5">
+    <div class="section-header text-center mb-4">
       <h2 class="fw-bold">🐾 Browse All Pets</h2>
       <p class="text-muted">Professional pets from our trusted partners</p>
     </div>
     
     {% if pets %}
+      <!-- Results Count -->
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="results-info">
+          <h5 class="text-muted mb-0">
+            <i class="fas fa-paw me-2"></i>
+            Showing {{ pets.start_index }} - {{ pets.end_index }} of {{ total_pets }} pet{{ total_pets|pluralize }}
+          </h5>
+        </div>
+        <div class="page-info text-muted">
+          <small>Page {{ pets.number }} of {{ pets.paginator.num_pages }}</small>
+        </div>
+      </div>
       <div class="row g-4">
         {% for pet in pets %}
         <div class="col-lg-3 col-md-6">
@@ -63,8 +75,15 @@
             </div>
             <div class="pet-card-body">
               <h5 class="pet-name">{{ pet.breed.name }}</h5>
-              <p class="pet-breed">{{ pet.breed.name }}</p>
+              <p class="pet-breed">{{ pet.city }}</p>
               <div class="pet-details">
+                <span class="detail-item">
+                  {% if pet.gender == 'male' %}
+                    <i class="fas fa-mars text-primary"></i> Male
+                  {% else %}
+                    <i class="fas fa-venus text-danger"></i> Female
+                  {% endif %}
+                </span>
                 <span class="detail-item">📅 {{ pet.age }}</span>
               </div>
               <div class="pet-health">
@@ -79,18 +98,18 @@
                 </span>
                 {% endif %}
               </div>
-              <div class="pet-price">NRS {{ pet.price }}</div>
+              <div class="pet-price">NPR {{ pet.price }}</div>
               <div class="pet-actions d-flex gap-2 mt-2">
                 <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-primary btn-sm">
                   <i class="fas fa-eye me-1"></i>View Details
                 </a>
                 <button type="button"
-                        class="btn btn-sm wishlist-btn {% if pet.breed.id in wishlist_breed_ids %}btn-danger text-white active{% else %}btn-outline-danger{% endif %}"
+                        class="btn btn-sm wishlist-btn {% if pet.id in wishlist_pet_ids %}btn-danger text-white active{% else %}btn-outline-danger{% endif %}"
                         data-add-url="{% url 'add_to_wishlist' pet.id %}"
-                        data-breed-id="{{ pet.breed.id }}">
-                  <i class="fas fa-heart me-1{% if pet.breed.id in wishlist_breed_ids %} text-danger{% endif %}"></i>
+                        data-pet-id="{{ pet.id }}">
+                  <i class="fas fa-heart me-1{% if pet.id in wishlist_pet_ids %} text-danger{% endif %}"></i>
                   <span class="wishlist-btn-label">
-                    {% if pet.breed.id in wishlist_breed_ids %}Saved{% else %}Favorite{% endif %}
+                    {% if pet.id in wishlist_pet_ids %}Saved{% else %}Favorite{% endif %}
                   </span>
                 </button>
               </div>
@@ -99,6 +118,52 @@
         </div>
         {% endfor %}
       </div>
+      
+      <!-- Pagination Controls -->
+      {% if pets.has_other_pages %}
+      <nav aria-label="Pet pagination" class="mt-5">
+        <ul class="pagination justify-content-center">
+          <!-- Previous Page -->
+          {% if pets.has_previous %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ pets.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if breed_filter %}&breed={{ breed_filter }}{% endif %}{% if age %}&age={{ age }}{% endif %}{% if size %}&size={{ size }}{% endif %}" aria-label="Previous">
+                <span aria-hidden="true">&laquo; Previous</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">&laquo; Previous</span>
+            </li>
+          {% endif %}
+
+          <!-- Page Numbers -->
+          {% for num in pets.paginator.page_range %}
+            {% if pets.number == num %}
+              <li class="page-item active" aria-current="page">
+                <span class="page-link">{{ num }}</span>
+              </li>
+            {% elif num > pets.number|add:'-3' and num < pets.number|add:'3' %}
+              <li class="page-item">
+                <a class="page-link" href="?page={{ num }}{% if search_query %}&q={{ search_query }}{% endif %}{% if breed_filter %}&breed={{ breed_filter }}{% endif %}{% if age %}&age={{ age }}{% endif %}{% if size %}&size={{ size }}{% endif %}">{{ num }}</a>
+              </li>
+            {% endif %}
+          {% endfor %}
+
+          <!-- Next Page -->
+          {% if pets.has_next %}
+            <li class="page-item">
+              <a class="page-link" href="?page={{ pets.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if breed_filter %}&breed={{ breed_filter }}{% endif %}{% if age %}&age={{ age }}{% endif %}{% if size %}&size={{ size }}{% endif %}" aria-label="Next">
+                <span aria-hidden="true">Next &raquo;</span>
+              </a>
+            </li>
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">Next &raquo;</span>
+            </li>
+          {% endif %}
+        </ul>
+      </nav>
+      {% endif %}
     {% else %}
       <div class="empty-state text-center">
         <div class="empty-icon">

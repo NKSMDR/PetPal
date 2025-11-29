@@ -17,10 +17,10 @@
   --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-body {
+/* Body styles moved to avoid conflicts with base.css - using section instead */
+section.bg-light {
   background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
   font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  min-height: 100vh;
 }
 /* Enhanced Category Pills */
 .category-pills {

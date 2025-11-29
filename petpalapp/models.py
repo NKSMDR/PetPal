@@ -150,7 +150,7 @@ class Pet(models.Model):
     breed = models.ForeignKey(Breed, on_delete=models.CASCADE, related_name='pets')
     age = models.CharField(max_length=20, help_text="e.g., '2 months', '1 year', '3 years'")
     gender = models.CharField(max_length=10, choices=GENDER_CHOICES)
-    price = models.DecimalField(max_digits=8, decimal_places=2, help_text="Price in USD")
+    price = models.DecimalField(max_digits=8, decimal_places=2, help_text="Price in NPR (Nepalese Rupees)")
     seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='pets_for_sale')
     description = models.TextField(help_text="Detailed description of the pet")
     
@@ -164,6 +164,7 @@ class Pet(models.Model):
     color = models.CharField(max_length=50, blank=True, help_text="Pet's color/markings")
     vaccination_status = models.BooleanField(default=False, help_text="Is the pet vaccinated?")
     health_certificate = models.BooleanField(default=False, help_text="Has health certificate?")
+    health_certificate_file = models.FileField(upload_to='health_certificates/', blank=True, null=True, help_text="Upload health certificate (PDF/Image)")
     
     # Location
     city = models.CharField(max_length=100, help_text="City where pet is located")
@@ -482,23 +483,30 @@ class Wishlist(models.Model):
 
 
 class WishlistItem(models.Model):
-    """Individual breed entries in a wishlist"""
+    """Individual pet entries in a wishlist"""
     SOURCE_CHOICES = [
         ('browse_pets', 'Browse Pets'),
         ('marketplace', 'Marketplace'),
     ]
     
     wishlist = models.ForeignKey(Wishlist, on_delete=models.CASCADE, related_name='items')
-    breed = models.ForeignKey(Breed, on_delete=models.CASCADE)
+    pet = models.ForeignKey(Pet, on_delete=models.CASCADE, related_name='wishlist_items', null=True, blank=True)
+    breed = models.ForeignKey(Breed, on_delete=models.CASCADE)  # Keep for backward compatibility
     source = models.CharField(max_length=20, choices=SOURCE_CHOICES, default='browse_pets')
     added_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-added_at']
-        unique_together = ('wishlist', 'breed', 'source')
+        unique_together = ('wishlist', 'pet')
 
     def __str__(self):
-        return f"{self.breed.name} ({self.get_source_display()}) in {self.wishlist.user.username}'s wishlist"
+        return f"{self.pet.breed.name} (Pet #{self.pet.id}) in {self.wishlist.user.username}'s wishlist"
+    
+    def save(self, *args, **kwargs):
+        # Auto-populate breed from pet if not set
+        if not self.breed_id and self.pet:
+            self.breed = self.pet.breed
+        super().save(*args, **kwargs)
 
 
 class ChatThread(models.Model):
@@ -527,6 +535,7 @@ class ChatMessage(models.Model):
     thread = models.ForeignKey(ChatThread, on_delete=models.CASCADE, related_name='messages')
     sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_messages')
     text = models.TextField()
+    is_read = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

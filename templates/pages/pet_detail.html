@@ -22,25 +22,36 @@
         <!-- Pet Images -->
         <div class="col-lg-6">
             <div class="pet-images">
-                <div class="main-image mb-3">
+                <div class="main-image-container mb-3" onclick="openLightbox(0)">
                     {% if pet.image %}
-                        <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="img-fluid rounded main-pet-image">
+                        <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="main-pet-image" data-index="0">
                     {% else %}
-                        <img src="{% static 'images/default-pet.jpg' %}" alt="No image" class="img-fluid rounded main-pet-image">
+                        <img src="{% static 'img/default-pet.jpg' %}" alt="No image" class="main-pet-image" data-index="0">
                     {% endif %}
+                    <div class="image-count-indicator">
+                        <i class="fas fa-images"></i>
+                        <span id="current-image-number">1</span> / <span id="total-images">{% if pet.image3 %}3{% elif pet.image2 %}2{% else %}1{% endif %}</span>
+                    </div>
                 </div>
                 
                 <!-- Additional Images -->
-                {% if pet.image2 or pet.image3 %}
                 <div class="additional-images d-flex gap-2">
+                    {% if pet.image %}
+                        <div class="additional-image-container" onclick="changeMainImage('{{ pet.image.url }}', 0)">
+                            <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="additional-image" data-index="0">
+                        </div>
+                    {% endif %}
                     {% if pet.image2 %}
-                        <img src="{{ pet.image2.url }}" alt="{{ pet.breed.name }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
+                        <div class="additional-image-container" onclick="changeMainImage('{{ pet.image2.url }}', 1)">
+                            <img src="{{ pet.image2.url }}" alt="{{ pet.breed.name }}" class="additional-image" data-index="1">
+                        </div>
                     {% endif %}
                     {% if pet.image3 %}
-                        <img src="{{ pet.image3.url }}" alt="{{ pet.breed.name }}" class="img-thumbnail additional-image" onclick="changeMainImage(this.src)">
+                        <div class="additional-image-container" onclick="changeMainImage('{{ pet.image3.url }}', 2)">
+                            <img src="{{ pet.image3.url }}" alt="{{ pet.breed.name }}" class="additional-image" data-index="2">
+                        </div>
                     {% endif %}
                 </div>
-                {% endif %}
             </div>
         </div>
 
@@ -55,10 +66,27 @@
                     </div>
                 </div>
 
+                <!-- Listed Date -->
+                <div class="listing-date mb-3">
+                    {% load humanize %}
+                    {% if pet.created_at %}
+                        {% now "U" as current_timestamp %}
+                        {% if pet.created_at|timesince|slice:":1" == "0" or pet.created_at|timesince == "0 minutes" %}
+                            <span class="badge bg-info listing-badge">
+                                <i class="fas fa-star me-1"></i>New Listing
+                            </span>
+                        {% else %}
+                            <span class="text-muted listing-text">
+                                <i class="far fa-clock me-1"></i>Listed {{ pet.created_at|timesince }} ago
+                            </span>
+                        {% endif %}
+                    {% endif %}
+                </div>
+
                 <!-- Price -->
                 {% if pet.price %}
                 <div class="pet-price mb-3">
-                    <h3 class="text-primary">${{ pet.price }}</h3>
+                    <h3 class="text-primary">NPR {{ pet.price }}</h3>
                 </div>
                 {% endif %}
 
@@ -74,9 +102,20 @@
                         </div>
                         <div class="col-6">
                             <div class="info-item">
+                                {% if pet.gender == 'male' %}
+                                    <i class="fas fa-mars text-primary"></i>
+                                {% else %}
+                                    <i class="fas fa-venus" style="color: #e91e63;"></i>
+                                {% endif %}
+                                <span class="label">Gender:</span>
+                                <span class="value">{{ pet.get_gender_display }}</span>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="info-item">
                                 <i class="fas fa-birthday-cake text-muted"></i>
                                 <span class="label">Age:</span>
-                                <span class="value">{{ pet.age }} years</span>
+                                <span class="value">{{ pet.age }}</span>
                             </div>
                         </div>
                         {% if pet.weight %}
@@ -106,29 +145,42 @@
                     <div class="row">
                         <div class="col-6">
                             <div class="info-item">
-                                <i class="fas fa-syringe text-muted"></i>
+                                <i class="fas fa-syringe {% if pet.vaccination_status %}text-success{% else %}text-muted{% endif %}"></i>
                                 <span class="label">Vaccination:</span>
-                                <span class="value">{{ pet.get_vaccination_status_display }}</span>
+                                <span class="value {% if pet.vaccination_status %}text-success{% else %}text-muted{% endif %}">
+                                    {% if pet.vaccination_status %}Vaccinated{% else %}Not Vaccinated{% endif %}
+                                </span>
                             </div>
                         </div>
-                        {% if pet.health_certificate %}
                         <div class="col-6">
                             <div class="info-item">
-                                <i class="fas fa-certificate text-muted"></i>
+                                <i class="fas fa-certificate {% if pet.health_certificate %}text-success{% else %}text-muted{% endif %}"></i>
                                 <span class="label">Health Certificate:</span>
-                                <span class="value text-success">Available</span>
+                                {% if pet.health_certificate %}
+                                    {% if pet.health_certificate_file %}
+                                        <button onclick="viewHealthCertificate('{{ pet.health_certificate_file.url }}')" class="value text-success text-decoration-none health-cert-link btn btn-link p-0">
+                                            <i class="fas fa-eye me-1"></i>View Certificate
+                                        </button>
+                                    {% else %}
+                                        <span class="value text-success">Available (Contact Seller)</span>
+                                    {% endif %}
+                                {% else %}
+                                    <span class="value text-muted">Not Available</span>
+                                {% endif %}
                             </div>
                         </div>
-                        {% endif %}
                     </div>
                 </div>
 
                 <!-- Contact Seller -->
                 <div class="contact-seller mb-4">
-                    <h5>Contact Us</h5>
+                    <h5>Interested in this pet?</h5>
+                    <p class="text-muted mb-3">
+                        <i class="fas fa-map-marker-alt me-2"></i>{{ pet.city }}{% if pet.state %}, {{ pet.state }}{% endif %}
+                    </p>
                     <div class="contact-buttons mt-3">
-                        <button class="btn btn-primary btn-lg">
-                            <i class="fas fa-phone"></i> Contact Seller
+                        <button class="btn btn-primary btn-lg w-100" onclick="openChatWithSeller({{ pet.id }}, '{{ pet.breed.name }}')">
+                            <i class="fas fa-comments me-2"></i>Contact Seller
                         </button>
                     </div>
                 </div>
@@ -152,7 +204,12 @@
     {% if related_pets %}
     <div class="row mt-5">
         <div class="col-12">
-            <h4 class="mb-4">More {{ pet.breed.name }} Pets</h4>
+            <div class="related-pets-header mb-4">
+                <h4 class="related-pets-title">
+                    <i class="fas fa-paw me-2"></i>You Might Also Like
+                </h4>
+                <p class="related-pets-subtitle text-muted">Similar {{ pet.breed.name }} pets available for adoption</p>
+            </div>
             <div class="row">
                 {% for related_pet in related_pets %}
                 <div class="col-md-3 mb-4">
@@ -168,7 +225,7 @@
                             <h5 class="card-title">{{ related_pet.breed.name }}</h5>
                             <p class="card-text text-muted">{{ related_pet.breed.name }} • {{ related_pet.age }}</p>
                             {% if related_pet.price %}
-                                <p class="card-text"><strong class="text-primary">${{ related_pet.price }}</strong></p>
+                                <p class="card-text"><strong class="text-primary">NPR {{ related_pet.price }}</strong></p>
                             {% endif %}
                         </div>
                         <div class="card-footer bg-transparent">
@@ -183,9 +240,167 @@
     {% endif %}
 </div>
 
+<!-- Lightbox Modal -->
+<div class="lightbox" id="lightbox">
+    <span class="lightbox-close" onclick="closeLightbox()">&times;</span>
+    <span class="lightbox-nav lightbox-prev" onclick="changeImage(-1)">&#10094;</span>
+    <div class="lightbox-content">
+        <img class="lightbox-image" id="lightbox-img" src="" alt="Pet Image">
+    </div>
+    <span class="lightbox-nav lightbox-next" onclick="changeImage(1)">&#10095;</span>
+    <div class="lightbox-counter" id="lightbox-counter"></div>
+</div>
+
+<!-- Health Certificate Modal -->
+<div class="lightbox" id="certificate-modal">
+    <span class="lightbox-close" onclick="closeCertificateModal()">&times;</span>
+    <div class="lightbox-content certificate-content">
+        <div class="certificate-header">
+            <h4><i class="fas fa-certificate me-2"></i>Health Certificate</h4>
+            <a id="cert-download-btn" href="" download class="btn btn-light btn-sm">
+                <i class="fas fa-download me-1"></i>Download
+            </a>
+        </div>
+        <div class="certificate-viewer">
+            <img id="certificate-img" src="" alt="Health Certificate" style="display: none;">
+            <iframe id="certificate-pdf" src="" style="display: none;"></iframe>
+        </div>
+    </div>
+</div>
+
 <script>
-function changeMainImage(src) {
+// Image gallery array
+const petImages = [
+    {% if pet.image %}'{{ pet.image.url }}'{% endif %}
+    {% if pet.image2 %}, '{{ pet.image2.url }}'{% endif %}
+    {% if pet.image3 %}, '{{ pet.image3.url }}'{% endif %}
+];
+
+let currentImageIndex = 0;
+
+function changeMainImage(src, index) {
     document.querySelector('.main-pet-image').src = src;
+    currentImageIndex = index;
+    // Update the image count indicator
+    document.getElementById('current-image-number').textContent = index + 1;
 }
+
+function openLightbox(index) {
+    currentImageIndex = index;
+    updateLightboxImage();
+    document.getElementById('lightbox').classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeLightbox() {
+    document.getElementById('lightbox').classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+function changeImage(direction) {
+    currentImageIndex += direction;
+    
+    if (currentImageIndex >= petImages.length) {
+        currentImageIndex = 0;
+    } else if (currentImageIndex < 0) {
+        currentImageIndex = petImages.length - 1;
+    }
+    
+    updateLightboxImage();
+}
+
+function updateLightboxImage() {
+    const lightboxImg = document.getElementById('lightbox-img');
+    const counter = document.getElementById('lightbox-counter');
+    
+    lightboxImg.src = petImages[currentImageIndex];
+    counter.textContent = `${currentImageIndex + 1} / ${petImages.length}`;
+}
+
+// Close lightbox on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeLightbox();
+    } else if (e.key === 'ArrowLeft') {
+        changeImage(-1);
+    } else if (e.key === 'ArrowRight') {
+        changeImage(1);
+    }
+});
+
+// Close lightbox when clicking outside image
+document.getElementById('lightbox').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeLightbox();
+    }
+});
+
+function openChatWithSeller(petId, petName) {
+    {% if user.is_authenticated %}
+        // Open chat system - check if PetBuddyChat exists (from chat.js)
+        if (typeof PetBuddyChat !== 'undefined' && PetBuddyChat.openInbox) {
+            PetBuddyChat.openInbox();
+        } else {
+            // Fallback: redirect to chat page if available
+            window.location.href = '/chat/?pet=' + petId;
+        }
+    {% else %}
+        // Redirect to login with next parameter
+        window.location.href = '{% url "login" %}?next={{ request.path }}';
+    {% endif %}
+}
+
+// Health Certificate Modal Functions
+function viewHealthCertificate(fileUrl) {
+    const modal = document.getElementById('certificate-modal');
+    const downloadBtn = document.getElementById('cert-download-btn');
+    const imgViewer = document.getElementById('certificate-img');
+    const pdfViewer = document.getElementById('certificate-pdf');
+    
+    // Set download link
+    downloadBtn.href = fileUrl;
+    
+    // Check file type and display accordingly
+    const fileExtension = fileUrl.split('.').pop().toLowerCase();
+    
+    if (['jpg', 'jpeg', 'png', 'gif', 'webp', 'avif'].includes(fileExtension)) {
+        // Display as image
+        imgViewer.src = fileUrl;
+        imgViewer.style.display = 'block';
+        pdfViewer.style.display = 'none';
+    } else if (fileExtension === 'pdf') {
+        // Display PDF in iframe
+        pdfViewer.src = fileUrl;
+        pdfViewer.style.display = 'block';
+        imgViewer.style.display = 'none';
+    } else {
+        // For other file types, just download
+        window.open(fileUrl, '_blank');
+        return;
+    }
+    
+    modal.classList.add('active');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCertificateModal() {
+    const modal = document.getElementById('certificate-modal');
+    modal.classList.remove('active');
+    document.body.style.overflow = 'auto';
+}
+
+// Close certificate modal on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeCertificateModal();
+    }
+});
+
+// Close certificate modal when clicking outside
+document.getElementById('certificate-modal').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeCertificateModal();
+    }
+});
 </script>
 {% endblock %}
