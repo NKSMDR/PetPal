@@ -515,6 +515,23 @@ def remove_from_wishlist(request, breed_id):
 
 
 @login_required
+def clear_wishlist_section(request, source):
+    """Clear items from a specific section of the wishlist."""
+    if request.method == 'POST' and source in ['browse_pets', 'marketplace']:
+        wishlist = get_or_create_wishlist(request)
+        
+        if wishlist:
+            items = wishlist.items.filter(source=source)
+            count = items.count()
+            items.delete()
+            
+            section_name = "Browse Pets" if source == 'browse_pets' else "Marketplace"
+            messages.success(request, f'Cleared {count} item(s) from your {section_name} wishlist.')
+    
+    return redirect('wishlist')
+
+
+@login_required
 def wishlist(request):
     """Display wishlist items for the logged-in user, separated by source."""
     wishlist = get_or_create_wishlist(request)
