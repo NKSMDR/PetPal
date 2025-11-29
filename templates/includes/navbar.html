@@ -43,7 +43,8 @@
                 </a>
               </li>
               <li>
-                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#chatModal">
+                <a class="dropdown-item" href="#"
+                   onclick="if (window.PetBuddyChat && typeof window.PetBuddyChat.openInbox === 'function') { window.PetBuddyChat.openInbox(); } return false;">
                   <i class="fas fa-comments me-2"></i>Chat
                 </a>
               </li>

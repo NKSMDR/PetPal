@@ -54,6 +54,15 @@ urlpatterns = [
     # Cart sync URL
     path('sync-cart/', views.sync_cart, name='sync_cart'),
     # # Debug URL
-    # path('debug-cart/', views.debug_cart, name='debug_cart'),
+    # path('debug-cart/', views/debug_cart, name='debug_cart'),
     path('get-product-stock/<str:product_type>/<int:product_id>/', views.get_product_stock, name='get_product_stock'),
+
+    # Chat API endpoints
+    path('chat/messages/', views.chat_messages, name='chat_messages'),
+    path('chat/send/', views.chat_send_message, name='chat_send_message'),
+
+    # Generic thread-based chat APIs (for inbox)
+    path('chat/threads/', views.chat_threads, name='chat_threads'),
+    path('chat/thread/messages/', views.chat_thread_messages, name='chat_thread_messages'),
+    path('chat/thread/send/', views.chat_thread_send, name='chat_thread_send'),
 ]

@@ -245,6 +245,12 @@
 
 <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 <script>
+// Auth flag for JS logic
+const IS_AUTHENTICATED = {{ request.user.is_authenticated|yesno:"true,false" }};
+const CHAT_PET_ID = {{ pet.id }};
+const CHAT_SELLER_ID = {{ pet.seller.id }};
+const CHAT_SELLER_NAME = "{{ pet.seller.get_full_name|default:pet.seller.username|escapejs }}";
+
 // Global variables
 var map;
 var petMarker;
@@ -261,8 +267,54 @@ function changeMainImage(src) {
 }
 
 function contactSeller() {
-    // You can implement contact functionality here
-    alert('Contact seller functionality - you can implement email/messaging here');
+    if (!IS_AUTHENTICATED) {
+        window.location.href = "{% url 'login' %}?next={{ request.path }}";
+        return;
+    }
+
+    const chatModalEl = document.getElementById('chatModal');
+    const chatForm = document.getElementById('chat-form');
+    const chatTitle = document.getElementById('chatModalLabel');
+    const chatSubtitle = document.getElementById('chatModalSubtitle');
+    const convoTitle = document.getElementById('chatConversationTitle');
+    const convoSubtitle = document.getElementById('chatConversationSubtitle');
+
+    if (!chatModalEl || !chatForm) {
+        return;
+    }
+
+    // Attach context for chat.js to use
+    chatForm.dataset.petId = CHAT_PET_ID;
+    chatForm.dataset.sellerId = CHAT_SELLER_ID;
+    chatForm.dataset.context = 'marketplace_pet';
+
+    if (chatTitle) {
+        chatTitle.textContent = `Chat with ${CHAT_SELLER_NAME}`;
+    }
+    if (chatSubtitle) {
+        chatSubtitle.textContent = 'Discuss this pet, price and meetup details directly with the seller.';
+    }
+    if (convoTitle) {
+        convoTitle.textContent = `Marketplace chat • {{ pet.breed.name }}`;
+    }
+    if (convoSubtitle) {
+        convoSubtitle.textContent = 'Messages are private between you and the seller.';
+    }
+
+    // Clear previous messages UI (optional, frontend only)
+    const messagesEl = document.getElementById('chat-messages');
+    if (messagesEl) {
+        messagesEl.innerHTML = '';
+    }
+
+    // Start chat polling for this pet context
+    if (window.PetBuddyChat && typeof window.PetBuddyChat.startForCurrentContext === 'function') {
+        window.PetBuddyChat.startForCurrentContext();
+    }
+
+    // Open the Bootstrap modal
+    const modal = new bootstrap.Modal(chatModalEl);
+    modal.show();
 }
 
 // Calculate distance between two points (Haversine formula)

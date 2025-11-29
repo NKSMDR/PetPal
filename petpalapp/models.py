@@ -499,3 +499,38 @@ class WishlistItem(models.Model):
 
     def __str__(self):
         return f"{self.breed.name} ({self.get_source_display()}) in {self.wishlist.user.username}'s wishlist"
+
+
+class ChatThread(models.Model):
+    """
+    Conversation between a buyer and a seller about a specific marketplace pet.
+    One thread per (pet, buyer) pair.
+    """
+    pet = models.ForeignKey(Pet, on_delete=models.CASCADE, related_name='chat_threads')
+    buyer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='buyer_chat_threads')
+    seller = models.ForeignKey(User, on_delete=models.CASCADE, related_name='seller_chat_threads')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('pet', 'buyer')
+        ordering = ['-updated_at']
+
+    def __str__(self):
+        return f"Chat about {self.pet} between {self.buyer} and {self.seller}"
+
+
+class ChatMessage(models.Model):
+    """
+    Individual message within a ChatThread.
+    """
+    thread = models.ForeignKey(ChatThread, on_delete=models.CASCADE, related_name='messages')
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='chat_messages')
+    text = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['created_at']
+
+    def __str__(self):
+        return f"Message from {self.sender} in {self.thread}"

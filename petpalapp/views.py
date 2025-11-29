@@ -31,6 +31,8 @@ from .models import (
     FeatureCard,
     Testimonial,
     HomePageSettings,
+    ChatThread,
+    ChatMessage,
 )
 from .forms import PetSubmissionForm
 from django_esewa import EsewaPayment
@@ -1286,3 +1288,233 @@ def get_product_stock(request, product_type, product_id):
             'status': 'error',
             'message': str(e)
         }, status=500)
+
+
+@login_required
+@require_http_methods(["GET"])
+def chat_messages(request):
+    """
+    Return chat messages between the current user (buyer) and the seller
+    for a specific marketplace pet, suitable for AJAX polling.
+    """
+    pet_id = request.GET.get('pet_id')
+    since_id = request.GET.get('since_id')
+
+    if not pet_id:
+        return JsonResponse({'status': 'error', 'message': 'pet_id is required'}, status=400)
+
+    pet = get_object_or_404(Pet, pk=pet_id, is_user_submitted=True)
+    seller = pet.seller
+
+    # Current user is always treated as the buyer in this context
+    buyer = request.user
+    if buyer == seller:
+        return JsonResponse({'status': 'error', 'message': 'Seller cannot be buyer in this chat'}, status=400)
+
+    thread, _created = ChatThread.objects.get_or_create(
+        pet=pet,
+        buyer=buyer,
+        defaults={'seller': seller},
+    )
+
+    messages_qs = thread.messages.all()
+    if since_id:
+        try:
+            since_id_int = int(since_id)
+            messages_qs = messages_qs.filter(id__gt=since_id_int)
+        except (TypeError, ValueError):
+            pass
+
+    messages_payload = []
+    last_id = None
+    for msg in messages_qs.select_related('sender'):
+        last_id = msg.id
+        messages_payload.append({
+            'id': msg.id,
+            'sender_id': msg.sender_id,
+            'sender_name': msg.sender.get_full_name() or msg.sender.username,
+            'text': msg.text,
+            'created_at': timezone.localtime(msg.created_at).strftime('%Y-%m-%d %H:%M'),
+            'is_self': msg.sender_id == buyer.id,
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'messages': messages_payload,
+        'last_id': last_id,
+    })
+
+
+@login_required
+@require_http_methods(["GET"])
+def chat_threads(request):
+    """
+    List chat threads for the current user (as buyer or seller).
+    Used for the inbox in the navbar chat modal.
+    """
+    from django.db.models import Q
+
+    threads = ChatThread.objects.filter(
+        Q(buyer=request.user) | Q(seller=request.user)
+    ).select_related('pet', 'buyer', 'seller').order_by('-updated_at')
+
+    items = []
+    for thread in threads:
+        if thread.buyer_id == request.user.id:
+            role = 'buyer'
+            other_user = thread.seller
+        else:
+            role = 'seller'
+            other_user = thread.buyer
+
+        last_msg = thread.messages.select_related('sender').last()
+        last_text = last_msg.text if last_msg else ''
+        last_time = timezone.localtime(last_msg.created_at).strftime('%Y-%m-%d %H:%M') if last_msg else ''
+
+        items.append({
+            'id': thread.id,
+            'pet_id': thread.pet_id,
+            'pet_display': str(thread.pet),
+            'role': role,
+            'other_user_name': other_user.get_full_name() or other_user.username,
+            'last_message': last_text,
+            'last_time': last_time,
+        })
+
+    return JsonResponse({'status': 'success', 'threads': items})
+
+
+@login_required
+@require_http_methods(["GET"])
+def chat_thread_messages(request):
+    """
+    List messages for a specific chat thread (for either buyer or seller side).
+    """
+    thread_id = request.GET.get('thread_id')
+    since_id = request.GET.get('since_id')
+
+    if not thread_id:
+        return JsonResponse({'status': 'error', 'message': 'thread_id is required'}, status=400)
+
+    thread = get_object_or_404(ChatThread, pk=thread_id)
+
+    if request.user.id not in (thread.buyer_id, thread.seller_id):
+        return JsonResponse({'status': 'error', 'message': 'Not authorized for this thread'}, status=403)
+
+    messages_qs = thread.messages.all()
+    if since_id:
+        try:
+            since_id_int = int(since_id)
+            messages_qs = messages_qs.filter(id__gt=since_id_int)
+        except (TypeError, ValueError):
+            pass
+
+    messages_payload = []
+    last_id = None
+    for msg in messages_qs.select_related('sender'):
+        last_id = msg.id
+        messages_payload.append({
+            'id': msg.id,
+            'sender_id': msg.sender_id,
+            'sender_name': msg.sender.get_full_name() or msg.sender.username,
+            'text': msg.text,
+            'created_at': timezone.localtime(msg.created_at).strftime('%Y-%m-%d %H:%M'),
+            'is_self': msg.sender_id == request.user.id,
+        })
+
+    return JsonResponse({
+        'status': 'success',
+        'messages': messages_payload,
+        'last_id': last_id,
+    })
+
+
+@login_required
+@require_http_methods(["POST"])
+def chat_thread_send(request):
+    """
+    Send a message to a specific chat thread (buyer or seller).
+    """
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+
+    thread_id = data.get('thread_id')
+    text = (data.get('message') or '').strip()
+
+    if not thread_id or not text:
+        return JsonResponse({'status': 'error', 'message': 'thread_id and message are required'}, status=400)
+
+    thread = get_object_or_404(ChatThread, pk=thread_id)
+
+    if request.user.id not in (thread.buyer_id, thread.seller_id):
+        return JsonResponse({'status': 'error', 'message': 'Not authorized for this thread'}, status=403)
+
+    message = ChatMessage.objects.create(
+        thread=thread,
+        sender=request.user,
+        text=text,
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': {
+            'id': message.id,
+            'sender_id': message.sender_id,
+            'sender_name': message.sender.get_full_name() or message.sender.username,
+            'text': message.text,
+            'created_at': timezone.localtime(message.created_at).strftime('%Y-%m-%d %H:%M'),
+            'is_self': True,
+        }
+    }, status=201)
+
+
+@login_required
+@require_http_methods(["POST"])
+def chat_send_message(request):
+    """
+    Create a new chat message from the current user to the seller
+    for a particular marketplace pet.
+    """
+    try:
+        data = json.loads(request.body.decode('utf-8'))
+    except json.JSONDecodeError:
+        return JsonResponse({'status': 'error', 'message': 'Invalid JSON'}, status=400)
+
+    pet_id = data.get('pet_id')
+    text = (data.get('message') or '').strip()
+
+    if not pet_id or not text:
+        return JsonResponse({'status': 'error', 'message': 'pet_id and message are required'}, status=400)
+
+    pet = get_object_or_404(Pet, pk=pet_id, is_user_submitted=True)
+    seller = pet.seller
+
+    buyer = request.user
+    if buyer == seller:
+        return JsonResponse({'status': 'error', 'message': 'Seller cannot send messages as buyer'}, status=400)
+
+    thread, _created = ChatThread.objects.get_or_create(
+        pet=pet,
+        buyer=buyer,
+        defaults={'seller': seller},
+    )
+
+    message = ChatMessage.objects.create(
+        thread=thread,
+        sender=buyer,
+        text=text,
+    )
+
+    return JsonResponse({
+        'status': 'success',
+        'message': {
+            'id': message.id,
+            'sender_id': message.sender_id,
+            'sender_name': message.sender.get_full_name() or message.sender.username,
+            'text': message.text,
+            'created_at': timezone.localtime(message.created_at).strftime('%Y-%m-%d %H:%M'),
+            'is_self': True,
+        }
+    }, status=201)
