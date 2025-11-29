@@ -83,15 +83,20 @@ def Login(request):
             if user:
                 if user.is_active:
                     login(request, user)
-                    messages.success(request, f'Welcome back, {user.first_name}!')
+                    # Success message - will show on home page
+                    display_name = user.first_name if user.first_name else user.username
+                    messages.success(request, f'Welcome back, {display_name}!')
                     return redirect('home')
                 else:
                     messages.error(request, 'Your account is deactivated')
+                    return render(request, 'pages/login.html')
             else:
                 messages.error(request, 'Invalid email or password')
+                return render(request, 'pages/login.html')
                 
         except User.DoesNotExist:
             messages.error(request, 'No account found with this email address')
+            return render(request, 'pages/login.html')
     
     return render(request, 'pages/login.html')
 
@@ -104,12 +109,11 @@ def Register(request):
         phone = request.POST.get('phone', '').strip()
         password = request.POST.get('password', '')
         confirm_password = request.POST.get('confirm_password', '')
-        user_type = request.POST.get('user_type', '')
         
         # Validation
         errors = []
         
-        if not all([first_name, last_name, email, phone, password, confirm_password, user_type]):
+        if not all([first_name, last_name, email, phone, password, confirm_password]):
             errors.append('All fields are required')
         
         if len(password) < 8:
@@ -121,7 +125,7 @@ def Register(request):
         if User.objects.filter(email=email).exists():
             errors.append('An account with this email already exists')
         
-        # If there are errors, show them
+        # If there are errors, show them on register page
         if errors:
             for error in errors:
                 messages.error(request, error)
@@ -130,7 +134,7 @@ def Register(request):
         try:
             # Create user
             user = User.objects.create_user(
-                username=email,  # Use email as username
+                username=email,
                 email=email,
                 password=password,
                 first_name=first_name,
@@ -140,22 +144,34 @@ def Register(request):
             # Get or create user profile and save additional information
             profile, created = UserProfile.objects.get_or_create(user=user)
             profile.phone = phone
-            profile.user_type = user_type
+            # user_type will use default value from model (default='buyer')
             profile.save()
             
+            # Success message - will show on login page
             messages.success(request, 'Account created successfully! Please log in.')
             return redirect('login')
             
         except IntegrityError:
             messages.error(request, 'An error occurred while creating your account')
+            return render(request, 'pages/register.html')
     
     return render(request, 'pages/register.html')
 
 def Logout(request):
+    # Get username BEFORE logging out
+    display_name = ''
+    if request.user.is_authenticated:
+        display_name = request.user.first_name if request.user.first_name else request.user.username
+    
     logout(request)
-    messages.success(request, 'You have been logged out successfully')
+    
+    # Success message - will show on home page
+    if display_name:
+        messages.success(request, f'Goodbye, {display_name}! You have been logged out successfully.')
+    else:
+        messages.success(request, 'You have been logged out successfully.')
+    
     response = redirect('home')
-    # Set a flag to clear cart on next page load
     response.set_cookie('clear_cart', 'true', max_age=5)
     return response
 

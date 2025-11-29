@@ -29,6 +29,15 @@
 {% endblock %}
 
 {% block content %}
+<!-- Hidden messages container for JavaScript to read -->
+{% if messages %}
+<div id="django-messages" style="display: none;">
+  {% for message in messages %}
+  <div data-message="{{ message|escapejs }}" data-tags="{{ message.tags|default:'info' }}"></div>
+  {% endfor %}
+</div>
+{% endif %}
+
 <!-- Image Carousel Section -->
 <section class="home-carousel-section">
   <div id="homeCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -358,4 +367,98 @@
     </form>
   </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Convert ALL Django messages to toast notifications
+document.addEventListener('DOMContentLoaded', function() {
+  const djangoMessages = [];
+  const messageContainer = document.getElementById('django-messages');
+  
+  if (messageContainer) {
+    const messageDivs = messageContainer.querySelectorAll('[data-message]');
+    messageDivs.forEach(div => {
+      djangoMessages.push({
+        text: div.getAttribute('data-message'),
+        type: div.getAttribute('data-tags') || 'info'
+      });
+    });
+  }
+  
+  // Fallback: Also collect from template if hidden div is empty
+  {% if messages %}
+    {% for message in messages %}
+    if (!djangoMessages.find(m => m.text === "{{ message|escapejs }}")) {
+      djangoMessages.push({
+        text: "{{ message|escapejs }}",
+        type: "{{ message.tags|default:'info' }}",
+      });
+    }
+    {% endfor %}
+  {% endif %}
+  
+  // Show toast for ALL messages
+  if (djangoMessages.length > 0) {
+    console.log('Found', djangoMessages.length, 'message(s):', djangoMessages);
+    djangoMessages.forEach((msg, index) => {
+      setTimeout(() => {
+        showToastNotification(msg.text, msg.type, index);
+      }, 500 + (index * 300));
+    });
+  }
+  
+  function showToastNotification(message, type = 'info', index = 0) {
+    const toast = document.createElement('div');
+    
+    // Map Django message tags to Bootstrap alert types
+    let alertType = type;
+    if (type === 'error') alertType = 'danger';
+    if (!['success', 'danger', 'warning', 'info'].includes(alertType)) {
+      alertType = 'info';
+    }
+    
+    // Choose appropriate icon based on type
+    let icon = 'fa-info-circle';
+    if (alertType === 'success') icon = 'fa-check-circle';
+    else if (alertType === 'danger') icon = 'fa-exclamation-circle';
+    else if (alertType === 'warning') icon = 'fa-exclamation-triangle';
+    
+    toast.className = `alert alert-${alertType} position-fixed end-0 m-3 shadow toast-notification`;
+    toast.style.minWidth = '300px';
+    toast.style.maxWidth = '400px';
+    toast.style.top = `${80 + (index * 80)}px`;
+    toast.style.zIndex = '9999';
+    toast.style.opacity = '0';
+    toast.style.transform = 'translateX(100%)';
+    toast.style.transition = 'all 0.3s ease';
+    toast.innerHTML = `
+      <div class="d-flex align-items-center">
+        <i class="fas ${icon} me-2"></i>
+        <span>${message}</span>
+        <button type="button" class="btn-close ms-auto" onclick="this.parentElement.parentElement.remove()"></button>
+      </div>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => {
+      toast.style.opacity = '1';
+      toast.style.transform = 'translateX(0)';
+    }, 10);
+    
+    // Auto-dismiss after 5 seconds
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(100%)';
+      setTimeout(() => {
+        if (toast.parentNode) {
+          toast.remove();
+        }
+      }, 300);
+    }, 5000);
+  }
+});
+</script>
 {% endblock %}

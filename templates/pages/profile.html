@@ -25,15 +25,6 @@
                         </div>
                         <div class="col-md-6">
                             <h5>Account Details</h5>
-                            <p><strong>User Type:</strong> 
-                                {% if profile.user_type == 'buyer' %}
-                                    Buy/Adopt Pets
-                                {% elif profile.user_type == 'seller' %}
-                                    Sell/List Pets
-                                {% elif profile.user_type == 'both' %}
-                                    Both Buy and Sell
-                                {% endif %}
-                            </p>
                             <p><strong>Member Since:</strong> {{ profile.created_at|date:"F d, Y" }}</p>
                             <p><strong>Last Updated:</strong> {{ profile.updated_at|date:"F d, Y" }}</p>
                         </div>
