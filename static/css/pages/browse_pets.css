@@ -2,7 +2,7 @@
 
 /* Hero Section */
 .hero-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(147, 51, 234, 0.9) 100%);
   position: relative;
   overflow: hidden;
 }
@@ -27,16 +27,17 @@
 .search-form {
   background: white;
   padding: 2rem;
-  border-radius: 15px;
-  box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(59, 130, 246, 0.15);
   margin-top: -50px;
   position: relative;
   z-index: 2;
+  border: 1px solid rgba(59, 130, 246, 0.1);
 }
 
 .search-form .form-control,
 .search-form .form-select {
-  border-radius: 8px;
+  border-radius: 10px;
   border: 2px solid #e9ecef;
   padding: 0.75rem 1rem;
   transition: all 0.3s ease;
@@ -44,54 +45,110 @@
 
 .search-form .form-control:focus,
 .search-form .form-select:focus {
-  border-color: #667eea;
-  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 0.2rem rgba(59, 130, 246, 0.15);
+  outline: none;
+}
+
+.search-form .btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border: none;
+  border-radius: 10px;
+  padding: 0.75rem 2rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.search-form .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+}
+
+/* All Pets Section */
+.all-pets-section {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0e7ff 50%, #faf5ff 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.all-pets-section::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image:
+    radial-gradient(circle at 20% 30%, rgba(59, 130, 246, 0.03) 0%, transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.03) 0%, transparent 50%);
+  pointer-events: none;
+}
+
+.all-pets-section .container {
+  position: relative;
+  z-index: 1;
 }
 
 /* Section Headers */
 .section-header h2 {
-  color: #2c3e50;
+  background: linear-gradient(135deg, #1e40af, #7c3aed);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   font-size: 2.5rem;
   margin-bottom: 0.5rem;
+  font-weight: 800;
 }
 
 .section-header p {
   font-size: 1.1rem;
-  color: #6c757d;
+  color: #6366f1;
+  font-weight: 500;
 }
 
 /* Pet Cards */
 .pet-card {
   background: white;
-  border-radius: 15px;
+  border-radius: 20px;
   overflow: hidden;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-  transition: all 0.3s ease;
+  box-shadow: 0 5px 20px rgba(59, 130, 246, 0.08);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   height: 100%;
+  min-height: 520px;
   display: flex;
   flex-direction: column;
+  border: 1px solid rgba(59, 130, 246, 0.08);
 }
 
 .pet-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+  transform: translateY(-8px);
+  box-shadow: 0 15px 40px rgba(59, 130, 246, 0.2);
+  border-color: rgba(59, 130, 246, 0.3);
 }
 
 .pet-image-container {
   position: relative;
-  height: 200px;
+  width: 100%;
+  padding-top: 75%;
+  /* 4:3 Aspect Ratio (3/4 = 0.75) */
   overflow: hidden;
+  background: linear-gradient(135deg, #f0f9ff, #e0e7ff);
 }
 
 .pet-image {
+  position: absolute;
+  top: 0;
+  left: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
-  transition: transform 0.3s ease;
+  object-position: center;
+  transition: transform 0.4s ease;
 }
 
 .pet-card:hover .pet-image {
-  transform: scale(1.05);
+  transform: scale(1.08);
 }
 
 /* Badges */
@@ -122,31 +179,42 @@
 }
 
 @keyframes pulse {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+
+  50% {
+    transform: scale(1.05);
+  }
+
+  100% {
+    transform: scale(1);
+  }
 }
 
 /* Pet Card Body */
 .pet-card-body {
   padding: 1.5rem;
-  flex-grow: 1;
+  flex: 1;
   display: flex;
   flex-direction: column;
+  background: linear-gradient(to bottom, #ffffff, #fafbff);
+  min-height: 0;
 }
 
 .pet-name {
-  color: #2c3e50;
+  color: #1e40af;
   font-weight: 700;
   margin-bottom: 0.25rem;
-  font-size: 1.1rem;
+  font-size: 1.15rem;
+  letter-spacing: -0.3px;
 }
 
 .pet-breed {
-  color: #7f8c8d;
+  color: #6366f1;
   font-size: 0.9rem;
   margin-bottom: 1rem;
-  font-weight: 500;
+  font-weight: 600;
 }
 
 .pet-details {
@@ -157,18 +225,22 @@
 }
 
 .detail-item {
-  background: #f8f9fa;
-  padding: 0.25rem 0.5rem;
-  border-radius: 12px;
+  background: linear-gradient(135deg, #dbeafe, #e0e7ff);
+  padding: 0.35rem 0.75rem;
+  border-radius: 20px;
   font-size: 0.8rem;
-  color: #495057;
-  border: 1px solid #e9ecef;
+  color: #3730a3;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+  font-weight: 500;
 }
 
 .pet-price {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: #27ae60;
+  font-size: 1.3rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #059669, #10b981);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
   margin-bottom: 1rem;
 }
 
@@ -180,13 +252,31 @@
 
 .pet-actions .btn {
   flex: 1;
-  border-radius: 8px;
+  border-radius: 12px;
   font-weight: 600;
   transition: all 0.3s ease;
+  padding: 0.6rem 1rem;
 }
 
-.pet-actions .btn:hover {
-  transform: translateY(-1px);
+.pet-actions .btn-primary {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border: none;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.pet-actions .btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.4);
+}
+
+.pet-actions .btn-outline-danger {
+  border: 2px solid #ef4444;
+  color: #ef4444;
+}
+
+.pet-actions .btn-outline-danger:hover {
+  background: #ef4444;
+  transform: translateY(-2px);
 }
 
 /* Featured Cards Special Styling */
@@ -215,255 +305,266 @@
 
 /* Browse Pets - Professional Pet Cards (Admin Added) */
 .browse-pet-card {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-    border: 2px solid #e3f2fd;
-    border-radius: 20px;
-    box-shadow: 0 8px 25px rgba(33, 150, 243, 0.1);
-    transition: all 0.3s ease;
-    overflow: hidden;
-    height: 100%;
-    position: relative;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 2px solid #e3f2fd;
+  border-radius: 20px;
+  box-shadow: 0 8px 25px rgba(33, 150, 243, 0.1);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  height: 100%;
+  position: relative;
 }
 
 .browse-pet-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 15px 35px rgba(33, 150, 243, 0.2);
-    border-color: #2196f3;
+  transform: translateY(-8px);
+  box-shadow: 0 15px 35px rgba(33, 150, 243, 0.2);
+  border-color: #2196f3;
 }
 
 .browse-pet-card::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 4px;
-    background: linear-gradient(90deg, #2196f3, #21cbf3);
-    z-index: 1;
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #2196f3, #21cbf3);
+  z-index: 1;
 }
 
 .browse-pet-image {
-    position: relative;
-    height: 280px;
-    overflow: hidden;
+  position: relative;
+  height: 280px;
+  overflow: hidden;
 }
 
 .browse-pet-image img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
 .browse-pet-card:hover .browse-pet-image img {
-    transform: scale(1.08);
+  transform: scale(1.08);
 }
 
 .browse-pet-badges {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    z-index: 2;
+  position: absolute;
+  top: 15px;
+  left: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 2;
 }
 
 .professional-badge {
-    background: linear-gradient(135deg, #2196f3, #1976d2) !important;
-    color: white !important;
-    font-weight: 600;
-    border: 2px solid white;
-    box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+  background: linear-gradient(135deg, #2196f3, #1976d2) !important;
+  color: white !important;
+  font-weight: 600;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
 }
 
 .featured-badge {
-    background: linear-gradient(135deg, #ff9800, #f57c00) !important;
-    color: white !important;
-    border: 2px solid white;
-    box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+  background: linear-gradient(135deg, #ff9800, #f57c00) !important;
+  color: white !important;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
 }
 
 .urgent-badge {
-    background: linear-gradient(135deg, #f44336, #d32f2f) !important;
-    color: white !important;
-    border: 2px solid white;
-    box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
+  background: linear-gradient(135deg, #f44336, #d32f2f) !important;
+  color: white !important;
+  border: 2px solid white;
+  box-shadow: 0 2px 8px rgba(244, 67, 54, 0.3);
 }
 
 .browse-price-tag {
-    position: absolute;
-    top: 15px;
-    right: 15px;
-    background: linear-gradient(135deg, #4caf50, #388e3c);
-    color: white;
-    padding: 0.7rem 1.2rem;
-    border-radius: 25px;
-    font-weight: 700;
-    font-size: 1.2rem;
-    border: 3px solid white;
-    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-    z-index: 2;
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+  color: white;
+  padding: 0.7rem 1.2rem;
+  border-radius: 25px;
+  font-weight: 700;
+  font-size: 1.2rem;
+  border: 3px solid white;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  z-index: 2;
 }
 
 .browse-pet-card .card-body {
-    padding: 2rem 1.5rem;
-    background: white;
+  padding: 2rem 1.5rem;
+  background: white;
 }
 
 .browse-pet-card .card-title {
-    font-weight: 700;
-    color: #1976d2;
-    margin-bottom: 0.5rem;
-    font-size: 1.3rem;
+  font-weight: 700;
+  color: #1976d2;
+  margin-bottom: 0.5rem;
+  font-size: 1.3rem;
 }
 
 .browse-pet-card .breed-info {
-    color: #2196f3;
-    font-weight: 600;
-    margin-bottom: 1.2rem;
-    font-size: 1rem;
+  color: #2196f3;
+  font-weight: 600;
+  margin-bottom: 1.2rem;
+  font-size: 1rem;
 }
 
 .browse-pet-card .pet-details {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.2rem;
 }
 
 .browse-pet-card .detail-item {
-    display: flex;
-    align-items: center;
-    color: #546e7a;
-    font-size: 0.9rem;
-    font-weight: 500;
+  display: flex;
+  align-items: center;
+  color: #546e7a;
+  font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .browse-pet-card .detail-item i {
-    color: #2196f3;
-    width: 18px;
+  color: #2196f3;
+  width: 18px;
 }
 
 .browse-pet-card .pet-health {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 1.2rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
 }
 
-.browse-pet-card .health-badge {
-    padding: 0.3rem 0.8rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-    border: 1px solid;
+.pet-health {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+  min-height: 32px;
 }
 
-.browse-pet-card .health-badge.vaccinated {
-    background: #e8f5e8;
-    color: #2e7d32;
-    border-color: #4caf50;
+.health-badge {
+  padding: 0.35rem 0.85rem;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
 }
 
-.browse-pet-card .health-badge.certified {
-    background: #e3f2fd;
-    color: #1565c0;
-    border-color: #2196f3;
+.health-badge.vaccinated {
+  background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+  color: #065f46;
+  border-color: #10b981;
+}
+
+.health-badge.certified {
+  background: linear-gradient(135deg, #dbeafe, #bfdbfe);
+  color: #1e40af;
+  border-color: #3b82f6;
 }
 
 .browse-pet-card .pet-description {
-    color: #546e7a;
-    line-height: 1.6;
-    margin-bottom: 1.2rem;
-    font-size: 0.95rem;
+  color: #546e7a;
+  line-height: 1.6;
+  margin-bottom: 1.2rem;
+  font-size: 0.95rem;
 }
 
 .professional-info {
-    margin-bottom: 1.2rem;
-    padding: 0.8rem;
-    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
-    border-radius: 10px;
-    border-left: 4px solid #2196f3;
+  margin-bottom: 1.2rem;
+  padding: 0.8rem;
+  background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+  border-radius: 10px;
+  border-left: 4px solid #2196f3;
 }
 
 .professional-info small {
-    font-weight: 600;
-    font-size: 0.85rem;
+  font-weight: 600;
+  font-size: 0.85rem;
 }
 
 .browse-pet-card .card-actions {
-    display: flex;
-    gap: 0.8rem;
+  display: flex;
+  gap: 0.8rem;
 }
 
 .browse-pet-card .card-actions .btn {
-    flex: 1;
-    border-radius: 25px;
-    font-weight: 600;
-    padding: 0.7rem 1rem;
-    transition: all 0.3s ease;
+  flex: 1;
+  border-radius: 25px;
+  font-weight: 600;
+  padding: 0.7rem 1rem;
+  transition: all 0.3s ease;
 }
 
 .browse-pet-card .btn-primary {
-    background: linear-gradient(135deg, #2196f3, #1976d2);
-    border: none;
-    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  border: none;
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.3);
 }
 
 .browse-pet-card .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(33, 150, 243, 0.4);
 }
 
 .browse-pet-card .btn-outline-primary {
-    border: 2px solid #2196f3;
-    color: #2196f3;
-    background: transparent;
+  border: 2px solid #2196f3;
+  color: #2196f3;
+  background: transparent;
 }
 
 .browse-pet-card .btn-outline-primary:hover {
-    background: #2196f3;
-    border-color: #2196f3;
-    transform: translateY(-2px);
+  background: #2196f3;
+  border-color: #2196f3;
+  transform: translateY(-2px);
 }
 
 /* No Image Placeholder for Browse Pets */
 .browse-pet-image .no-image {
-    height: 100%;
-    background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #2196f3;
+  height: 100%;
+  background: linear-gradient(135deg, #e3f2fd, #f3e5f5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #2196f3;
 }
 
 .browse-pet-image .no-image i {
-    font-size: 3.5rem;
-    margin-bottom: 0.5rem;
+  font-size: 3.5rem;
+  margin-bottom: 0.5rem;
 }
 
 /* Empty State for Browse Pets */
 .empty-state {
-    padding: 4rem 2rem;
+  padding: 4rem 2rem;
 }
 
 .empty-icon {
-    font-size: 5rem;
-    color: #bbdefb;
-    margin-bottom: 2rem;
+  font-size: 5rem;
+  color: #bbdefb;
+  margin-bottom: 2rem;
 }
 
 .empty-state h3 {
-    color: #1976d2;
-    margin-bottom: 1rem;
+  color: #1976d2;
+  margin-bottom: 1rem;
 }
 
 .empty-state p {
-    font-size: 1.1rem;
-    margin-bottom: 2rem;
-    color: #546e7a;
+  font-size: 1.1rem;
+  margin-bottom: 2rem;
+  color: #546e7a;
 }
 
 /* Responsive Design */
@@ -471,53 +572,49 @@
   .hero-section h1 {
     font-size: 2rem;
   }
-  
+
   .search-form {
     margin-top: -30px;
     padding: 1.5rem;
   }
-  
-  .search-form .row > div {
+
+  .search-form .row>div {
     margin-bottom: 1rem;
   }
-  
+
   .section-header h2 {
     font-size: 2rem;
   }
-  
-  .pet-image-container {
-    height: 180px;
+
+  .pet-card {
+    min-height: auto;
   }
-  
-  .featured-card .pet-image-container {
-    height: 200px;
-  }
-  
+
   .pet-actions {
     flex-direction: column;
   }
-  
+
   .browse-pet-image {
     height: 220px;
   }
-  
+
   .browse-pet-card .card-body {
     padding: 1.5rem 1rem;
   }
-  
+
   .browse-pet-card .pet-details {
     flex-direction: column;
     gap: 0.5rem;
   }
-  
+
   .browse-pet-card .card-actions {
     flex-direction: column;
   }
-  
+
   .empty-state {
     padding: 2rem 1rem;
   }
-  
+
   .empty-icon {
     font-size: 3rem;
   }
@@ -527,15 +624,15 @@
   .hero-section {
     text-align: center;
   }
-  
+
   .hero-section .lead {
     font-size: 1rem;
   }
-  
+
   .pet-card-body {
     padding: 1rem;
   }
-  
+
   .detail-item {
     font-size: 0.75rem;
   }
@@ -552,6 +649,7 @@
     opacity: 0;
     transform: translateY(30px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -560,17 +658,80 @@
 
 /* Distinguish from Marketplace Cards */
 .browse-pet-card {
-    /* Blue theme for professional/admin pets */
-    --primary-color: #2196f3;
-    --secondary-color: #1976d2;
-    --accent-color: #e3f2fd;
+  /* Blue theme for professional/admin pets */
+  --primary-color: #2196f3;
+  --secondary-color: #1976d2;
+  --accent-color: #e3f2fd;
 }
 
 /* Override any marketplace styles */
 .browse-pet-card:not(.marketplace-card) {
-    border-color: #e3f2fd !important;
+  border-color: #e3f2fd !important;
 }
 
 .browse-pet-card:not(.marketplace-card):hover {
-    border-color: #2196f3 !important;
+  border-color: #2196f3 !important;
+}
+
+/* Results Info */
+.results-info {
+  background: linear-gradient(135deg, #f0f9ff, #e0e7ff);
+  padding: 0.75rem 1.5rem;
+  border-radius: 12px;
+  border: 1px solid rgba(59, 130, 246, 0.2);
+}
+
+.results-info h5 {
+  color: #1e40af;
+  font-weight: 600;
+  font-size: 1rem;
+}
+
+.page-info {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Pagination Styling */
+.pagination {
+  gap: 0.5rem;
+}
+
+.pagination .page-item .page-link {
+  border: 2px solid #e0e7ff;
+  border-radius: 10px;
+  color: #3b82f6;
+  font-weight: 600;
+  padding: 0.6rem 1rem;
+  transition: all 0.3s ease;
+  background: white;
+}
+
+.pagination .page-item .page-link:hover {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  color: white;
+  border-color: #3b82f6;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+
+.pagination .page-item.active .page-link {
+  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  border-color: #3b82f6;
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  transform: translateY(-2px);
+}
+
+.pagination .page-item.disabled .page-link {
+  background: #f8f9fa;
+  border-color: #e9ecef;
+  color: #adb5bd;
+  cursor: not-allowed;
+}
+
+.pagination .page-item:first-child .page-link,
+.pagination .page-item:last-child .page-link {
+  font-weight: 700;
+  padding: 0.6rem 1.2rem;
 }

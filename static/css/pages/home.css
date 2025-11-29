@@ -450,10 +450,12 @@
 .home-carousel-section {
   position: relative;
   overflow: hidden;
+  margin: 0;
+  padding: 0;
 }
 
 .home-carousel-section .carousel-item {
-  height: 600px;
+  height: 100vh;
   position: relative;
 }
 
@@ -561,7 +563,7 @@
 
 @media (max-width: 768px) {
   .home-carousel-section .carousel-item {
-    height: 450px;
+    height: 70vh;
   }
 
   .home-carousel-section .carousel-caption h2 {

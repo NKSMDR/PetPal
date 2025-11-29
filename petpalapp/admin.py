@@ -177,7 +177,7 @@ class BrowsePetAdmin(admin.ModelAdmin):
             'fields': ('slug', 'breed', 'age', 'price', 'description')
         }),
         ('Pet Details', {
-            'fields': ('weight', 'color', 'vaccination_status', 'health_certificate')
+            'fields': ('weight', 'color', 'vaccination_status', 'health_certificate', 'health_certificate_file')
         }),
         ('Media', {
             'fields': ('image', 'image2', 'image3', 'image_preview')
@@ -232,7 +232,7 @@ class BaseMarketplacePetAdmin(admin.ModelAdmin):
             'fields': ('seller',)
         }),
         ('Pet Details', {
-            'fields': ('weight', 'color', 'vaccination_status', 'health_certificate')
+            'fields': ('weight', 'color', 'vaccination_status', 'health_certificate', 'health_certificate_file')
         }),
         ('Location', {
             'fields': ('city', 'state')
