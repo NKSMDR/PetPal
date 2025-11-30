@@ -1,12 +1,18 @@
 /* Browse Pets Page Styles */
 
 /* Hero Section */
+.breed-header,
 .hero-section {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.95) 0%, rgba(147, 51, 234, 0.9) 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 40px 0;
+  text-align: center;
+  margin-bottom: 0;
   position: relative;
   overflow: hidden;
 }
 
+.breed-header::before,
 .hero-section::before {
   content: '';
   position: absolute;
@@ -18,9 +24,26 @@
   opacity: 0.3;
 }
 
+.breed-header .container,
 .hero-section .container {
   position: relative;
   z-index: 1;
+}
+
+.breed-header h2,
+.hero-title {
+  font-size: 2rem;
+  font-weight: 700;
+  margin-bottom: 10px;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+}
+
+.breed-header p,
+.hero-subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  max-width: 700px;
+  margin: 0 auto;
 }
 
 /* Search Form */
@@ -569,8 +592,18 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .hero-section h1 {
-    font-size: 2rem;
+  .breed-header,
+  .hero-section {
+    padding: 30px 0;
+  }
+  
+  .breed-header h2,
+  .hero-title {
+    font-size: 1.75rem;
+  }
+  
+  .hero-subtitle {
+    font-size: 0.9rem;
   }
 
   .search-form {

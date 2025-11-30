@@ -5,6 +5,7 @@
 
 {% block extra_css %}
 <link rel="stylesheet" href="{% static 'css/pages/home.css' %}">
+<link rel="stylesheet" href="{% static 'css/pages/browse_pets.css' %}">
 <style>
     html {
         scroll-behavior: smooth;
@@ -237,32 +238,54 @@
 </section>
 {% endif %}
 
-<!-- Featured Pets - Dynamic from Admin -->
-{% if settings.show_featured_pets and featured_pets %}
+<!-- Recently Added Pets - From Browse Pets -->
+{% if settings.show_featured_pets and recently_added_pets %}
 <section class="py-5 bg-white">
   <div class="container">
-    <h2 class="fw-bold mb-4 text-center">Featured Pets</h2>
+    <h2 class="fw-bold mb-4 text-center">Recently Added</h2>
     <div class="row g-4">
-      {% for pet in featured_pets %}
+      {% for pet in recently_added_pets %}
       <div class="col-lg-4 col-md-6">
-        <div class="card h-100 shadow-sm">
-          {% if pet.image %}
-          <img src="{{ pet.image.url }}" class="card-img-top" alt="{{ pet.breed.name }}" style="height: 250px; object-fit: cover;">
-          {% else %}
-          <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 250px;">
-            <i class="fas fa-paw fa-3x text-muted"></i>
+        <div class="pet-card">
+          <div class="pet-image-container">
+            {% if pet.image %}
+            <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="pet-image">
+            {% else %}
+            <div class="pet-image bg-light d-flex align-items-center justify-content-center">
+              <i class="fas fa-paw fa-3x text-muted"></i>
+            </div>
+            {% endif %}
           </div>
-          {% endif %}
-          <div class="card-body">
-            <h5 class="card-title">{{ pet.breed.name }}</h5>
-            <p class="text-muted mb-2">
-              <i class="fas fa-venus-mars"></i> {{ pet.get_gender_display }} | 
-              <i class="fas fa-birthday-cake"></i> {{ pet.age }}
-            </p>
-            <p class="card-text text-truncate">{{ pet.description|default:"Lovely pet looking for a home" }}</p>
-            <div class="d-flex justify-content-between align-items-center">
-              <span class="h5 mb-0 text-primary">NRS {{ pet.price }}</span>
-              <a href="{% url 'pet_detail' pet.id %}" class="btn btn-sm btn-outline-primary">View Details</a>
+          <div class="pet-card-body">
+            <h5 class="pet-name">{{ pet.breed.name }}</h5>
+            <p class="pet-breed">{{ pet.city }}</p>
+            <div class="pet-details">
+              <span class="detail-item">
+                {% if pet.gender == 'male' %}
+                  <i class="fas fa-mars text-primary"></i> Male
+                {% else %}
+                  <i class="fas fa-venus text-danger"></i> Female
+                {% endif %}
+              </span>
+              <span class="detail-item">📅 {{ pet.age }}</span>
+            </div>
+            <div class="pet-health">
+              {% if pet.vaccination_status %}
+              <span class="health-badge vaccinated">
+                <i class="fas fa-shield-alt me-1"></i>Vaccinated
+              </span>
+              {% endif %}
+              {% if pet.health_certificate %}
+              <span class="health-badge certified">
+                <i class="fas fa-certificate me-1"></i>Health Cert
+              </span>
+              {% endif %}
+            </div>
+            <div class="pet-price">NPR {{ pet.price }}</div>
+            <div class="pet-actions d-flex gap-2 mt-2">
+              <a href="{% url 'pet_detail' pet.pk %}" class="btn btn-primary btn-sm">
+                <i class="fas fa-eye me-1"></i>View Details
+              </a>
             </div>
           </div>
         </div>

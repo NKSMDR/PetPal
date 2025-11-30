@@ -177,7 +177,7 @@ class BrowsePetAdmin(admin.ModelAdmin):
             'fields': ('slug', 'breed', 'age', 'price', 'description')
         }),
         ('Pet Details', {
-            'fields': ('weight', 'color', 'vaccination_status', 'health_certificate', 'health_certificate_file')
+            'fields': ('weight', 'color', 'gender_availability', 'vaccination_status', 'health_certificate', 'health_certificate_file')
         }),
         ('Media', {
             'fields': ('image', 'image2', 'image3', 'image_preview')

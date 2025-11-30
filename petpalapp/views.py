@@ -50,17 +50,20 @@ def Home(request):
     # Get active testimonials
     testimonials = Testimonial.objects.filter(is_active=True).order_by('order')
     
-    # Get featured pets if enabled
-    featured_pets = None
+    # Get recently added pets from browse pets (not marketplace) if enabled
+    recently_added_pets = None
     if settings.show_featured_pets:
-        featured_pets = Pet.objects.filter(status='available').order_by('-created_at')[:6]
+        recently_added_pets = Pet.objects.filter(
+            status='available',
+            is_user_submitted=False
+        ).order_by('-created_at')[:6]
     
     context = {
         'settings': settings,
         'hero_sections': hero_sections,
         'features': features,
         'testimonials': testimonials,
-        'featured_pets': featured_pets,
+        'recently_added_pets': recently_added_pets,
     }
     
     return render(request, 'pages/home.html', context)
