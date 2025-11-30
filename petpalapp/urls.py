@@ -15,13 +15,35 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
+from django.contrib.auth import views as auth_views
 from petpalapp import views
 
 urlpatterns = [
     path('',views.Home,name='home'),
     path('login/', views.Login, name='login'),
     path('register/', views.Register, name='register'),
+    
+    # Password Reset URLs
+    path('password-reset/', auth_views.PasswordResetView.as_view(
+        template_name='pages/password_reset.html',
+        email_template_name='pages/password_reset_email.html',
+        subject_template_name='pages/password_reset_subject.txt',
+        success_url='/password-reset/done/'
+    ), name='password_reset'),
+    path('password-reset/done/', auth_views.PasswordResetDoneView.as_view(
+        template_name='pages/password_reset_done.html'
+    ), name='password_reset_done'),
+    path('password-reset-confirm/<uidb64>/<token>/', auth_views.PasswordResetConfirmView.as_view(
+        template_name='pages/password_reset_confirm.html',
+        success_url='/password-reset-complete/'
+    ), name='password_reset_confirm'),
+    path('password-reset-complete/', auth_views.PasswordResetCompleteView.as_view(
+        template_name='pages/password_reset_complete.html'
+    ), name='password_reset_complete'),
+    
+    # Change Password (for logged-in users)
+    path('change-password/', views.change_password, name='change_password'),
     path('breeds/', views.breed_list, name='breed_list'),
     path('breeds/<slug:slug>/', views.breed_detail, name='breed_detail'),
     path('browse-pets/', views.browse_pets, name='browse_pets'),
@@ -39,6 +61,7 @@ urlpatterns = [
     path('wishlist/', views.wishlist, name='wishlist'),
     path('wishlist/add/<int:pet_id>/', views.add_to_wishlist, name='add_to_wishlist'),
     path('wishlist/remove/<int:breed_id>/', views.remove_from_wishlist, name='remove_from_wishlist'),
+    path('wishlist/clear/<str:source>/', views.clear_wishlist_section, name='clear_wishlist_section'),
     path('cart/', views.cart, name='cart'),
     path('add-to-cart/<str:product_type>/<int:product_id>/', views.add_to_cart, name='add_to_cart'),
     path('remove-from-cart/<str:product_type>/<int:product_id>/', views.remove_from_cart, name='remove_from_cart'),

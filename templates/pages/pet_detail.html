@@ -102,13 +102,29 @@
                         </div>
                         <div class="col-6">
                             <div class="info-item">
-                                {% if pet.gender == 'male' %}
-                                    <i class="fas fa-mars text-primary"></i>
+                                {% if pet.gender_availability %}
+                                    {% if pet.gender_availability == 'male' %}
+                                        <i class="fas fa-mars text-primary"></i>
+                                        <span class="label">Gender:</span>
+                                        <span class="value">male available</span>
+                                    {% elif pet.gender_availability == 'female' %}
+                                        <i class="fas fa-venus" style="color: #e91e63;"></i>
+                                        <span class="label">Gender:</span>
+                                        <span class="value">Female available</span>
+                                    {% elif pet.gender_availability == 'both' %}
+                                        <i class="fas fa-venus-mars text-primary"></i>
+                                        <span class="label">Gender:</span>
+                                        <span class="value">Both available</span>
+                                    {% endif %}
                                 {% else %}
-                                    <i class="fas fa-venus" style="color: #e91e63;"></i>
+                                    {% if pet.gender == 'male' %}
+                                        <i class="fas fa-mars text-primary"></i>
+                                    {% else %}
+                                        <i class="fas fa-venus" style="color: #e91e63;"></i>
+                                    {% endif %}
+                                    <span class="label">Gender:</span>
+                                    <span class="value">{{ pet.get_gender_display }}</span>
                                 {% endif %}
-                                <span class="label">Gender:</span>
-                                <span class="value">{{ pet.get_gender_display }}</span>
                             </div>
                         </div>
                         <div class="col-6">

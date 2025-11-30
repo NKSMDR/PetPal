@@ -216,6 +216,18 @@ class Pet(models.Model):
     # Pet details
     weight = models.CharField(max_length=20, blank=True, help_text="e.g., '5 kg', '15 lbs'")
     color = models.CharField(max_length=50, blank=True, help_text="Pet's color/markings")
+    GENDER_AVAILABILITY_CHOICES = [
+        ('male', 'Male'),
+        ('female', 'Female'),
+        ('both', 'Both'),
+    ]
+    gender_availability = models.CharField(
+        max_length=10, 
+        choices=GENDER_AVAILABILITY_CHOICES, 
+        blank=True, 
+        null=True,
+        help_text="Gender availability: Male, Female, or Both"
+    )
     vaccination_status = models.BooleanField(default=False, help_text="Is the pet vaccinated?")
     health_certificate = models.BooleanField(default=False, help_text="Has health certificate?")
     health_certificate_file = models.FileField(upload_to='health_certificates/', blank=True, null=True, help_text="Upload health certificate (PDF/Image)")

@@ -264,3 +264,11 @@ print("DB_USER from env:", config('DB_USER'))
 LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+# Email Configuration (Console Backend for Development)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@petbuddy.com'
+
+# Site Domain for Password Reset Links
+# Change this to your actual domain in production
+SITE_DOMAIN = 'localhost:8000'  # For development

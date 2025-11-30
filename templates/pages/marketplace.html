@@ -211,8 +211,10 @@ function contactSeller(sellerName) {
 
     function showWishlistToast(message, type = 'success') {
         const toast = document.createElement('div');
-        toast.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed top-0 end-0 m-3 shadow wishlist-toast`;
+        toast.className = `alert alert-${type === 'error' ? 'danger' : type} position-fixed end-0 m-3 shadow wishlist-toast`;
         toast.style.minWidth = '240px';
+        toast.style.top = '80px';
+        toast.style.zIndex = '9999';
         toast.innerHTML = `
             <div class="d-flex align-items-center">
                 <i class="fas fa-heart me-2"></i>

@@ -28,7 +28,8 @@
         <h1 class="h3 mb-2">My Wishlist</h1>
         <p class="text-muted mb-3">Keep track of pets you love.</p>
         
-        <!-- Navigation Pills -->
+        <!-- Navigation Pills - Only show when at least one section has items -->
+        {% if browse_pets_entries or marketplace_entries %}
         <div class="category-pills mb-4 d-flex flex-nowrap">
             <button type="button" class="pill filter-pill" data-section="marketplace" onclick="filterWishlist('marketplace')">
                 <i class="fas fa-store me-1"></i>Marketplace
@@ -37,17 +38,43 @@
                 <i class="fas fa-paw me-1"></i>Browse Pets
             </button>
         </div>
+        {% endif %}
     </div>
 
-    {% if browse_pets_entries or marketplace_entries %}
-
+    {% if not browse_pets_entries and not marketplace_entries %}
+    <!-- Show general empty state only when both sections are empty -->
+    <div class="empty-state text-center">
+        <div class="empty-icon">
+            <i class="fas fa-heart text-danger" style="font-size: 4rem;"></i>
+        </div>
+        <h3>No favorites yet</h3>
+        <p class="text-muted">Start adding pets to your wishlist to revisit them quickly.</p>
+        <a href="{% url 'browse_pets' %}" class="btn btn-primary mt-3">
+            <i class="fas fa-search me-2"></i>Browse Pets
+        </a>
+    </div>
+    {% else %}
     <!-- Browse Pets Section -->
-    {% if browse_pets_entries %}
     <div class="wishlist-section" id="browse_pets-section" data-section="browse_pets">
-        <h3 class="mb-4 fw-bold">
-            <i class="fas fa-paw me-2"></i>Browse Pets
-            <span class="badge bg-primary ms-2">{{ browse_pets_entries|length }}</span>
-        </h3>
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 class="mb-0 fw-bold">
+                <i class="fas fa-paw me-2"></i>Browse Pets
+                {% if browse_pets_entries %}
+                <span class="badge bg-primary ms-2">{{ browse_pets_entries|length }}</span>
+                {% else %}
+                <span class="badge bg-secondary ms-2">0</span>
+                {% endif %}
+            </h3>
+            {% if browse_pets_entries %}
+            <form method="POST" action="{% url 'clear_wishlist_section' 'browse_pets' %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to clear all items from your Browse Pets wishlist?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash-alt me-1"></i>Clear All
+                </button>
+            </form>
+            {% endif %}
+        </div>
+        {% if browse_pets_entries %}
         <div class="row g-4">
             {% for entry in browse_pets_entries %}
             <div class="col-lg-3 col-md-6">
@@ -111,16 +138,42 @@
             </div>
             {% endfor %}
         </div>
+        {% else %}
+        <!-- Empty state for Browse Pets section -->
+        <div class="empty-state text-center py-5">
+            <div class="empty-icon">
+                <i class="fas fa-heart text-danger" style="font-size: 3rem;"></i>
+            </div>
+            <h4 class="mt-3">No Browse Pets favorites yet</h4>
+            <p class="text-muted">Start adding pets from Browse Pets to your wishlist.</p>
+            <a href="{% url 'browse_pets' %}" class="btn btn-primary mt-3">
+                <i class="fas fa-search me-2"></i>Browse Pets
+            </a>
+        </div>
+        {% endif %}
     </div>
-    {% endif %}
 
     <!-- Marketplace Section -->
-    {% if marketplace_entries %}
     <div class="wishlist-section" id="marketplace-section" data-section="marketplace">
-        <h3 class="mb-4 fw-bold mt-5">
-            <i class="fas fa-store me-2"></i>Marketplace
-            <span class="badge bg-success ms-2">{{ marketplace_entries|length }}</span>
-        </h3>
+        <div class="d-flex justify-content-between align-items-center mb-4 mt-5">
+            <h3 class="mb-0 fw-bold">
+                <i class="fas fa-store me-2"></i>Marketplace
+                {% if marketplace_entries %}
+                <span class="badge bg-success ms-2">{{ marketplace_entries|length }}</span>
+                {% else %}
+                <span class="badge bg-secondary ms-2">0</span>
+                {% endif %}
+            </h3>
+            {% if marketplace_entries %}
+            <form method="POST" action="{% url 'clear_wishlist_section' 'marketplace' %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to clear all items from your Marketplace wishlist?');">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="fas fa-trash-alt me-1"></i>Clear All
+                </button>
+            </form>
+            {% endif %}
+        </div>
+        {% if marketplace_entries %}
         <div class="row g-4">
             {% for entry in marketplace_entries %}
             <div class="col-lg-3 col-md-6">
@@ -184,18 +237,19 @@
             </div>
             {% endfor %}
         </div>
-    </div>
-    {% endif %}
-    {% else %}
-    <div class="empty-state text-center">
-        <div class="empty-icon">
-            <i class="fas fa-heart text-danger" style="font-size: 4rem;"></i>
+        {% else %}
+        <!-- Empty state for Marketplace section -->
+        <div class="empty-state text-center py-5">
+            <div class="empty-icon">
+                <i class="fas fa-heart text-danger" style="font-size: 3rem;"></i>
+            </div>
+            <h4 class="mt-3">No Marketplace favorites yet</h4>
+            <p class="text-muted">Start adding pets from Marketplace to your wishlist.</p>
+            <a href="{% url 'marketplace' %}" class="btn btn-primary mt-3">
+                <i class="fas fa-store me-2"></i>Browse Marketplace
+            </a>
         </div>
-        <h3>No favorites yet</h3>
-        <p class="text-muted">Start adding pets to your wishlist to revisit them quickly.</p>
-        <a href="{% url 'browse_pets' %}" class="btn btn-primary mt-3">
-            <i class="fas fa-search me-2"></i>Browse Pets
-        </a>
+        {% endif %}
     </div>
     {% endif %}
 </div>
@@ -228,13 +282,19 @@ function filterWishlist(section) {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
-    const activeSection = '{{ active_section }}';
-    // Default to marketplace if no section specified
-    if (activeSection && (activeSection === 'browse_pets' || activeSection === 'marketplace')) {
-        filterWishlist(activeSection);
-    } else {
-        // Default to marketplace
-        filterWishlist('marketplace');
+    // Only initialize filtering if sections exist (i.e., at least one section has items)
+    const browseSection = document.getElementById('browse_pets-section');
+    const marketplaceSection = document.getElementById('marketplace-section');
+    
+    if (browseSection || marketplaceSection) {
+        const activeSection = '{{ active_section }}';
+        // Default to marketplace if no section specified
+        if (activeSection && (activeSection === 'browse_pets' || activeSection === 'marketplace')) {
+            filterWishlist(activeSection);
+        } else {
+            // Default to marketplace
+            filterWishlist('marketplace');
+        }
     }
 });
 </script>

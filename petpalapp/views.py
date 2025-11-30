@@ -50,17 +50,20 @@ def Home(request):
     # Get active testimonials
     testimonials = Testimonial.objects.filter(is_active=True).order_by('order')
     
-    # Get featured pets if enabled
-    featured_pets = None
+    # Get recently added pets from browse pets (not marketplace) if enabled
+    recently_added_pets = None
     if settings.show_featured_pets:
-        featured_pets = Pet.objects.filter(status='available').order_by('-created_at')[:6]
+        recently_added_pets = Pet.objects.filter(
+            status='available',
+            is_user_submitted=False
+        ).order_by('-created_at')[:6]
     
     context = {
         'settings': settings,
         'hero_sections': hero_sections,
         'features': features,
         'testimonials': testimonials,
-        'featured_pets': featured_pets,
+        'recently_added_pets': recently_added_pets,
     }
     
     return render(request, 'pages/home.html', context)
@@ -83,15 +86,20 @@ def Login(request):
             if user:
                 if user.is_active:
                     login(request, user)
-                    messages.success(request, f'Welcome back, {user.first_name}!')
+                    # Success message - will show on home page
+                    display_name = user.first_name if user.first_name else user.username
+                    messages.success(request, f'Welcome back, {display_name}!')
                     return redirect('home')
                 else:
                     messages.error(request, 'Your account is deactivated')
+                    return render(request, 'pages/login.html')
             else:
                 messages.error(request, 'Invalid email or password')
+                return render(request, 'pages/login.html')
                 
         except User.DoesNotExist:
             messages.error(request, 'No account found with this email address')
+            return render(request, 'pages/login.html')
     
     return render(request, 'pages/login.html')
 
@@ -104,12 +112,11 @@ def Register(request):
         phone = request.POST.get('phone', '').strip()
         password = request.POST.get('password', '')
         confirm_password = request.POST.get('confirm_password', '')
-        user_type = request.POST.get('user_type', '')
         
         # Validation
         errors = []
         
-        if not all([first_name, last_name, email, phone, password, confirm_password, user_type]):
+        if not all([first_name, last_name, email, phone, password, confirm_password]):
             errors.append('All fields are required')
         
         if len(password) < 8:
@@ -121,7 +128,7 @@ def Register(request):
         if User.objects.filter(email=email).exists():
             errors.append('An account with this email already exists')
         
-        # If there are errors, show them
+        # If there are errors, show them on register page
         if errors:
             for error in errors:
                 messages.error(request, error)
@@ -130,7 +137,7 @@ def Register(request):
         try:
             # Create user
             user = User.objects.create_user(
-                username=email,  # Use email as username
+                username=email,
                 email=email,
                 password=password,
                 first_name=first_name,
@@ -140,22 +147,70 @@ def Register(request):
             # Get or create user profile and save additional information
             profile, created = UserProfile.objects.get_or_create(user=user)
             profile.phone = phone
-            profile.user_type = user_type
+            # user_type will use default value from model (default='buyer')
             profile.save()
             
+            # Success message - will show on login page
             messages.success(request, 'Account created successfully! Please log in.')
             return redirect('login')
             
         except IntegrityError:
             messages.error(request, 'An error occurred while creating your account')
+            return render(request, 'pages/register.html')
     
     return render(request, 'pages/register.html')
 
+@login_required
+def change_password(request):
+    """Allow logged-in users to change their password"""
+    if request.method == 'POST':
+        old_password = request.POST.get('old_password', '')
+        new_password1 = request.POST.get('new_password1', '')
+        new_password2 = request.POST.get('new_password2', '')
+        
+        user = request.user
+        errors = []
+        
+        # Validate old password
+        if not user.check_password(old_password):
+            errors.append('Your current password is incorrect.')
+        
+        # Validate new password
+        if not new_password1:
+            errors.append('New password is required.')
+        elif len(new_password1) < 8:
+            errors.append('New password must be at least 8 characters long.')
+        
+        if new_password1 != new_password2:
+            errors.append('New passwords do not match.')
+        
+        if errors:
+            for error in errors:
+                messages.error(request, error)
+        else:
+            # Change password
+            user.set_password(new_password1)
+            user.save()
+            messages.success(request, 'Your password has been changed successfully! Please log in again.')
+            return redirect('login')
+    
+    return render(request, 'pages/change_password.html')
+
 def Logout(request):
+    # Get username BEFORE logging out
+    display_name = ''
+    if request.user.is_authenticated:
+        display_name = request.user.first_name if request.user.first_name else request.user.username
+    
     logout(request)
-    messages.success(request, 'You have been logged out successfully')
+    
+    # Success message - will show on home page
+    if display_name:
+        messages.success(request, f'Goodbye, {display_name}! You have been logged out successfully.')
+    else:
+        messages.success(request, 'You have been logged out successfully.')
+    
     response = redirect('home')
-    # Set a flag to clear cart on next page load
     response.set_cookie('clear_cart', 'true', max_age=5)
     return response
 
@@ -510,6 +565,23 @@ def remove_from_wishlist(request, breed_id):
             messages.error(request, 'Item not found in your wishlist.')
     except WishlistItem.DoesNotExist:
         messages.error(request, 'Item not found in your wishlist.')
+    
+    return redirect('wishlist')
+
+
+@login_required
+def clear_wishlist_section(request, source):
+    """Clear items from a specific section of the wishlist."""
+    if request.method == 'POST' and source in ['browse_pets', 'marketplace']:
+        wishlist = get_or_create_wishlist(request)
+        
+        if wishlist:
+            items = wishlist.items.filter(source=source)
+            count = items.count()
+            items.delete()
+            
+            section_name = "Browse Pets" if source == 'browse_pets' else "Marketplace"
+            messages.success(request, f'Cleared {count} item(s) from your {section_name} wishlist.')
     
     return redirect('wishlist')
 
