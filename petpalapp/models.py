@@ -57,6 +57,60 @@ class Breed(models.Model):
     affection_needs = models.CharField(max_length=50, default='Moderate')
     exercise_requirement = models.CharField(max_length=50, default='Medium')
 
+    # ===== DETAILED INFORMATION FIELDS =====
+    
+    # History & Origin
+    origin_country = models.CharField(max_length=100, blank=True, default='', help_text='Country or region of origin')
+    breed_history = models.TextField(blank=True, default='', help_text='Historical background and development of the breed')
+    original_purpose = models.CharField(max_length=200, blank=True, default='', help_text='Original breeding purpose (e.g., Herding, Hunting, Companion)')
+    
+    # Fun Facts (6 customizable facts)
+    fun_fact_1 = models.TextField(blank=True, default='', help_text='Interesting fact about origin/history')
+    fun_fact_2 = models.TextField(blank=True, default='', help_text='Interesting fact about intelligence')
+    fun_fact_3 = models.TextField(blank=True, default='', help_text='Interesting fact about special talents')
+    fun_fact_4 = models.TextField(blank=True, default='', help_text='Interesting fact about popularity')
+    fun_fact_5 = models.TextField(blank=True, default='', help_text='Interesting fact about unique traits')
+    fun_fact_6 = models.TextField(blank=True, default='', help_text='Interesting fact about ideal owners')
+    
+    # Nutrition & Diet
+    diet_recommendations = models.TextField(blank=True, default='', help_text='Specific dietary needs and recommendations')
+    feeding_notes = models.TextField(blank=True, default='', help_text='Special feeding considerations or restrictions')
+    
+    # Health Information
+    common_health_issues = models.TextField(blank=True, default='', help_text='Common health problems for this breed (one per line)')
+    health_screening = models.TextField(blank=True, default='', help_text='Recommended health tests and screenings')
+    genetic_conditions = models.TextField(blank=True, default='', help_text='Known genetic conditions to be aware of')
+    
+    # Care & Grooming Details
+    grooming_details = models.TextField(blank=True, default='', help_text='Detailed grooming requirements and schedule')
+    coat_type = models.CharField(max_length=100, blank=True, default='', help_text='Type of coat (e.g., Double coat, Wire-haired, Curly)')
+    shedding_level = models.CharField(max_length=20, blank=True, default='', help_text='Low, Moderate, or High')
+    
+    # Exercise & Activity
+    exercise_details = models.TextField(blank=True, default='', help_text='Specific exercise needs and activity recommendations')
+    mental_stimulation = models.TextField(blank=True, default='', help_text='Mental exercise and enrichment needs')
+    
+    # Training Details
+    training_tips = models.TextField(blank=True, default='', help_text='Breed-specific training advice and methods')
+    socialization_needs = models.TextField(blank=True, default='', help_text='Socialization requirements and recommendations')
+    
+    # Temperament Details
+    temperament_description = models.TextField(blank=True, default='', help_text='Detailed personality and temperament description')
+    behavior_traits = models.TextField(blank=True, default='', help_text='Notable behavioral characteristics')
+    
+    # Living Conditions
+    ideal_home = models.TextField(blank=True, default='', help_text='Ideal living environment (apartment, house with yard, etc.)')
+    climate_tolerance = models.CharField(max_length=100, blank=True, default='', help_text='Climate preferences (e.g., Cold tolerant, Heat sensitive)')
+    
+    # Compatibility
+    good_with_other_dogs = models.BooleanField(default=True, help_text='Generally good with other dogs')
+    good_with_cats = models.BooleanField(default=False, help_text='Generally good with cats')
+    good_with_strangers = models.BooleanField(default=True, help_text='Generally friendly with strangers')
+    
+    # Additional Notes
+    special_considerations = models.TextField(blank=True, default='', help_text='Any special care or ownership considerations')
+    first_time_owner_friendly = models.BooleanField(default=True, help_text='Suitable for first-time dog owners')
+
     def __str__(self):
         return self.name
 

@@ -7,40 +7,88 @@
 {% block extra_js %}
 <script src="{% static 'js/detail.js' %}"></script>
 {% endblock %}
+
 {% block content %}
-<!-- Back to List Button -->
-<div class="container mt-3">
-  <a href="{% url 'breed_list' %}" class="btn btn-outline-secondary mb-3">
-    <i class="fas fa-arrow-left me-2"></i>Back to Breed List
-  </a>
+<!-- Breadcrumb Navigation -->
+<nav aria-label="breadcrumb" class="container mt-3">
+  <ol class="breadcrumb-custom">
+    <li class="breadcrumb-item"><a href="{% url 'home' %}"><i class="fas fa-home me-1"></i>Home</a></li>
+    <li class="breadcrumb-item"><a href="{% url 'breed_list' %}">Breed Information</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ breed.name }}</li>
+  </ol>
+</nav>
+
+<!-- Educational Badge -->
+<div class="container">
+  <div class="edu-badge">
+    <i class="fas fa-graduation-cap me-2"></i>
+    Educational Resource - Learn Before You Commit
+  </div>
 </div>
 
 <!-- Enhanced Hero Section -->
 <section class="breed-detail-hero">
   <div class="container">
     <div class="row align-items-center">
-      <div class="col-lg-6 mb-4 mb-lg-0">
-        <img src="{{ breed.image.url }}" alt="{{ breed.name }}" class="breed-hero-image img-fluid" style="max-height: 400px; object-fit: cover; width: 100%;">
+      <div class="col-lg-5 mb-4 mb-lg-0">
+        <div class="breed-image-wrapper">
+          <img 
+            src="{{ breed.image.url }}" 
+            alt="{{ breed.name }} dog breed" 
+            class="breed-hero-image img-fluid"
+            loading="eager"
+          >
+          <div class="image-caption">
+            <i class="fas fa-info-circle me-2"></i>{{ breed.name }}
+          </div>
+        </div>
       </div>
-      <div class="col-lg-6 text-center text-lg-start">
+      <div class="col-lg-7 text-center text-lg-start">
         <h1 class="breed-hero-title">{{ breed.name }}</h1>
-        <p class="breed-hero-subtitle">Learn about the {{ breed.name }} breed – temperament, grooming, and personality!</p>
-        <div class="breed-hero-badges d-flex flex-wrap justify-content-center justify-content-lg-start gap-3 mt-3">
-          <div class="trait-badge">
-            <i class="fas fa-ruler-combined text-primary"></i>
-            <span class="trait-label">Size</span>
-            <span class="trait-value">{{ breed.size }}</span>
+        <p class="breed-hero-subtitle">
+          Discover everything about the {{ breed.name }} breed – from temperament and care needs to health and lifestyle requirements. Make an informed decision with comprehensive breed information.
+        </p>
+        
+        <!-- Quick Stats -->
+        <div class="quick-stats">
+          <div class="stat-box">
+            <div class="stat-icon"><i class="fas fa-ruler-combined"></i></div>
+            <div class="stat-content">
+              <span class="stat-label">Size</span>
+              <span class="stat-value">{{ breed.size }}</span>
+            </div>
           </div>
-          <div class="trait-badge">
-            <i class="fas fa-heartbeat text-danger"></i>
-            <span class="trait-label">Life Span</span>
-            <span class="trait-value">{{ breed.life_span }}</span>
+          <div class="stat-box">
+            <div class="stat-icon"><i class="fas fa-weight"></i></div>
+            <div class="stat-content">
+              <span class="stat-label">Weight</span>
+              <span class="stat-value">{{ breed.weight }}</span>
+            </div>
           </div>
-          <div class="trait-badge">
-            <i class="fas fa-child text-success"></i>
-            <span class="trait-label">Good with Kids</span>
-            <span class="trait-value">{% if breed.good_with_kids %}Yes{% else %}No{% endif %}</span>
+          <div class="stat-box">
+            <div class="stat-icon"><i class="fas fa-arrows-alt-v"></i></div>
+            <div class="stat-content">
+              <span class="stat-label">Height</span>
+              <span class="stat-value">{{ breed.height }}</span>
+            </div>
           </div>
+          <div class="stat-box">
+            <div class="stat-icon"><i class="fas fa-heartbeat"></i></div>
+            <div class="stat-content">
+              <span class="stat-label">Lifespan</span>
+              <span class="stat-value">{{ breed.life_span }}</span>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Action Buttons -->
+        <div class="hero-actions">
+          <a href="#characteristics" class="btn-primary-action">
+            <i class="fas fa-paw me-2"></i>View Characteristics
+          </a>
+          <a href="{% url 'breed_list' %}" class="btn-secondary-action">
+            <i class="fas fa-arrow-left me-2"></i>Back to All Breeds
+          </a>
         </div>
       </div>
     </div>
@@ -48,61 +96,689 @@
 </section>
 
 <!-- Main Content -->
-<section class="breed-main-content py-5">
+<article class="breed-main-content py-5">
   <div class="container">
 
-    <!-- Overview -->
-    <div class="breed-overview-section">
-      <h3 class="breed-overview-title">Breed Overview</h3>
-      <p class="breed-overview-text">{{ breed.overview }}</p>
-    </div>
+    <!-- Overview Section -->
+    <section class="breed-overview-section" id="overview">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fas fa-info-circle me-3"></i>Breed Overview
+        </h2>
+        <p class="section-subtitle">Get to know the {{ breed.name }}</p>
+      </div>
+      <div class="overview-content">
+        <p class="breed-overview-text">{{ breed.overview }}</p>
+      </div>
+    </section>
 
-    <!-- Trait Grid -->
-    <div class="row row-cols-1 row-cols-md-3 g-4 mb-5">
-      <div class="col">
-        <div class="breed-trait-card">
-          <h6 class="breed-trait-title">Energy Level</h6>
-          <p class="breed-trait-value">{{ breed.energy_level }}</p>
-        </div>
+    <!-- Characteristics Section -->
+    <section class="characteristics-section" id="characteristics">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fas fa-chart-bar me-3"></i>Breed Characteristics
+        </h2>
+        <p class="section-subtitle">Understanding the {{ breed.name }}'s traits and needs</p>
       </div>
-      <div class="col">
-        <div class="breed-trait-card">
-          <h6 class="breed-trait-title">Ease of Training</h6>
-          <p class="breed-trait-value">{{ breed.ease_of_training }}</p>
+      
+      <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4 mb-4">
+        <!-- Energy Level -->
+        <div class="col">
+          <div class="breed-trait-card">
+            <div class="trait-header">
+              <div class="trait-icon-circle">
+                <i class="fas fa-bolt"></i>
+              </div>
+              <h3 class="breed-trait-title">Energy Level</h3>
+            </div>
+            <div class="trait-meter">
+              <div class="trait-bar" data-level="{{ breed.energy_level|lower }}"></div>
+            </div>
+            <p class="breed-trait-value">{{ breed.energy_level }}</p>
+            <p class="trait-description">
+              {% if breed.energy_level == "High" %}
+                Highly active breed requiring regular vigorous exercise and mental stimulation.
+              {% elif breed.energy_level == "Low" %}
+                Calm and relaxed breed content with moderate activity levels.
+              {% else %}
+                Balanced energy requiring regular but moderate exercise.
+              {% endif %}
+            </p>
+          </div>
         </div>
-      </div>
-      <div class="col">
-        <div class="breed-trait-card">
-          <h6 class="breed-trait-title">Grooming Requirement</h6>
-          <p class="breed-trait-value">{{ breed.grooming_requirement }}</p>
-        </div>
-      </div>
-      <div class="col">
-        <div class="breed-trait-card">
-          <h6 class="breed-trait-title">Vocality</h6>
-          <p class="breed-trait-value">{{ breed.vocality }}</p>
-        </div>
-      </div>
-      <div class="col">
-        <div class="breed-trait-card">
-          <h6 class="breed-trait-title">Affection Needs</h6>
-          <p class="breed-trait-value">{{ breed.affection_needs }}</p>
-        </div>
-      </div>
-      <div class="col">
-        <div class="breed-trait-card">
-          <h6 class="breed-trait-title">Exercise Requirement</h6>
-          <p class="breed-trait-value">{{ breed.exercise_requirement }}</p>
-        </div>
-      </div>
-    </div>
 
-    <!-- CTA Section -->
-    <div class="breed-cta-section">
-      <h5 class="breed-cta-title">Looking for a {{ breed.name }}?</h5>
-      <a href="/pets/?breed={{ breed.slug }}" class="breed-cta-button">Find One Today</a>
-    </div>
+        <!-- Ease of Training -->
+        <div class="col">
+          <div class="breed-trait-card">
+            <div class="trait-header">
+              <div class="trait-icon-circle">
+                <i class="fas fa-graduation-cap"></i>
+              </div>
+              <h3 class="breed-trait-title">Ease of Training</h3>
+            </div>
+            <div class="trait-meter">
+              <div class="trait-bar" data-level="{{ breed.ease_of_training|lower }}"></div>
+            </div>
+            <p class="breed-trait-value">{{ breed.ease_of_training }}</p>
+            <p class="trait-description">
+              {% if breed.ease_of_training == "Easy" %}
+                Quick learners that respond well to positive reinforcement.
+              {% elif breed.ease_of_training == "Difficult" %}
+                May require experienced handling and patience during training.
+              {% else %}
+                Trainable with consistent, positive methods.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <!-- Grooming Requirement -->
+        <div class="col">
+          <div class="breed-trait-card">
+            <div class="trait-header">
+              <div class="trait-icon-circle">
+                <i class="fas fa-cut"></i>
+              </div>
+              <h3 class="breed-trait-title">Grooming Needs</h3>
+            </div>
+            <div class="trait-meter">
+              <div class="trait-bar" data-level="{{ breed.grooming_requirement|lower }}"></div>
+            </div>
+            <p class="breed-trait-value">{{ breed.grooming_requirement }}</p>
+            <p class="trait-description">
+              {% if breed.grooming_requirement == "High" %}
+                Regular professional grooming and daily brushing recommended.
+              {% elif breed.grooming_requirement == "Low" %}
+                Minimal grooming required, occasional brushing suffices.
+              {% else %}
+                Regular brushing and occasional professional grooming needed.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <!-- Vocality -->
+        <div class="col">
+          <div class="breed-trait-card">
+            <div class="trait-header">
+              <div class="trait-icon-circle">
+                <i class="fas fa-volume-up"></i>
+              </div>
+              <h3 class="breed-trait-title">Vocality</h3>
+            </div>
+            <div class="trait-meter">
+              <div class="trait-bar" data-level="{{ breed.vocality|lower }}"></div>
+            </div>
+            <p class="breed-trait-value">{{ breed.vocality }}</p>
+            <p class="trait-description">
+              {% if breed.vocality == "High" %}
+                Tends to bark frequently, may alert to noises and movements.
+              {% elif breed.vocality == "Low" %}
+                Quiet breed that rarely barks without good reason.
+              {% else %}
+                Moderate barker, typically vocal when necessary.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <!-- Affection Needs -->
+        <div class="col">
+          <div class="breed-trait-card">
+            <div class="trait-header">
+              <div class="trait-icon-circle">
+                <i class="fas fa-heart"></i>
+              </div>
+              <h3 class="breed-trait-title">Affection Needs</h3>
+            </div>
+            <div class="trait-meter">
+              <div class="trait-bar" data-level="{{ breed.affection_needs|lower }}"></div>
+            </div>
+            <p class="breed-trait-value">{{ breed.affection_needs|title }}</p>
+            <p class="trait-description">
+              {% if breed.affection_needs == "cuddly" %}
+                Loves close contact and thrives on human companionship.
+              {% elif breed.affection_needs == "independent" %}
+                More independent, comfortable with alone time.
+              {% else %}
+                Balanced temperament, enjoys affection without being clingy.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+
+        <!-- Exercise Requirement -->
+        <div class="col">
+          <div class="breed-trait-card">
+            <div class="trait-header">
+              <div class="trait-icon-circle">
+                <i class="fas fa-running"></i>
+              </div>
+              <h3 class="breed-trait-title">Exercise Needs</h3>
+            </div>
+            <div class="trait-meter">
+              <div class="trait-bar" data-level="{{ breed.exercise_requirement|lower }}"></div>
+            </div>
+            <p class="breed-trait-value">{{ breed.exercise_requirement }}</p>
+            <p class="trait-description">
+              {% if breed.exercise_requirement == "High" %}
+                Needs extensive daily exercise - multiple walks or active play.
+              {% elif breed.exercise_requirement == "Low" %}
+                Low exercise needs, short walks and indoor play sufficient.
+              {% else %}
+                Moderate daily exercise - regular walks and playtime.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Nutrition & Diet Section -->
+    <section class="nutrition-section" id="nutrition">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fas fa-utensils me-3"></i>Nutrition & Diet
+        </h2>
+        <p class="section-subtitle">Feeding guidelines for your {{ breed.name }}</p>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-lg-8">
+          <div class="info-box">
+            <h4 class="info-box-title"><i class="fas fa-drumstick-bite me-2"></i>Dietary Recommendations</h4>
+            <p class="info-text">
+              The {{ breed.name }} thrives on a high-quality, balanced diet appropriate for their size, age, and activity level. Choose dog food that lists real meat as the first ingredient and is specifically formulated for {{ breed.size|lower }} breeds.
+            </p>
+            
+            <div class="nutrition-tips">
+              <div class="nutrition-item">
+                <span class="nutrition-icon"><i class="fas fa-check-circle"></i></span>
+                <div>
+                  <strong>Protein:</strong> Essential for muscle development and maintenance. Look for 25-30% protein content in their food.
+                </div>
+              </div>
+              <div class="nutrition-item">
+                <span class="nutrition-icon"><i class="fas fa-check-circle"></i></span>
+                <div>
+                  <strong>Healthy Fats:</strong> Omega-3 and Omega-6 fatty acids support coat health and cognitive function.
+                </div>
+              </div>
+              <div class="nutrition-item">
+                <span class="nutrition-icon"><i class="fas fa-check-circle"></i></span>
+                <div>
+                  <strong>Fiber & Carbs:</strong> Provide energy and aid digestion. Whole grains, sweet potatoes, and vegetables are excellent sources.
+                </div>
+              </div>
+              <div class="nutrition-item">
+                <span class="nutrition-icon"><i class="fas fa-check-circle"></i></span>
+                <div>
+                  <strong>Vitamins & Minerals:</strong> Support immune system, bone health, and overall wellbeing.
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="col-lg-4">
+          <div class="feeding-guide">
+            <h4 class="feeding-title"><i class="fas fa-clock me-2"></i>Feeding Schedule</h4>
+            <div class="feeding-schedule">
+              <div class="feeding-time">
+                <span class="time-icon"><i class="fas fa-sun"></i></span>
+                <div>
+                  <strong>Puppies (2-12 months)</strong>
+                  <p>3-4 meals per day</p>
+                </div>
+              </div>
+              <div class="feeding-time">
+                <span class="time-icon"><i class="fas fa-dog"></i></span>
+                <div>
+                  <strong>Adults (1-7 years)</strong>
+                  <p>2 meals per day</p>
+                </div>
+              </div>
+              <div class="feeding-time">
+                <span class="time-icon"><i class="fas fa-heart"></i></span>
+                <div>
+                  <strong>Seniors (7+ years)</strong>
+                  <p>2 meals per day (senior formula)</p>
+                </div>
+              </div>
+            </div>
+            
+            <div class="feeding-alert">
+              <i class="fas fa-exclamation-triangle me-2"></i>
+              <small>Always provide fresh water and avoid feeding table scraps or toxic foods like chocolate, grapes, and onions.</small>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Care & Maintenance Section -->
+    <section class="care-section" id="care">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fas fa-hand-holding-heart me-3"></i>Care & Maintenance
+        </h2>
+        <p class="section-subtitle">Daily care essentials for your {{ breed.name }}</p>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-md-6 col-lg-3">
+          <div class="care-card">
+            <div class="care-icon">
+              <i class="fas fa-spa"></i>
+            </div>
+            <h4 class="care-title">Grooming</h4>
+            <p class="care-description">
+              {% if breed.grooming_requirement == "High" %}
+                Daily brushing required to prevent matting. Professional grooming every 6-8 weeks recommended for coat maintenance.
+              {% elif breed.grooming_requirement == "Low" %}
+                Weekly brushing sufficient. Occasional baths and nail trimming as needed. Minimal grooming requirements.
+              {% else %}
+                Brush 2-3 times weekly. Regular baths every 4-6 weeks. Trim nails monthly and check ears regularly.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="care-card">
+            <div class="care-icon">
+              <i class="fas fa-running"></i>
+            </div>
+            <h4 class="care-title">Exercise</h4>
+            <p class="care-description">
+              {% if breed.exercise_requirement == "High" %}
+                Requires 60-120 minutes of vigorous exercise daily. Perfect for running, hiking, and active play sessions.
+              {% elif breed.exercise_requirement == "Low" %}
+                Needs 20-30 minutes of gentle exercise daily. Short walks and light indoor play are usually sufficient.
+              {% else %}
+                Requires 30-60 minutes of moderate exercise daily. Regular walks, playtime, and mental stimulation recommended.
+              {% endif %}
+            </p>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="care-card">
+            <div class="care-icon">
+              <i class="fas fa-tooth"></i>
+            </div>
+            <h4 class="care-title">Dental Care</h4>
+            <p class="care-description">
+              Brush teeth 2-3 times weekly with dog-specific toothpaste. Provide dental chews and toys. Annual professional cleaning recommended by vet.
+            </p>
+          </div>
+        </div>
+        
+        <div class="col-md-6 col-lg-3">
+          <div class="care-card">
+            <div class="care-icon">
+              <i class="fas fa-stethoscope"></i>
+            </div>
+            <h4 class="care-title">Health Checks</h4>
+            <p class="care-description">
+              Annual vet checkups, regular vaccinations, and preventive care for parasites. Monitor for breed-specific health issues and maintain healthy weight.
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Fun Facts Section -->
+    <section class="fun-facts-section" id="fun-facts">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fas fa-star me-3"></i>Fun Facts About {{ breed.name }}
+        </h2>
+        <p class="section-subtitle">Interesting tidbits and breed trivia</p>
+      </div>
+      
+      <div class="fun-facts-container">
+        <div class="row g-4">
+          <div class="col-md-6 col-lg-4">
+            <div class="fact-card">
+              <div class="fact-number">1</div>
+              <div class="fact-icon"><i class="fas fa-globe"></i></div>
+              <h4 class="fact-title">Origin & History</h4>
+              <p class="fact-text">
+                The {{ breed.name }} has a rich heritage dating back centuries. Originally bred for specific purposes, this breed has evolved to become one of the most beloved companion animals worldwide.
+              </p>
+            </div>
+          </div>
+          
+          <div class="col-md-6 col-lg-4">
+            <div class="fact-card">
+              <div class="fact-number">2</div>
+              <div class="fact-icon"><i class="fas fa-brain"></i></div>
+              <h4 class="fact-title">Intelligence</h4>
+              <p class="fact-text">
+                {% if breed.ease_of_training == "Easy" %}
+                  Known for exceptional intelligence and problem-solving abilities. Ranks among the smartest dog breeds and excels in obedience training and learning new commands.
+                {% elif breed.ease_of_training == "Difficult" %}
+                  While intelligent, this breed has an independent nature. They think for themselves and may require creative training approaches and patience.
+                {% else %}
+                  Possesses good intelligence and learning ability. Responds well to consistent, positive training methods and can master various commands and tricks.
+                {% endif %}
+              </p>
+            </div>
+          </div>
+          
+          <div class="col-md-6 col-lg-4">
+            <div class="fact-card">
+              <div class="fact-number">3</div>
+              <div class="fact-icon"><i class="fas fa-award"></i></div>
+              <h4 class="fact-title">Special Talents</h4>
+              <p class="fact-text">
+                {{ breed.name }}s are known for their unique abilities and characteristics. Many excel in various canine sports, working roles, or simply as devoted family companions bringing joy to households.
+              </p>
+            </div>
+          </div>
+          
+          <div class="col-md-6 col-lg-4">
+            <div class="fact-card">
+              <div class="fact-number">4</div>
+              <div class="fact-icon"><i class="fas fa-users"></i></div>
+              <h4 class="fact-title">Popularity</h4>
+              <p class="fact-text">
+                This breed has gained significant popularity among dog lovers for their wonderful temperament, adaptability, and the special bond they form with their human families.
+              </p>
+            </div>
+          </div>
+          
+          <div class="col-md-6 col-lg-4">
+            <div class="fact-card">
+              <div class="fact-number">5</div>
+              <div class="fact-icon"><i class="fas fa-paw"></i></div>
+              <h4 class="fact-title">Unique Traits</h4>
+              <p class="fact-text">
+                The {{ breed.name }} possesses distinctive physical and behavioral characteristics that set them apart. From their appearance to their personality quirks, they're truly one-of-a-kind!
+              </p>
+            </div>
+          </div>
+          
+          <div class="col-md-6 col-lg-4">
+            <div class="fact-card">
+              <div class="fact-number">6</div>
+              <div class="fact-icon"><i class="fas fa-heart"></i></div>
+              <h4 class="fact-title">Perfect For</h4>
+              <p class="fact-text">
+                Whether you're looking for an active companion, a family guardian, or a loyal friend, the {{ breed.name }} can be an excellent match for the right owner who understands their needs.
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Health & Wellness Section -->
+    <section class="health-section" id="health">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fas fa-heartbeat me-3"></i>Health & Wellness
+        </h2>
+        <p class="section-subtitle">Keeping your {{ breed.name }} healthy and happy</p>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-lg-6">
+          <div class="health-card">
+            <h4 class="health-card-title">
+              <i class="fas fa-shield-alt me-2"></i>Common Health Considerations
+            </h4>
+            <p class="health-intro">
+              While {{ breed.name }}s are generally healthy dogs, being aware of potential health issues helps with early detection and prevention:
+            </p>
+            <ul class="health-list">
+              {% if breed.size == "Large" %}
+              <li><i class="fas fa-chevron-right me-2"></i><strong>Hip Dysplasia:</strong> Common in larger breeds. Maintain healthy weight and provide joint supplements.</li>
+              <li><i class="fas fa-chevron-right me-2"></i><strong>Bloat:</strong> Use slow-feed bowls and avoid exercise immediately after meals.</li>
+              {% elif breed.size == "Small" %}
+              <li><i class="fas fa-chevron-right me-2"></i><strong>Dental Issues:</strong> Small breeds are prone to dental problems. Regular teeth cleaning is essential.</li>
+              <li><i class="fas fa-chevron-right me-2"></i><strong>Patellar Luxation:</strong> Knee cap issues can occur. Monitor for limping or difficulty jumping.</li>
+              {% endif %}
+              <li><i class="fas fa-chevron-right me-2"></i><strong>Regular Checkups:</strong> Annual vet visits for early detection of potential issues.</li>
+              <li><i class="fas fa-chevron-right me-2"></i><strong>Vaccinations:</strong> Keep up-to-date with core vaccines and preventive medications.</li>
+              <li><i class="fas fa-chevron-right me-2"></i><strong>Weight Management:</strong> Obesity can lead to various health problems. Monitor food intake and exercise.</li>
+            </ul>
+          </div>
+        </div>
+        
+        <div class="col-lg-6">
+          <div class="health-card">
+            <h4 class="health-card-title">
+              <i class="fas fa-medkit me-2"></i>Preventive Care Tips
+            </h4>
+            <div class="preventive-care-list">
+              <div class="care-tip">
+                <div class="tip-icon"><i class="fas fa-syringe"></i></div>
+                <div class="tip-content">
+                  <strong>Vaccinations</strong>
+                  <p>Core vaccines (rabies, distemper, parvovirus) and optional vaccines based on lifestyle.</p>
+                </div>
+              </div>
+              
+              <div class="care-tip">
+                <div class="tip-icon"><i class="fas fa-bug"></i></div>
+                <div class="tip-content">
+                  <strong>Parasite Prevention</strong>
+                  <p>Monthly flea, tick, and heartworm prevention year-round for optimal protection.</p>
+                </div>
+              </div>
+              
+              <div class="care-tip">
+                <div class="tip-icon"><i class="fas fa-weight"></i></div>
+                <div class="tip-content">
+                  <strong>Weight Monitoring</strong>
+                  <p>Regular weigh-ins and body condition assessments to maintain ideal weight.</p>
+                </div>
+              </div>
+              
+              <div class="care-tip">
+                <div class="tip-icon"><i class="fas fa-dumbbell"></i></div>
+                <div class="tip-content">
+                  <strong>Exercise & Mental Stimulation</strong>
+                  <p>Regular physical activity and puzzle toys to keep body and mind healthy.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Training Tips Section -->
+    <section class="training-section" id="training">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fas fa-graduation-cap me-3"></i>Training & Socialization
+        </h2>
+        <p class="section-subtitle">Building a well-behaved and confident {{ breed.name }}</p>
+      </div>
+      
+      <div class="training-content">
+        <div class="row g-4 mb-4">
+          <div class="col-lg-4">
+            <div class="training-card">
+              <div class="training-icon">
+                <i class="fas fa-baby"></i>
+              </div>
+              <h4 class="training-card-title">Early Socialization</h4>
+              <p>Expose your {{ breed.name }} puppy to various people, animals, environments, and experiences during their critical socialization period (3-14 weeks). This builds confidence and prevents fearfulness.</p>
+            </div>
+          </div>
+          
+          <div class="col-lg-4">
+            <div class="training-card">
+              <div class="training-icon">
+                <i class="fas fa-thumbs-up"></i>
+              </div>
+              <h4 class="training-card-title">Positive Reinforcement</h4>
+              <p>Use rewards-based training with treats, praise, and play. {{ breed.name }}s respond best to positive methods rather than punishment or harsh corrections.</p>
+            </div>
+          </div>
+          
+          <div class="col-lg-4">
+            <div class="training-card">
+              <div class="training-icon">
+                <i class="fas fa-redo"></i>
+              </div>
+              <h4 class="training-card-title">Consistency is Key</h4>
+              <p>Establish clear rules and boundaries from day one. All family members should use the same commands and reward good behavior consistently.</p>
+            </div>
+          </div>
+        </div>
+        
+        <div class="training-essentials">
+          <h4 class="essentials-title"><i class="fas fa-list-check me-2"></i>Essential Commands to Teach</h4>
+          <div class="row g-3">
+            <div class="col-md-6 col-lg-3">
+              <div class="command-item">
+                <i class="fas fa-check-circle me-2"></i>
+                <span>Sit</span>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="command-item">
+                <i class="fas fa-check-circle me-2"></i>
+                <span>Stay</span>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="command-item">
+                <i class="fas fa-check-circle me-2"></i>
+                <span>Come</span>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="command-item">
+                <i class="fas fa-check-circle me-2"></i>
+                <span>Down</span>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="command-item">
+                <i class="fas fa-check-circle me-2"></i>
+                <span>Leave It</span>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="command-item">
+                <i class="fas fa-check-circle me-2"></i>
+                <span>Drop It</span>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="command-item">
+                <i class="fas fa-check-circle me-2"></i>
+                <span>Heel</span>
+              </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+              <div class="command-item">
+                <i class="fas fa-check-circle me-2"></i>
+                <span>Wait</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Living Compatibility Section -->
+    <section class="compatibility-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="fas fa-home me-3"></i>Living Compatibility
+        </h2>
+        <p class="section-subtitle">Is the {{ breed.name }} right for your lifestyle?</p>
+      </div>
+      
+      <div class="row g-4">
+        <div class="col-md-6">
+          <div class="compatibility-card good-for">
+            <h3 class="compatibility-title">
+              <i class="fas fa-check-circle me-2"></i>Good For
+            </h3>
+            <ul class="compatibility-list">
+              {% if breed.good_with_kids %}
+              <li><i class="fas fa-child me-2"></i>Families with children</li>
+              {% endif %}
+              {% if breed.energy_level == "Low" or breed.energy_level == "Medium" %}
+              <li><i class="fas fa-couch me-2"></i>Apartment living</li>
+              {% endif %}
+              {% if breed.ease_of_training == "Easy" %}
+              <li><i class="fas fa-user-graduate me-2"></i>First-time dog owners</li>
+              {% endif %}
+              {% if breed.affection_needs == "cuddly" or breed.affection_needs == "balance" %}
+              <li><i class="fas fa-users me-2"></i>Companionship seekers</li>
+              {% endif %}
+              {% if breed.exercise_requirement == "High" %}
+              <li><i class="fas fa-hiking me-2"></i>Active individuals/families</li>
+              {% endif %}
+              {% if breed.vocality == "Low" %}
+              <li><i class="fas fa-building me-2"></i>Close-quartered living</li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+        
+        <div class="col-md-6">
+          <div class="compatibility-card consider">
+            <h3 class="compatibility-title">
+              <i class="fas fa-exclamation-triangle me-2"></i>Important Considerations
+            </h3>
+            <ul class="compatibility-list">
+              {% if not breed.good_with_kids %}
+              <li><i class="fas fa-child me-2"></i>May not be ideal for young children</li>
+              {% endif %}
+              {% if breed.energy_level == "High" %}
+              <li><i class="fas fa-bolt me-2"></i>Requires significant daily exercise</li>
+              {% endif %}
+              {% if breed.grooming_requirement == "High" %}
+              <li><i class="fas fa-cut me-2"></i>Regular professional grooming needed</li>
+              {% endif %}
+              {% if breed.ease_of_training == "Difficult" %}
+              <li><i class="fas fa-graduation-cap me-2"></i>Best suited for experienced owners</li>
+              {% endif %}
+              {% if breed.vocality == "High" %}
+              <li><i class="fas fa-volume-up me-2"></i>May bark frequently</li>
+              {% endif %}
+              {% if breed.affection_needs == "cuddly" %}
+              <li><i class="fas fa-clock me-2"></i>Needs lots of attention and company</li>
+              {% endif %}
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Educational CTA Section -->
+    <section class="breed-cta-section">
+      <div class="cta-icon">
+        <i class="fas fa-lightbulb"></i>
+      </div>
+      <h3 class="breed-cta-title">Ready to Learn More?</h3>
+      <p class="breed-cta-description">
+        Understanding breed characteristics is the first step to responsible pet ownership. Explore more breeds to find your perfect match, or visit our marketplace to connect with verified breeders and sellers.
+      </p>
+      <div class="cta-buttons">
+        <a href="{% url 'breed_list' %}" class="breed-cta-button primary">
+          <i class="fas fa-book me-2"></i>Explore More Breeds
+        </a>
+        <a href="{% url 'marketplace' %}" class="breed-cta-button secondary">
+          <i class="fas fa-store me-2"></i>Visit Marketplace
+        </a>
+      </div>
+      <p class="cta-disclaimer">
+        <i class="fas fa-info-circle me-2"></i>
+        Always research thoroughly and consider adoption from shelters or rescue organizations.
+      </p>
+    </section>
 
   </div>
-</section>
+</article>
 {% endblock %}

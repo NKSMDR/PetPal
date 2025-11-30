@@ -43,29 +43,135 @@ class RejectedPet(Pet):
         verbose_name_plural = "└─ Rejected Pets"
 
 class BreedAdmin(admin.ModelAdmin):
-    list_display = ['name', 'size', 'life_span', 'good_with_kids', 'energy_level', 'image_preview', 'view_detail']
-    list_filter = ['size', 'good_with_kids', 'energy_level', 'ease_of_training', 'grooming_requirement']
-    search_fields = ['name', 'overview']
+    list_display = ['name', 'size', 'life_span', 'good_with_kids', 'energy_level', 'completion_badge', 'image_preview', 'view_detail']
+    list_filter = ['size', 'good_with_kids', 'energy_level', 'ease_of_training', 'grooming_requirement', 'first_time_owner_friendly']
+    search_fields = ['name', 'overview', 'origin_country', 'breed_history']
     prepopulated_fields = {'slug': ('name',)}
-    readonly_fields = ['image_preview']
+    readonly_fields = ['image_preview', 'content_completion']
     
     fieldsets = (
-        ('Basic Information', {
-            'fields': ('name', 'slug', 'image', 'image_preview', 'overview')
+        ('🐕 Basic Information', {
+            'fields': ('name', 'slug', 'image', 'image_preview', 'overview'),
+            'description': 'Essential breed information and primary description'
         }),
-        ('Physical Characteristics', {
-            'fields': ('size', 'weight', 'height', 'life_span')
+        ('📏 Physical Characteristics', {
+            'fields': ('size', 'weight', 'height', 'life_span', 'coat_type', 'shedding_level'),
+            'description': 'Physical attributes and appearance details'
         }),
-        ('Behavioral Traits', {
-            'fields': ('energy_level', 'ease_of_training', 'grooming_requirement', 'vocality', 'affection_needs', 'exercise_requirement')
+        ('🎯 Behavioral Traits', {
+            'fields': ('energy_level', 'ease_of_training', 'grooming_requirement', 'vocality', 'affection_needs', 'exercise_requirement'),
+            'description': 'Key personality and behavioral characteristics'
         }),
-        ('Family Compatibility', {
-            'fields': ('good_with_kids',)
+        ('👨‍👩‍👧‍👦 Compatibility', {
+            'fields': ('good_with_kids', 'good_with_other_dogs', 'good_with_cats', 'good_with_strangers', 'first_time_owner_friendly'),
+            'description': 'Social compatibility and family suitability'
         }),
-        ('Care Requirements', {
-            'fields': ('exercise', 'grooming')
+        ('🌍 Origin & History', {
+            'fields': ('origin_country', 'original_purpose', 'breed_history'),
+            'classes': ('collapse',),
+            'description': 'Historical background and breed development'
+        }),
+        ('⭐ Fun Facts (6 Facts)', {
+            'fields': ('fun_fact_1', 'fun_fact_2', 'fun_fact_3', 'fun_fact_4', 'fun_fact_5', 'fun_fact_6'),
+            'classes': ('collapse',),
+            'description': 'Interesting and engaging breed trivia - customize each fact for educational value'
+        }),
+        ('🍖 Nutrition & Diet', {
+            'fields': ('diet_recommendations', 'feeding_notes'),
+            'classes': ('collapse',),
+            'description': 'Dietary requirements and feeding guidelines'
+        }),
+        ('💊 Health Information', {
+            'fields': ('common_health_issues', 'genetic_conditions', 'health_screening'),
+            'classes': ('collapse',),
+            'description': 'Common health concerns and preventive care recommendations'
+        }),
+        ('✂️ Grooming & Care', {
+            'fields': ('grooming_details', 'exercise_details', 'mental_stimulation'),
+            'classes': ('collapse',),
+            'description': 'Detailed care requirements and maintenance needs'
+        }),
+        ('🎓 Training & Temperament', {
+            'fields': ('training_tips', 'socialization_needs', 'temperament_description', 'behavior_traits'),
+            'classes': ('collapse',),
+            'description': 'Training methods and personality insights'
+        }),
+        ('🏠 Living Conditions', {
+            'fields': ('ideal_home', 'climate_tolerance', 'special_considerations'),
+            'classes': ('collapse',),
+            'description': 'Housing requirements and environmental preferences'
+        }),
+        ('⚙️ Legacy Fields', {
+            'fields': ('exercise', 'grooming'),
+            'classes': ('collapse',),
+            'description': 'Old fields - kept for backwards compatibility'
+        }),
+        ('📊 Content Status', {
+            'fields': ('content_completion',),
+            'classes': ('collapse',),
+            'description': 'View completion status of detailed information'
         })
     )
+    
+    def completion_badge(self, obj):
+        """Show if detailed information is complete"""
+        fields_to_check = [
+            obj.breed_history, obj.fun_fact_1, obj.fun_fact_2, 
+            obj.diet_recommendations, obj.common_health_issues,
+            obj.grooming_details, obj.training_tips
+        ]
+        filled = sum(1 for field in fields_to_check if field)
+        total = len(fields_to_check)
+        percentage = (filled / total) * 100
+        
+        if percentage >= 80:
+            color = '#28a745'
+            text = '✓ Complete'
+        elif percentage >= 50:
+            color = '#ffc107'
+            text = '⚠ Partial'
+        else:
+            color = '#dc3545'
+            text = '✗ Incomplete'
+        
+        return format_html(
+            '<span style="background: {}; color: white; padding: 3px 10px; border-radius: 12px; font-size: 11px; font-weight: bold;">{}</span>',
+            color, text
+        )
+    completion_badge.short_description = "Detail Status"
+    
+    def content_completion(self, obj):
+        """Show detailed completion status"""
+        sections = {
+            'Origin & History': bool(obj.breed_history and obj.origin_country),
+            'Fun Facts': bool(obj.fun_fact_1 and obj.fun_fact_2 and obj.fun_fact_3),
+            'Nutrition': bool(obj.diet_recommendations),
+            'Health Info': bool(obj.common_health_issues),
+            'Grooming Details': bool(obj.grooming_details),
+            'Training Tips': bool(obj.training_tips),
+            'Temperament': bool(obj.temperament_description),
+            'Living Conditions': bool(obj.ideal_home)
+        }
+        
+        html = '<div style="padding: 10px; background: #f8f9fa; border-radius: 8px;">'
+        html += '<h4 style="margin-top: 0;">Content Completion Checklist:</h4>'
+        html += '<ul style="list-style: none; padding: 0;">'
+        
+        for section, completed in sections.items():
+            icon = '✅' if completed else '❌'
+            color = '#28a745' if completed else '#dc3545'
+            html += f'<li style="padding: 5px 0; color: {color};"><strong>{icon} {section}</strong></li>'
+        
+        completed_count = sum(sections.values())
+        total_count = len(sections)
+        percentage = (completed_count / total_count) * 100
+        
+        html += '</ul>'
+        html += f'<p style="margin-bottom: 0;"><strong>Overall: {completed_count}/{total_count} sections complete ({percentage:.0f}%)</strong></p>'
+        html += '</div>'
+        
+        return format_html(html)
+    content_completion.short_description = "Completion Status"
     
     def image_preview(self, obj):
         if obj.image:

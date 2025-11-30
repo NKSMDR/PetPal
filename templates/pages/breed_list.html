@@ -123,29 +123,116 @@
       </div>
     </form>
 
+    <!-- Results Summary Bar -->
+    <div class="results-summary">
+      <div class="results-info">
+        <i class="fas fa-paw me-2"></i>
+        <span>Showing <strong>{{ breeds.count }}</strong> breed{{ breeds.count|pluralize }}</span>
+      </div>
+    </div>
+
     <!-- Breed Cards Grid -->
     <div class="row g-4 breeds-grid">
       {% for breed in breeds %}
       <div class="col-lg-4 col-md-6">
-        <div class="breed-card">
-          <img src="{{ breed.image.url }}" class="breed-card-img w-100" alt="{{ breed.name }}">
+        <article class="breed-card" role="article" aria-label="{{ breed.name }} breed information">
+          <div class="breed-card-image-wrapper">
+            <img 
+              src="{{ breed.image.url }}" 
+              class="breed-card-img" 
+              alt="{{ breed.name }} dog breed"
+              loading="lazy"
+            >
+            <div class="breed-card-overlay">
+              <span class="breed-size-badge">{{ breed.size }}</span>
+            </div>
+          </div>
           <div class="breed-card-body">
-            <h5 class="breed-name">{{ breed.name }}</h5>
-            <p class="breed-meta">Size: {{ breed.size }} | Lifespan: {{ breed.life_span }}</p>
-            <p class="breed-description">{{ breed.overview|truncatewords:20 }}</p>
-            <a href="{% url 'breed_detail' breed.slug %}" class="btn-details">
-              <i class="fas fa-info-circle me-2"></i>View Details
+            <h3 class="breed-name">{{ breed.name }}</h3>
+            
+            <!-- Key Characteristics -->
+            <div class="breed-traits">
+              <div class="trait-item" title="Size">
+                <i class="fas fa-ruler-vertical"></i>
+                <span>{{ breed.size }}</span>
+              </div>
+              <div class="trait-item" title="Lifespan">
+                <i class="fas fa-clock"></i>
+                <span>{{ breed.life_span }}</span>
+              </div>
+              <div class="trait-item" title="Energy Level">
+                <i class="fas fa-bolt"></i>
+                <span>{{ breed.energy_level }}</span>
+              </div>
+            </div>
+
+            <!-- Additional Traits -->
+            <div class="breed-characteristics">
+              <span class="char-badge" title="Training difficulty">
+                <i class="fas fa-graduation-cap me-1"></i>{{ breed.ease_of_training }}
+              </span>
+              {% if breed.good_with_kids %}
+              <span class="char-badge kid-friendly" title="Good with kids">
+                <i class="fas fa-child me-1"></i>Kid Friendly
+              </span>
+              {% endif %}
+            </div>
+
+            <p class="breed-description">{{ breed.overview|truncatewords:15 }}</p>
+            
+            <a href="{% url 'breed_detail' breed.slug %}" class="btn-learn-more">
+              <i class="fas fa-book-open me-2"></i>Learn More About {{ breed.name }}
             </a>
+          </div>
+        </article>
+      </div>
+      {% empty %}
+      <div class="col-12">
+        <div class="no-results">
+          <div class="no-results-icon">
+            <i class="fas fa-search"></i>
+          </div>
+          <h3>No Breeds Found</h3>
+          <p>We couldn't find any breeds matching your criteria. Try adjusting your filters or search term.</p>
+          <a href="{% url 'breed_list' %}" class="btn-reset-inline">
+            <i class="fas fa-redo me-2"></i>View All Breeds
+          </a>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+
+    <!-- Educational Footer Section -->
+    <div class="breed-footer-info">
+      <div class="row g-4">
+        <div class="col-md-4">
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i class="fas fa-book"></i>
+            </div>
+            <h4>Comprehensive Information</h4>
+            <p>Each breed profile includes detailed information about temperament, care requirements, health considerations, and more.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i class="fas fa-users"></i>
+            </div>
+            <h4>Find Your Match</h4>
+            <p>Use our filters to discover breeds that align with your lifestyle, experience level, and family situation.</p>
+          </div>
+        </div>
+        <div class="col-md-4">
+          <div class="info-card">
+            <div class="info-card-icon">
+              <i class="fas fa-heart"></i>
+            </div>
+            <h4>Make Informed Decisions</h4>
+            <p>Learn about each breed's unique needs before making a commitment. Knowledge leads to happier pets and owners.</p>
           </div>
         </div>
       </div>
-      {% empty %}
-      <div class="col-12 no-results">
-        <div class="no-results-icon">🐕</div>
-        <h3>No Breeds Found</h3>
-        <p>Try adjusting your filters to find the perfect breed for you.</p>
-      </div>
-      {% endfor %}
     </div>
 
   </div>
