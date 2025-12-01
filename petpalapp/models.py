@@ -40,11 +40,11 @@ class Breed(models.Model):
 
     # General Info
     life_span = models.CharField(max_length=30, default='10-12 years')
-    size = models.CharField(max_length=20, default='Medium')  # Small, Medium, Large
-    weight = models.CharField(max_length=20, default='Unknown')
-    height = models.CharField(max_length=20, default='Unknown')
-    exercise  = models.CharField(max_length=20, default='Unknown')
-    grooming= models.CharField(max_length=20,default='unknown')
+    size = models.CharField(max_length=50, default='Medium')  # Small, Medium, Large
+    weight = models.CharField(max_length=50, default='Unknown')
+    height = models.CharField(max_length=50, default='Unknown')
+    exercise  = models.CharField(max_length=50, default='Unknown')
+    grooming= models.CharField(max_length=50,default='unknown')
 
     overview = models.TextField(default='No overview available at this time.')
     good_with_kids = models.BooleanField(default=True)
@@ -83,8 +83,8 @@ class Breed(models.Model):
     
     # Care & Grooming Details
     grooming_details = models.TextField(blank=True, default='', help_text='Detailed grooming requirements and schedule')
-    coat_type = models.CharField(max_length=100, blank=True, default='', help_text='Type of coat (e.g., Double coat, Wire-haired, Curly)')
-    shedding_level = models.CharField(max_length=20, blank=True, default='', help_text='Low, Moderate, or High')
+    coat_type = models.CharField(max_length=150, blank=True, default='', help_text='Type of coat (e.g., Double coat, Wire-haired, Curly)')
+    shedding_level = models.CharField(max_length=100, blank=True, default='', help_text='Low, Moderate, or High')
     
     # Exercise & Activity
     exercise_details = models.TextField(blank=True, default='', help_text='Specific exercise needs and activity recommendations')
@@ -100,7 +100,7 @@ class Breed(models.Model):
     
     # Living Conditions
     ideal_home = models.TextField(blank=True, default='', help_text='Ideal living environment (apartment, house with yard, etc.)')
-    climate_tolerance = models.CharField(max_length=100, blank=True, default='', help_text='Climate preferences (e.g., Cold tolerant, Heat sensitive)')
+    climate_tolerance = models.CharField(max_length=250, blank=True, default='', help_text='Climate preferences (e.g., Cold tolerant, Heat sensitive)')
     
     # Compatibility
     good_with_other_dogs = models.BooleanField(default=True, help_text='Generally good with other dogs')
