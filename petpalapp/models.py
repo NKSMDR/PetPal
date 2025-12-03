@@ -141,8 +141,16 @@ class Accessory(models.Model):
         if not self.slug:
             self.slug = slugify(self.name)
         super().save(*args, **kwargs)
+    
     def is_discounted(self):
         return self.original_price and self.original_price > self.price
+    
+    def get_discount_percentage(self):
+        """Calculate correct discount percentage"""
+        if self.is_discounted():
+            discount = ((self.original_price - self.price) / self.original_price) * 100
+            return int(round(discount))
+        return 0
     
     def is_in_stock(self):
         """Check if item is in stock"""

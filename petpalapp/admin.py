@@ -228,10 +228,9 @@ class AccessoryAdmin(admin.ModelAdmin):
     
     def discount_badge(self, obj):
         if obj.is_discounted():
-            discount_percent = int(((obj.original_price - obj.price) / obj.original_price) * 100)
             return format_html(
                 '<span style="background: #e74c3c; color: white; padding: 2px 6px; border-radius: 3px; font-size: 11px;">{}% OFF</span>',
-                discount_percent
+                obj.get_discount_percentage()
             )
         return ""
     discount_badge.short_description = "Discount"
@@ -239,10 +238,9 @@ class AccessoryAdmin(admin.ModelAdmin):
     def discount_info(self, obj):
         if obj.is_discounted():
             discount_amount = obj.original_price - obj.price
-            discount_percent = int(((obj.original_price - obj.price) / obj.original_price) * 100)
             return format_html(
                 '<div style="color: #27ae60; font-weight: bold;">Discount: NRS {} ({}% off)</div>',
-                discount_amount, discount_percent
+                discount_amount, obj.get_discount_percentage()
             )
         return "No discount applied"
     discount_info.short_description = "Discount Information"
@@ -634,137 +632,139 @@ class ListingPriceAdmin(admin.ModelAdmin):
         super().save_model(request, obj, form, change)
 
 
-# Homepage Customization Admin
-@admin.register(HeroSection)
-class HeroSectionAdmin(admin.ModelAdmin):
-    list_display = ['title', 'is_active', 'order', 'image_preview', 'updated_at']
-    list_editable = ['is_active', 'order']
-    list_filter = ['is_active', 'created_at']
-    search_fields = ['title', 'subtitle']
-    readonly_fields = ['image_preview', 'created_at', 'updated_at']
-    
-    fieldsets = (
-        ('Content', {
-            'fields': ('title', 'subtitle', 'cta_text', 'cta_link')
-        }),
-        ('Image', {
-            'fields': ('background_image', 'image_preview')
-        }),
-        ('Settings', {
-            'fields': ('is_active', 'order')
-        }),
-        ('Timestamps', {
-            'fields': ('created_at', 'updated_at'),
-            'classes': ('collapse',)
-        })
-    )
-    
-    def image_preview(self, obj):
-        if obj.background_image:
-            return format_html('<img src="{}" style="max-width: 300px; max-height: 150px; border-radius: 8px;" />', obj.background_image.url)
-        return "No Image"
-    image_preview.short_description = "Preview"
+# Homepage Customization Admin - DISABLED
+# Uncomment these sections when you want to enable homepage customization
+
+# @admin.register(HeroSection)
+# class HeroSectionAdmin(admin.ModelAdmin):
+#     list_display = ['title', 'is_active', 'order', 'image_preview', 'updated_at']
+#     list_editable = ['is_active', 'order']
+#     list_filter = ['is_active', 'created_at']
+#     search_fields = ['title', 'subtitle']
+#     readonly_fields = ['image_preview', 'created_at', 'updated_at']
+#     
+#     fieldsets = (
+#         ('Content', {
+#             'fields': ('title', 'subtitle', 'cta_text', 'cta_link')
+#         }),
+#         ('Image', {
+#             'fields': ('background_image', 'image_preview')
+#         }),
+#         ('Settings', {
+#             'fields': ('is_active', 'order')
+#         }),
+#         ('Timestamps', {
+#             'fields': ('created_at', 'updated_at'),
+#             'classes': ('collapse',)
+#         })
+#     )
+#     
+#     def image_preview(self, obj):
+#         if obj.background_image:
+#             return format_html('<img src="{}" style="max-width: 300px; max-height: 150px; border-radius: 8px;" />', obj.background_image.url)
+#         return "No Image"
+#     image_preview.short_description = "Preview"
 
 
-@admin.register(FeatureCard)
-class FeatureCardAdmin(admin.ModelAdmin):
-    list_display = ['title', 'icon', 'is_active', 'order', 'has_link']
-    list_editable = ['is_active', 'order']
-    list_filter = ['is_active', 'created_at']
-    search_fields = ['title', 'description']
-    readonly_fields = ['image_preview']
-    
-    fieldsets = (
-        ('Content', {
-            'fields': ('title', 'description', 'link')
-        }),
-        ('Visual', {
-            'fields': ('icon', 'image', 'image_preview'),
-            'description': 'Use either an icon OR an image'
-        }),
-        ('Settings', {
-            'fields': ('is_active', 'order')
-        })
-    )
-    
-    def image_preview(self, obj):
-        if obj.image:
-            return format_html('<img src="{}" style="max-width: 100px; max-height: 100px; border-radius: 8px;" />', obj.image.url)
-        return "Using icon instead"
-    image_preview.short_description = "Image Preview"
-    
-    def has_link(self, obj):
-        return "✓" if obj.link else "✗"
-    has_link.short_description = "Has Link"
+# @admin.register(FeatureCard)
+# class FeatureCardAdmin(admin.ModelAdmin):
+#     list_display = ['title', 'icon', 'is_active', 'order', 'has_link']
+#     list_editable = ['is_active', 'order']
+#     list_filter = ['is_active', 'created_at']
+#     search_fields = ['title', 'description']
+#     readonly_fields = ['image_preview']
+#     
+#     fieldsets = (
+#         ('Content', {
+#             'fields': ('title', 'description', 'link')
+#         }),
+#         ('Visual', {
+#             'fields': ('icon', 'image', 'image_preview'),
+#             'description': 'Use either an icon OR an image'
+#         }),
+#         ('Settings', {
+#             'fields': ('is_active', 'order')
+#         })
+#     )
+#     
+#     def image_preview(self, obj):
+#         if obj.image:
+#             return format_html('<img src="{}" style="max-width: 100px; max-height: 100px; border-radius: 8px;" />', obj.image.url)
+#         return "Using icon instead"
+#     image_preview.short_description = "Image Preview"
+#     
+#     def has_link(self, obj):
+#         return "✓" if obj.link else "✗"
+#     has_link.short_description = "Has Link"
 
 
-@admin.register(Testimonial)
-class TestimonialAdmin(admin.ModelAdmin):
-    list_display = ['customer_name', 'rating_stars', 'location', 'is_active', 'order']
-    list_editable = ['is_active', 'order']
-    list_filter = ['is_active', 'rating', 'created_at']
-    search_fields = ['customer_name', 'testimonial_text', 'location']
-    readonly_fields = ['image_preview']
-    
-    fieldsets = (
-        ('Customer Info', {
-            'fields': ('customer_name', 'location', 'customer_image', 'image_preview')
-        }),
-        ('Testimonial', {
-            'fields': ('rating', 'testimonial_text')
-        }),
-        ('Settings', {
-            'fields': ('is_active', 'order')
-        })
-    )
-    
-    def image_preview(self, obj):
-        if obj.customer_image:
-            return format_html('<img src="{}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" />', obj.customer_image.url)
-        return "No Image"
-    image_preview.short_description = "Photo"
-    
-    def rating_stars(self, obj):
-        stars = '⭐' * obj.rating
-        return format_html('<span style="font-size: 18px;">{}</span>', stars)
-    rating_stars.short_description = "Rating"
+# @admin.register(Testimonial)
+# class TestimonialAdmin(admin.ModelAdmin):
+#     list_display = ['customer_name', 'rating_stars', 'location', 'is_active', 'order']
+#     list_editable = ['is_active', 'order']
+#     list_filter = ['is_active', 'rating', 'created_at']
+#     search_fields = ['customer_name', 'testimonial_text', 'location']
+#     readonly_fields = ['image_preview']
+#     
+#     fieldsets = (
+#         ('Customer Info', {
+#             'fields': ('customer_name', 'location', 'customer_image', 'image_preview')
+#         }),
+#         ('Testimonial', {
+#             'fields': ('rating', 'testimonial_text')
+#         }),
+#         ('Settings', {
+#             'fields': ('is_active', 'order')
+#         })
+#     )
+#     
+#     def image_preview(self, obj):
+#         if obj.customer_image:
+#             return format_html('<img src="{}" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" />', obj.customer_image.url)
+#         return "No Image"
+#     image_preview.short_description = "Photo"
+#     
+#     def rating_stars(self, obj):
+#         stars = '⭐' * obj.rating
+#         return format_html('<span style="font-size: 18px;">{}</span>', stars)
+#     rating_stars.short_description = "Rating"
 
 
-@admin.register(HomePageSettings)
-class HomePageSettingsAdmin(admin.ModelAdmin):
-    list_display = ['site_name', 'tagline', 'show_featured_pets', 'show_testimonials', 'show_features', 'updated_at']
-    readonly_fields = ['updated_at', 'image_preview']
-    
-    fieldsets = (
-        ('Site Branding', {
-            'fields': ('site_name', 'tagline')
-        }),
-        ('About Section', {
-            'fields': ('about_section_title', 'about_section_text', 'about_image', 'image_preview')
-        }),
-        ('Section Visibility', {
-            'fields': ('show_featured_pets', 'show_testimonials', 'show_features'),
-            'description': 'Toggle which sections appear on the homepage'
-        }),
-        ('Last Updated', {
-            'fields': ('updated_at',),
-            'classes': ('collapse',)
-        })
-    )
-    
-    def image_preview(self, obj):
-        if obj.about_image:
-            return format_html('<img src="{}" style="max-width: 300px; max-height: 200px; border-radius: 8px;" />', obj.about_image.url)
-        return "No Image"
-    image_preview.short_description = "About Image Preview"
-    
-    def has_add_permission(self, request):
-        # Only allow one homepage settings instance
-        return not HomePageSettings.objects.exists()
-    
-    def has_delete_permission(self, request, obj=None):
-        # Prevent deletion of homepage settings
-        return False
+# @admin.register(HomePageSettings)
+# class HomePageSettingsAdmin(admin.ModelAdmin):
+#     list_display = ['site_name', 'tagline', 'show_featured_pets', 'show_testimonials', 'show_features', 'updated_at']
+#     readonly_fields = ['updated_at', 'image_preview']
+#     
+#     fieldsets = (
+#         ('Site Branding', {
+#             'fields': ('site_name', 'tagline')
+#         }),
+#         ('About Section', {
+#             'fields': ('about_section_title', 'about_section_text', 'about_image', 'image_preview')
+#         }),
+#         ('Section Visibility', {
+#             'fields': ('show_featured_pets', 'show_testimonials', 'show_features'),
+#             'description': 'Toggle which sections appear on the homepage'
+#         }),
+#         ('Last Updated', {
+#             'fields': ('updated_at',),
+#             'classes': ('collapse',)
+#         })
+#     )
+#     
+#     def image_preview(self, obj):
+#         if obj.about_image:
+#             return format_html('<img src="{}" style="max-width: 300px; max-height: 200px; border-radius: 8px;" />', obj.about_image.url)
+#         return "No Image"
+#     image_preview.short_description = "About Image Preview"
+#     
+#     def has_add_permission(self, request):
+#         # Only allow one homepage settings instance
+#         return not HomePageSettings.objects.exists()
+#     
+#     def has_delete_permission(self, request, obj=None):
+#         # Prevent deletion of homepage settings
+#         return False
 
 
 # Customize admin site headers
