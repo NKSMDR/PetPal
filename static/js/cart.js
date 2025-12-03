@@ -2,13 +2,12 @@
 (function () {
     'use strict';
 
- // Cart storage key - make it user-specific
-function getCartStorageKey() {
-    var userId = document.body.getAttribute('data-user-id') || 'anonymous';
-    return 'petstore_cart_' + userId;
-}
+    // Cart storage key - make it user-specific (function, not variable)
+    function getCartStorageKey() {
+        var userId = document.body.getAttribute('data-user-id') || 'anonymous';
+        return 'petstore_cart_' + userId;
+    }
 
-var CART_STORAGE_KEY = getCartStorageKey();
     var MAX_QUANTITY = 99;
     var MIN_QUANTITY = 1;
 
@@ -76,7 +75,7 @@ var CART_STORAGE_KEY = getCartStorageKey();
             }
 
             try {
-                var cart = localStorage.getItem(CART_STORAGE_KEY);
+                var cart = localStorage.getItem(getCartStorageKey());
                 var parsedCart = cart ? JSON.parse(cart) : [];
 
                 // Validate and normalize cart items
@@ -93,7 +92,7 @@ var CART_STORAGE_KEY = getCartStorageKey();
             } catch (e) {
                 console.error('Error reading cart from localStorage:', e);
                 // Clear corrupted cart data
-                localStorage.removeItem(CART_STORAGE_KEY);
+                localStorage.removeItem(getCartStorageKey());
                 return [];
             }
         },
@@ -124,7 +123,7 @@ var CART_STORAGE_KEY = getCartStorageKey();
                     return true;
                 });
 
-                localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(normalizedCart));
+                localStorage.setItem(getCartStorageKey(), JSON.stringify(normalizedCart));
                 this.updateCartCounter();
                 return true;
             } catch (e) {
@@ -311,7 +310,7 @@ var CART_STORAGE_KEY = getCartStorageKey();
             }
 
             try {
-                localStorage.removeItem(CART_STORAGE_KEY);
+                localStorage.removeItem(getCartStorageKey());
                 // Also sync with Django backend
                 this.syncWithBackend();
                 this.updateCartCounter();
@@ -471,7 +470,7 @@ var CART_STORAGE_KEY = getCartStorageKey();
 
     // Listen for storage events (cross-tab sync)
     window.addEventListener('storage', function (e) {
-        if (e.key === CART_STORAGE_KEY) {
+        if (e.key === getCartStorageKey()) {
             CartManager.updateCartCounter();
         }
     });

@@ -1200,6 +1200,9 @@ def payment_success(request, transaction_id):
             user_cart = get_or_create_cart(request)
             purchased_cart_item_ids = request.session.get('purchased_cart_items', [])
             
+            print(f"🔍 DEBUG: User cart exists: {user_cart is not None}")
+            print(f"🔍 DEBUG: Purchased cart item IDs from session: {purchased_cart_item_ids}")
+            
             if user_cart and purchased_cart_item_ids:
                 # Delete only the cart items that were purchased
                 deleted_count = user_cart.items.filter(id__in=purchased_cart_item_ids).delete()
@@ -1207,6 +1210,10 @@ def payment_success(request, transaction_id):
                 
                 # Clear session
                 request.session.pop('purchased_cart_items', None)
+            elif user_cart and not purchased_cart_item_ids:
+                print(f"⚠️ WARNING: No purchased_cart_items in session - cannot remove from database cart")
+            elif not user_cart:
+                print(f"⚠️ WARNING: User cart not found")
             
             # Show warning if there were stock errors
             if stock_errors:
@@ -1225,7 +1232,7 @@ def payment_success(request, transaction_id):
         context = {
             'order': order,
             'transaction': transaction,
-            'purchased_items': json.dumps(purchased_items),  # Convert to JSON string for template
+            'purchased_items':purchased_items,  # Pass as list, not JSON string
         }
         
         # Render the correct template path

@@ -593,5 +593,63 @@
             }, 300);
         }, 3000);
     }
+    
+// SYNC localStorage WITH DATABASE CART (removes purchased items automatically)
+(function() {
+    'use strict';
+    
+    console.log('🔄 SYNCING localStorage with database cart...');
+    
+    // Get database cart items from Django template
+    var databaseCartItems = [
+        {% for item in cart_items %}
+        {
+            id: '{{ item.product.id }}',
+            type: '{{ item.type }}',
+            name: '{{ item.product.name }}',
+            price: {{ item.product.price }},
+            image: '{{ item.product.image.url }}',
+            quantity: {{ item.qty }}
+        }{% if not forloop.last %},{% endif %}
+        {% endfor %}
+    ];
+    
+    console.log('📦 Database cart has', databaseCartItems.length, 'items:', databaseCartItems);
+    
+    // Get user ID and cart key
+    var userId = document.body.getAttribute('data-user-id') || 'anonymous';
+    var cartKey = 'petstore_cart_' + userId;
+    
+    console.log('🔑 Cart key:', cartKey);
+    
+    // Get current localStorage cart
+    var localStorageCartJson = localStorage.getItem(cartKey);
+    var localStorageCart = localStorageCartJson ? JSON.parse(localStorageCartJson) : [];
+    
+    console.log('💾 localStorage had', localStorageCart.length, 'items before sync');
+    
+    // FORCE localStorage to match database (this removes purchased items)
+    if (databaseCartItems.length > 0) {
+        localStorage.setItem(cartKey, JSON.stringify(databaseCartItems));
+        console.log('✅ localStorage UPDATED - now has', databaseCartItems.length, 'items');
+    } else {
+        localStorage.removeItem(cartKey);
+        console.log('✅ localStorage CLEARED (cart is empty)');
+    }
+    
+    // Update cart counter
+    if (typeof CartManager !== 'undefined' && typeof CartManager.updateCartCounter === 'function') {
+        setTimeout(function() {
+            CartManager.updateCartCounter();
+            console.log('✅ Cart counter updated');
+        }, 100);
+    }
+    
+    console.log('✅ SYNC COMPLETE - purchased items removed!');
+    
+    // Clear any cleanup flags
+    sessionStorage.removeItem('cart_cleaned');
+    sessionStorage.removeItem('just_purchased');
+})();
 </script>
 {% endblock %}
