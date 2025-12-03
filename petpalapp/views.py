@@ -725,17 +725,22 @@ def browse_pets(request):
     
     # Only show admin-added pets (not user-submitted ones)
     pets = Pet.objects.filter(is_user_submitted=False, status='available').select_related('breed')
-    breed = request.GET.get('breed')
-    age = request.GET.get('age')
-    size = request.GET.get('size')
-    search_query = request.GET.get('q')
+    
+    # Filter options
+    breed = request.GET.get('breed', '').strip()
+    age = request.GET.get('age', '').strip()
+    search_query = request.GET.get('q', '').strip()
+    min_price = request.GET.get('min_price', '').strip()
+    max_price = request.GET.get('max_price', '').strip()
 
+    # Apply filters with AND logic (all conditions must match)
     if breed:
-        pets = pets.filter(breed__name__iexact=breed)
+        pets = pets.filter(breed__name=breed)
+    
     if age:
-        pets = pets.filter(age__iexact=age)
-    if size:
-        pets = pets.filter(size__iexact=size)
+        pets = pets.filter(age__icontains=age)
+    
+    # Search query uses OR within itself (breed OR description OR city OR color)
     if search_query:
         pets = pets.filter(
             Q(breed__name__icontains=search_query) | 
@@ -743,6 +748,19 @@ def browse_pets(request):
             Q(city__icontains=search_query) |
             Q(color__icontains=search_query)
         )
+    
+    # Price filtering (AND logic with other filters)
+    if min_price:
+        try:
+            pets = pets.filter(price__gte=Decimal(min_price))
+        except (ValueError, InvalidOperation):
+            pass
+    
+    if max_price:
+        try:
+            pets = pets.filter(price__lte=Decimal(max_price))
+        except (ValueError, InvalidOperation):
+            pass
 
     # Pagination: 12 pets per page
     paginator = Paginator(pets, 12)
@@ -770,8 +788,9 @@ def browse_pets(request):
         'breeds': breeds,
         'breed_filter': breed,
         'age': age,
-        'size': size,
         'search_query': search_query,
+        'min_price': min_price,
+        'max_price': max_price,
         'wishlist_pet_ids': wishlist_pet_ids,
         'total_pets': paginator.count,
     }
@@ -897,38 +916,44 @@ def marketplace(request):
     ).order_by('-created_at')
     
     # Filter options
-    breed = request.GET.get('breed')
-    age = request.GET.get('age')
-    city = request.GET.get('city')
-    search_query = request.GET.get('q')
-    min_price = request.GET.get('min_price')
-    max_price = request.GET.get('max_price')
+    breed = request.GET.get('breed', '').strip()
+    age = request.GET.get('age', '').strip()
+    city = request.GET.get('city', '').strip()
+    search_query = request.GET.get('q', '').strip()
+    min_price = request.GET.get('min_price', '').strip()
+    max_price = request.GET.get('max_price', '').strip()
 
+    # Apply filters with AND logic (all must match)
     if breed:
-        pets = pets.filter(breed__name__icontains=breed)
+        pets = pets.filter(breed__name=breed)
+    
     if age:
         pets = pets.filter(age__icontains=age)
+    
     if city:
-        pets = pets.filter(city__icontains=city)
+        pets = pets.filter(city=city)
+    
+    # Search query uses OR logic within itself (can match breed OR description OR city OR color)
     if search_query:
         pets = pets.filter(
-            Q(name__icontains=search_query) | 
+            Q(breed__name__icontains=search_query) |
             Q(description__icontains=search_query) |
-            Q(breed__name__icontains=search_query)
+            Q(city__icontains=search_query) |
+            Q(color__icontains=search_query)
         )
     
-    # Price filtering
+    # Price filtering (both must be satisfied if provided)
     if min_price:
         try:
             pets = pets.filter(price__gte=Decimal(min_price))
         except (ValueError, InvalidOperation):
             pass
+    
     if max_price:
         try:
             pets = pets.filter(price__lte=Decimal(max_price))
         except (ValueError, InvalidOperation):
             pass
-
     # Get unique values for filters
     breeds = Breed.objects.all().order_by('name')
     cities = Pet.objects.filter(

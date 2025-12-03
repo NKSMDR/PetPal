@@ -35,7 +35,7 @@
   font-size: 2rem;
   font-weight: 700;
   margin-bottom: 10px;
-  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .breed-header p,
@@ -46,7 +46,74 @@
   margin: 0 auto;
 }
 
-/* Search Form */
+/* Filters Section */
+.filters-section .card {
+  border: none;
+  border-radius: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  margin-top: -50px;
+  position: relative;
+  z-index: 2;
+}
+
+.filters-section .form-label {
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.filters-section .form-label i {
+  color: #007bff;
+  font-size: 0.85rem;
+}
+
+.filters-section .form-control,
+.filters-section .form-select {
+  border: 2px solid #e9ecef;
+  border-radius: 8px;
+  transition: all 0.3s ease;
+  font-size: 0.95rem;
+}
+
+.filters-section .form-control:focus,
+.filters-section .form-select:focus {
+  border-color: #007bff;
+  box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Active Filters Badges */
+#activeFilters .badge {
+  padding: 0.5rem 0.75rem;
+  font-weight: 500;
+  font-size: 0.85rem;
+  border-radius: 20px;
+}
+
+#activeFilters .badge a {
+  font-weight: 700;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+#activeFilters .badge a:hover {
+  opacity: 0.8;
+}
+
+/* Clear button styling */
+#clearFilters {
+  border-radius: 8px;
+  border-color: #dc3545;
+  color: #dc3545;
+}
+
+#clearFilters:hover {
+  background-color: #dc3545;
+  border-color: #dc3545;
+  color: white;
+}
+
+/* Search Form (Legacy - keeping for compatibility) */
 .search-form {
   background: white;
   padding: 2rem;
@@ -592,16 +659,17 @@
 
 /* Responsive Design */
 @media (max-width: 768px) {
+
   .breed-header,
   .hero-section {
     padding: 30px 0;
   }
-  
+
   .breed-header h2,
   .hero-title {
     font-size: 1.75rem;
   }
-  
+
   .hero-subtitle {
     font-size: 0.9rem;
   }
