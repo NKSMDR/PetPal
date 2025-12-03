@@ -313,8 +313,7 @@ function addToCart(productType, productId, maxStock) {
             <span class="original-price">NRS {{ accessory.original_price }}</span>
             <span class="current-price">NRS {{ accessory.price }}</span>
             <span class="discount-percent">
-              {% widthratio accessory.original_price|floatformat:0|add:0 accessory.price|floatformat:0|add:0 100 as discount_ratio %}
-              {{ discount_ratio|floatformat:0 }}% OFF
+              {{ accessory.get_discount_percentage }}% OFF
             </span>
             {% else %}
             <span class="current-price">NRS {{ accessory.price }}</span>

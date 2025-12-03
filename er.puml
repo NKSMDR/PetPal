@@ -1,0 +1,376 @@
+@startuml Pet_Adoption_Platform_ER_Diagram
+
+!define primary_key(x) <b><color:#b8861b><&key></color> x</b>
+!define foreign_key(x) <color:#aaaaaa><&key></color> x
+!define column(x) <color:#efefef><&media-record></color> x
+!define table(x) entity x << (T, #FFAAAA) >>
+
+' Entities
+entity "User" as user {
+  primary_key(id): INTEGER
+  --
+  column(email): VARCHAR (UNIQUE)
+  column(password): VARCHAR
+  column(first_name): VARCHAR
+  column(last_name): VARCHAR
+  column(contact): VARCHAR(20)
+  column(is_admin): BOOLEAN
+  column(is_user): BOOLEAN
+  column(created_at): DATETIME
+  column(updated_at): DATETIME
+}
+
+entity "Breed" as breed {
+  primary_key(id): INTEGER
+  --
+  column(name): VARCHAR(100)
+  column(slug): SLUG (UNIQUE)
+  column(image): IMAGE
+  column(life_span): VARCHAR(30)
+  column(size): VARCHAR(50)
+  column(weight): VARCHAR(50)
+  column(height): VARCHAR(50)
+  column(exercise): VARCHAR(50)
+  column(grooming): VARCHAR(50)
+  column(overview): TEXT
+  column(good_with_kids): BOOLEAN
+  column(energy_level): VARCHAR(50)
+  column(ease_of_training): VARCHAR(50)
+  column(vocality): VARCHAR(50)
+  column(affection_needs): VARCHAR(50)
+  column(origin_country): VARCHAR(100)
+  column(breed_history): TEXT
+  column(fun_fact_1): TEXT
+  column(diet_recommendations): TEXT
+  column(common_health_issues): TEXT
+  column(grooming_details): TEXT
+  column(ideal_home): TEXT
+  column(good_with_other_dogs): BOOLEAN
+  column(good_with_cats): BOOLEAN
+  column(first_time_owner_friendly): BOOLEAN
+}
+
+entity "Pet" as pet {
+  primary_key(id): INTEGER
+  --
+  column(slug): SLUG (UNIQUE)
+  foreign_key(breed_id): INTEGER
+  column(age): VARCHAR(20)
+  column(gender): VARCHAR(10)
+  column(price): DECIMAL(8,2)
+  foreign_key(seller_id): INTEGER
+  column(description): TEXT
+  column(image): IMAGE
+  column(image2): IMAGE
+  column(image3): IMAGE
+  column(weight): VARCHAR(20)
+  column(color): VARCHAR(50)
+  column(gender_availability): VARCHAR(10)
+  column(vaccination_status): BOOLEAN
+  column(health_certificate): BOOLEAN
+  column(health_certificate_file): FILE
+  column(city): VARCHAR(100)
+  column(state): VARCHAR(50)
+  column(address): VARCHAR(255)
+  column(latitude): DECIMAL(10,8)
+  column(longitude): DECIMAL(11,8)
+  column(status): VARCHAR(20)
+  column(is_user_submitted): BOOLEAN
+  foreign_key(reviewed_by_id): INTEGER
+  column(review_date): DATETIME
+  column(admin_notes): TEXT
+  column(created_at): DATETIME
+  column(updated_at): DATETIME
+}
+
+entity "Accessory" as accessory {
+  primary_key(id): INTEGER
+  --
+  column(name): VARCHAR(100)
+  column(slug): SLUG (UNIQUE)
+  column(description): TEXT
+  column(price): DECIMAL(6,2)
+  column(original_price): DECIMAL(6,2)
+  column(stock): INTEGER
+  column(image): IMAGE
+  column(image2): IMAGE
+  column(image3): IMAGE
+  column(image4): IMAGE
+  column(category): VARCHAR(50)
+}
+
+entity "Order" as order {
+  primary_key(id): INTEGER
+  --
+  column(order_id): VARCHAR(100) (UNIQUE)
+  foreign_key(customer_id): INTEGER
+  column(total_amount): DECIMAL(10,2)
+  column(status): VARCHAR(20)
+  column(shipping_address): TEXT
+  column(phone): VARCHAR(20)
+  column(notes): TEXT
+  column(created_at): DATETIME
+  column(updated_at): DATETIME
+}
+
+entity "OrderItem" as orderitem {
+  primary_key(id): INTEGER
+  --
+  foreign_key(order_id): INTEGER
+  foreign_key(accessory_id): INTEGER
+  column(product_type): VARCHAR(20)
+  column(product_name): VARCHAR(200)
+  column(quantity): INTEGER
+  column(unit_price): DECIMAL(10,2)
+  column(total_price): DECIMAL(10,2)
+}
+
+entity "Cart" as cart {
+  primary_key(id): INTEGER
+  --
+  foreign_key(user_id): INTEGER (UNIQUE)
+  column(created_at): DATETIME
+  column(updated_at): DATETIME
+}
+
+entity "CartItem" as cartitem {
+  primary_key(id): INTEGER
+  --
+  foreign_key(cart_id): INTEGER
+  foreign_key(accessory_id): INTEGER
+  column(product_type): VARCHAR(20)
+  column(quantity): INTEGER
+  column(added_at): DATETIME
+}
+
+entity "Transaction" as transaction {
+  primary_key(id): INTEGER
+  --
+  foreign_key(order_id): INTEGER
+  column(transaction_uuid): VARCHAR(100) (UNIQUE)
+  column(transaction_amount): DECIMAL(10,2)
+  column(transaction_status): VARCHAR(20)
+  column(transaction_date): DATETIME
+  column(esewa_response): JSON
+}
+
+entity "ListingPayment" as listingpayment {
+  primary_key(id): INTEGER
+  --
+  foreign_key(user_id): INTEGER
+  column(transaction_uuid): VARCHAR(100) (UNIQUE)
+  column(amount): DECIMAL(10,2)
+  column(status): VARCHAR(20)
+  column(total_submissions_allowed): INTEGER
+  column(submissions_used): INTEGER
+  column(payment_date): DATETIME
+  column(esewa_response): JSON
+}
+
+entity "ListingPrice" as listingprice {
+  primary_key(id): INTEGER
+  --
+  column(price): DECIMAL(10,2)
+  column(updated_at): DATETIME
+  foreign_key(updated_by_id): INTEGER
+}
+
+entity "Wishlist" as wishlist {
+  primary_key(id): INTEGER
+  --
+  foreign_key(user_id): INTEGER (UNIQUE)
+  column(created_at): DATETIME
+  column(updated_at): DATETIME
+}
+
+entity "WishlistItem" as wishlistitem {
+  primary_key(id): INTEGER
+  --
+  foreign_key(wishlist_id): INTEGER
+  foreign_key(pet_id): INTEGER
+  foreign_key(breed_id): INTEGER
+  column(source): VARCHAR(20)
+  column(added_at): DATETIME
+}
+
+entity "ChatThread" as chatthread {
+  primary_key(id): INTEGER
+  --
+  foreign_key(pet_id): INTEGER
+  foreign_key(buyer_id): INTEGER
+  foreign_key(seller_id): INTEGER
+  column(created_at): DATETIME
+  column(updated_at): DATETIME
+}
+
+entity "ChatMessage" as chatmessage {
+  primary_key(id): INTEGER
+  --
+  foreign_key(thread_id): INTEGER
+  foreign_key(sender_id): INTEGER
+  column(text): TEXT
+  column(is_read): BOOLEAN
+  column(created_at): DATETIME
+}
+
+entity "HeroSection" as herosection {
+  primary_key(id): INTEGER
+  --
+  column(title): VARCHAR(200)
+  column(subtitle): VARCHAR(300)
+  column(background_image): IMAGE
+  column(cta_text): VARCHAR(50)
+  column(cta_link): VARCHAR(200)
+  column(is_active): BOOLEAN
+  column(order): INTEGER
+  column(created_at): DATETIME
+  column(updated_at): DATETIME
+}
+
+entity "FeatureCard" as featurecard {
+  primary_key(id): INTEGER
+  --
+  column(title): VARCHAR(100)
+  column(description): TEXT
+  column(icon): VARCHAR(50)
+  column(image): IMAGE
+  column(link): VARCHAR(200)
+  column(is_active): BOOLEAN
+  column(order): INTEGER
+  column(created_at): DATETIME
+}
+
+entity "Testimonial" as testimonial {
+  primary_key(id): INTEGER
+  --
+  column(customer_name): VARCHAR(100)
+  column(customer_image): IMAGE
+  column(rating): INTEGER
+  column(testimonial_text): TEXT
+  column(location): VARCHAR(100)
+  column(is_active): BOOLEAN
+  column(order): INTEGER
+  column(created_at): DATETIME
+}
+
+entity "HomePageSettings" as homepagesettings {
+  primary_key(id): INTEGER
+  --
+  column(site_name): VARCHAR(100)
+  column(tagline): VARCHAR(200)
+  column(about_section_title): VARCHAR(100)
+  column(about_section_text): TEXT
+  column(about_image): IMAGE
+  column(show_featured_pets): BOOLEAN
+  column(show_testimonials): BOOLEAN
+  column(show_features): BOOLEAN
+  column(updated_at): DATETIME
+}
+
+' Relationship Diamonds (Chen Notation Style)
+diamond "Sells" as rel_sells #FFEECC
+diamond "Reviews" as rel_reviews #FFEECC
+diamond "Places" as rel_places #FFEECC
+diamond "Owns Cart" as rel_cart #FFEECC
+diamond "Owns Wishlist" as rel_wishlist #FFEECC
+diamond "Pays Listing Fee" as rel_payment #FFEECC
+diamond "Buys From" as rel_buyer #FFEECC
+diamond "Sells To" as rel_seller #FFEECC
+diamond "Sends" as rel_sends #FFEECC
+diamond "Updates Price" as rel_updates #FFEECC
+diamond "Belongs To" as rel_belongs #FFEECC
+diamond "References" as rel_references #FFEECC
+diamond "Wishlisted" as rel_wishlisted #FFEECC
+diamond "Discussed In" as rel_discussed #FFEECC
+diamond "Ordered As" as rel_ordered #FFEECC
+diamond "In Cart" as rel_incart #FFEECC
+diamond "Contains Items" as rel_contains_order #FFEECC
+diamond "Paid Via" as rel_paid #FFEECC
+diamond "Contains Cart" as rel_contains_cart #FFEECC
+diamond "Contains Wish" as rel_contains_wish #FFEECC
+diamond "Has Messages" as rel_messages #FFEECC
+
+' Payment Gateway Notes
+note right of transaction
+  Payment Gateway: eSewa
+  Processes Accessory Order Payments
+end note
+
+note right of listingpayment
+  Payment Gateway: eSewa
+  Processes Pet Listing Fees
+end note
+
+' Relationships with Cardinality Notation
+' User relationships
+user "1" -- rel_sells
+rel_sells -- "M" pet : "seller_id"
+
+user "1" -- rel_reviews
+rel_reviews -- "M" pet : "reviewed_by"
+
+user "1" -- rel_places
+rel_places -- "M" order
+
+user "1" -- rel_cart
+rel_cart -- "1" cart
+
+user "1" -- rel_wishlist
+rel_wishlist -- "1" wishlist
+
+user "1" -- rel_payment
+rel_payment -- "M" listingpayment : "Pet listing fees"
+
+user "1" -- rel_buyer
+rel_buyer -- "M" chatthread : "buyer"
+
+user "1" -- rel_seller
+rel_seller -- "M" chatthread : "seller"
+
+user "1" -- rel_sends
+rel_sends -- "M" chatmessage
+
+user "1" -- rel_updates
+rel_updates -- "M" listingprice
+
+' Breed relationships
+breed "1" -- rel_belongs
+rel_belongs -- "M" pet
+
+breed "1" -- rel_references
+rel_references -- "M" wishlistitem
+
+' Pet relationships
+pet "1" -- rel_wishlisted
+rel_wishlisted -- "M" wishlistitem
+
+pet "1" -- rel_discussed
+rel_discussed -- "M" chatthread
+
+' Accessory relationships
+accessory "1" -- rel_ordered
+rel_ordered -- "M" orderitem
+
+accessory "1" -- rel_incart
+rel_incart -- "M" cartitem
+
+' Order relationships
+order "1" -- rel_contains_order
+rel_contains_order -- "M" orderitem
+
+order "1" -- rel_paid
+rel_paid -- "1" transaction : "Accessory payments"
+
+' Cart relationships
+cart "1" -- rel_contains_cart
+rel_contains_cart -- "M" cartitem
+
+' Wishlist relationships
+wishlist "1" -- rel_contains_wish
+rel_contains_wish -- "M" wishlistitem
+
+' Chat relationships
+chatthread "1" -- rel_messages
+rel_messages -- "M" chatmessage
+
+@enduml

@@ -51,8 +51,7 @@
 
             <!-- Price Range Display -->
             <div class="price-range-text mb-3">
-              NRS <span id="min-price-display">{{ price_min|default:min_price_db }}</span> - NRS <span
-                id="max-price-display">{{ price_max|default:max_price_db }}</span>
+              NRS <span id="min-price-display">{{ price_min|default:min_price_db }}</span> - NRS <span id="max-price-display">{{ price_max|default:max_price_db }}</span>
             </div>
 
             <!-- Dual Range Slider -->
@@ -73,6 +72,84 @@
             </button>
           </div>
         </form>
+        
+        <!-- Inline script for immediate slider initialization -->
+        <script>
+        (function() {
+          console.log('🚀 INLINE: Initializing price sliders...');
+          
+          function setupSliders() {
+            var minSlider = document.getElementById('min-price-range');
+            var maxSlider = document.getElementById('max-price-range');
+            var minDisplay = document.getElementById('min-price-display');
+            var maxDisplay = document.getElementById('max-price-display');
+            var sliderRange = document.getElementById('slider-range');
+            
+            console.log('🔍 INLINE: Elements check:', {
+              minSlider: !!minSlider,
+              maxSlider: !!maxSlider,
+              minDisplay: !!minDisplay,
+              maxDisplay: !!maxDisplay,
+              sliderRange: !!sliderRange
+            });
+            
+            if (!minSlider || !maxSlider || !minDisplay || !maxDisplay) {
+              console.error('❌ INLINE: Missing elements!');
+              return;
+            }
+            
+            var minVal = parseInt(minSlider.min);
+            var maxVal = parseInt(minSlider.max);
+            
+            console.log('📊 INLINE: Range is', minVal, 'to', maxVal);
+            
+            function updatePrices() {
+              var currentMin = parseInt(minSlider.value);
+              var currentMax = parseInt(maxSlider.value);
+              
+              // Prevent crossing
+              if (currentMin >= currentMax) {
+                currentMin = currentMax - 1;
+                minSlider.value = currentMin;
+              }
+              
+              // Update display
+              minDisplay.textContent = currentMin;
+              maxDisplay.textContent = currentMax;
+              
+              console.log('💰 INLINE: Updated to', currentMin, '-', currentMax);
+              
+              // Update visual slider
+              if (sliderRange) {
+                var range = maxVal - minVal;
+                var leftPercent = ((currentMin - minVal) / range) * 100;
+                var rightPercent = ((currentMax - minVal) / range) * 100;
+                sliderRange.style.left = leftPercent + '%';
+                sliderRange.style.width = (rightPercent - leftPercent) + '%';
+              }
+            }
+            
+            // Initialize
+            updatePrices();
+            
+            // Add listeners
+            minSlider.addEventListener('input', function() {
+              console.log('🎚️ INLINE: Min slider moved');
+              updatePrices();
+            });
+            
+            maxSlider.addEventListener('input', function() {
+              console.log('🎚️ INLINE: Max slider moved');
+              updatePrices();
+            });
+            
+            console.log('✅ INLINE: Sliders initialized!');
+          }
+          
+          // Run immediately
+          setupSliders();
+        })();
+        </script>
       </div>
       <!-- Product Grid -->
       <div class="col-lg-9">
@@ -187,54 +264,49 @@
 {% block extra_js %}
 <script src="{% static 'js/accessories.js' %}"></script>
 <script>
-  // Accessories page cart functionality - using CartManager
-  (function () {
-    'use strict';
+(function() {
+  'use strict';
 
-    // Use a global flag to prevent duplicate event listeners across page loads
-    if (window.accessoriesCartInitialized) {
-      console.log('Accessories cart already initialized, skipping...');
+  if (window.accessoriesCartInitialized) {
+    console.log('Accessories cart already initialized, skipping...');
+    return;
+  }
+
+  function showNotification(message, type) {
+    var notification = document.createElement('div');
+    notification.className = 'notification notification-' + type;
+    notification.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + ' me-2"></i>' + message;
+    notification.style.cssText =
+      'position: fixed; top: 20px; right: 20px; z-index: 9999; ' +
+      'background: ' + (type === 'success' ? '#48bb78' : '#dc3545') + '; ' +
+      'color: white; padding: 15px 20px; border-radius: 10px; ' +
+      'box-shadow: 0 4px 15px rgba(0,0,0,0.2); ' +
+      'transform: translateX(100%); transition: transform 0.3s ease;';
+    document.body.appendChild(notification);
+    setTimeout(function() { notification.style.transform = 'translateX(0)'; }, 100);
+    setTimeout(function() {
+      notification.style.transform = 'translateX(100%)';
+      setTimeout(function() { if (notification.parentNode) { document.body.removeChild(notification); } }, 300);
+    }, 3000);
+  }
+
+  var isAddingToCart = false;
+
+  function handleAddToCart(button) {
+    if (isAddingToCart) {
+      console.log('Already adding to cart, please wait...');
+      showNotification('Please wait, processing...', 'error');
       return;
     }
 
-    function showNotification(message, type) {
-      var notification = document.createElement('div');
-      notification.className = 'notification notification-' + type;
-      notification.innerHTML = '<i class="fas fa-' + (type === 'success' ? 'check-circle' : 'exclamation-circle') + ' me-2"></i>' + message;
-      notification.style.cssText =
-        'position: fixed; top: 20px; right: 20px; z-index: 9999; ' +
-        'background: ' + (type === 'success' ? '#48bb78' : '#dc3545') + '; ' +
-        'color: white; padding: 15px 20px; border-radius: 10px; ' +
-        'box-shadow: 0 4px 15px rgba(0,0,0,0.2); ' +
-        'transform: translateX(100%); transition: transform 0.3s ease;';
-      document.body.appendChild(notification);
-      setTimeout(function () { notification.style.transform = 'translateX(0)'; }, 100);
-      setTimeout(function () {
-        notification.style.transform = 'translateX(100%)';
-        setTimeout(function () { if (notification.parentNode) { document.body.removeChild(notification); } }, 300);
-      }, 3000);
-    }
-
-  // Global lock to prevent simultaneous cart additions
-var isAddingToCart = false;
-
-function handleAddToCart(button) {
-    // Prevent multiple simultaneous additions
-    if (isAddingToCart) {
-        console.log('Already adding to cart, please wait...');
-        showNotification('Please wait, processing...', 'error');
-        return;
-    }
-
-    // Prevent multiple clicks on same button
     if (button.disabled || button.classList.contains('processing')) {
-        console.log('Button already processing, ignoring click');
-        return;
+      console.log('Button already processing, ignoring click');
+      return;
     }
 
     if (typeof CartManager === 'undefined') {
-        showNotification('Cart system not available. Please refresh the page.', 'error');
-        return;
+      showNotification('Cart system not available. Please refresh the page.', 'error');
+      return;
     }
 
     var productId = button.getAttribute('data-item-id');
@@ -243,179 +315,153 @@ function handleAddToCart(button) {
     var productImage = button.getAttribute('data-item-image');
 
     if (!productId || !productName || !productPrice) {
-        showNotification('Missing product information', 'error');
-        return;
+      showNotification('Missing product information', 'error');
+      return;
     }
 
-    // Set global lock
     isAddingToCart = true;
-
-    // Mark button as processing
     button.classList.add('processing');
     var originalText = button.innerHTML;
     button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Checking...';
     button.disabled = true;
 
-    // Get FRESH cart data RIGHT before checking
     var cart = CartManager.getCart();
     var existingItem = cart.find(function(item) {
-        return String(item.id) === String(productId) && item.type === 'accessory';
+      return String(item.id) === String(productId) && item.type === 'accessory';
     });
     var currentCartQty = existingItem ? existingItem.quantity : 0;
 
-    console.log('=== ADD TO CART DEBUG ===');
-    console.log('Product ID:', productId);
-    console.log('Current cart:', cart);
-    console.log('Current cart quantity for this product:', currentCartQty);
-
-    // Check stock availability
     fetch('/get-product-stock/accessory/' + productId + '/?t=' + Date.now())
-        .then(function(response) {
-            return response.json();
-        })
-        .then(function(data) {
-            if (data.stock === undefined) {
-                showNotification('Could not verify stock. Please try again.', 'error');
-                button.innerHTML = originalText;
-                button.disabled = false;
-                button.classList.remove('processing');
-                isAddingToCart = false;
-                return;
-            }
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        if (data.stock === undefined) {
+          showNotification('Could not verify stock. Please try again.', 'error');
+          button.innerHTML = originalText;
+          button.disabled = false;
+          button.classList.remove('processing');
+          isAddingToCart = false;
+          return;
+        }
 
-            var availableStock = data.stock;
-            
-            console.log('Available stock:', availableStock);
-            console.log('Trying to add: 1, Current in cart:', currentCartQty, 'Total would be:', currentCartQty + 1);
+        var availableStock = data.stock;
 
-            // Check if out of stock
-            if (availableStock <= 0) {
-                showNotification('Sorry, ' + productName + ' is out of stock!', 'error');
-                button.innerHTML = '<i class="fas fa-times me-1"></i>Out of Stock';
-                button.style.backgroundColor = '#6c757d';
-                button.style.borderColor = '#6c757d';
-                setTimeout(function() {
-                    button.innerHTML = originalText;
-                    button.style.backgroundColor = '';
-                    button.style.borderColor = '';
-                    button.disabled = true;
-                    button.classList.remove('processing');
-                    isAddingToCart = false;
-                }, 2000);
-                return;
-            }
-            
-            // Check if adding 1 more would exceed stock
-            if (currentCartQty >= availableStock) {
-                showNotification('You already have the maximum available quantity (' + availableStock + ') in your cart!', 'error');
-                button.innerHTML = '<i class="fas fa-exclamation me-1"></i>Max in Cart';
-                button.style.backgroundColor = '#ffc107';
-                button.style.borderColor = '#ffc107';
-                setTimeout(function() {
-                    button.innerHTML = originalText;
-                    button.style.backgroundColor = '';
-                    button.style.borderColor = '';
-                    button.disabled = false;
-                    button.classList.remove('processing');
-                    isAddingToCart = false;
-                }, 2000);
-                return;
-            }
-            
-            // Stock is available, proceed to add
-            button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding...';
-            
-            setTimeout(function() {
-                var item = {
-                    id: String(productId),
-                    type: 'accessory',
-                    name: productName,
-                    price: parseFloat(productPrice),
-                    image: productImage,
-                    quantity: 1  // Always add 1 from accessories page
-                };
-
-                var success = CartManager.addItem(item);
-
-                if (success) {
-                    button.innerHTML = '<i class="fas fa-check me-1"></i>Added!';
-                    button.style.backgroundColor = '#28a745';
-                    button.style.borderColor = '#28a745';
-                    button.style.color = 'white';
-                    showNotification('Added ' + productName + ' to cart!', 'success');
-                    
-                    // Log final cart state
-                    console.log('Item added. New cart:', CartManager.getCart());
-                    
-                    setTimeout(function() {
-                        button.innerHTML = originalText;
-                        button.style.backgroundColor = '';
-                        button.style.borderColor = '';
-                        button.style.color = '';
-                        button.disabled = false;
-                        button.classList.remove('processing');
-                        isAddingToCart = false; // Release lock
-                    }, 2000);
-                } else {
-                    button.innerHTML = '<i class="fas fa-times me-1"></i>Error';
-                    button.style.backgroundColor = '#dc3545';
-                    button.style.borderColor = '#dc3545';
-                    button.style.color = 'white';
-                    showNotification('Failed to add item to cart', 'error');
-                    setTimeout(function() {
-                        button.innerHTML = originalText;
-                        button.style.backgroundColor = '';
-                        button.style.borderColor = '';
-                        button.style.color = '';
-                        button.disabled = false;
-                        button.classList.remove('processing');
-                        isAddingToCart = false; // Release lock
-                    }, 2000);
-                }
-            }, 300);
-        })
-        .catch(function(error) {
-            console.error('Error checking stock:', error);
-            showNotification('Could not verify stock. Please try again.', 'error');
+        if (availableStock <= 0) {
+          showNotification('Sorry, ' + productName + ' is out of stock!', 'error');
+          button.innerHTML = '<i class="fas fa-times me-1"></i>Out of Stock';
+          button.style.backgroundColor = '#6c757d';
+          button.style.borderColor = '#6c757d';
+          setTimeout(function() {
             button.innerHTML = originalText;
+            button.style.backgroundColor = '';
+            button.style.borderColor = '';
+            button.disabled = true;
+            button.classList.remove('processing');
+            isAddingToCart = false;
+          }, 2000);
+          return;
+        }
+
+        if (currentCartQty >= availableStock) {
+          showNotification('You already have the maximum available quantity (' + availableStock + ') in your cart!', 'error');
+          button.innerHTML = '<i class="fas fa-exclamation me-1"></i>Max in Cart';
+          button.style.backgroundColor = '#ffc107';
+          button.style.borderColor = '#ffc107';
+          setTimeout(function() {
+            button.innerHTML = originalText;
+            button.style.backgroundColor = '';
+            button.style.borderColor = '';
             button.disabled = false;
             button.classList.remove('processing');
-            isAddingToCart = false; // Release lock on error
-        });
-}
-
-    function initializeCartButtons() {
-      console.log('Initializing accessories cart buttons...');
-
-      // Remove any existing listener to prevent duplicates
-      if (window.accessoriesCartHandler) {
-        document.body.removeEventListener('click', window.accessoriesCartHandler, true);
-      }
-
-      // Create a single event handler function
-      window.accessoriesCartHandler = function (e) {
-        var button = e.target.closest('.add-to-cart-btn');
-        if (button && !button.disabled && !button.classList.contains('processing')) {
-          e.preventDefault();
-          e.stopPropagation();
-          e.stopImmediatePropagation(); // Prevent other listeners from firing
-          handleAddToCart(button);
+            isAddingToCart = false;
+          }, 2000);
+          return;
         }
-      };
 
-      // Single event listener using event delegation
-      document.body.addEventListener('click', window.accessoriesCartHandler, true); // Use capture phase to intercept early
+        button.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Adding...';
 
-      // Mark as initialized globally
-      window.accessoriesCartInitialized = true;
-      console.log('Accessories cart initialized successfully');
+        setTimeout(function() {
+          var item = {
+            id: String(productId),
+            type: 'accessory',
+            name: productName,
+            price: parseFloat(productPrice),
+            image: productImage,
+            quantity: 1
+          };
+
+          var success = CartManager.addItem(item);
+
+          if (success) {
+            button.innerHTML = '<i class="fas fa-check me-1"></i>Added!';
+            button.style.backgroundColor = '#28a745';
+            button.style.borderColor = '#28a745';
+            button.style.color = 'white';
+            showNotification('Added ' + productName + ' to cart!', 'success');
+
+            setTimeout(function() {
+              button.innerHTML = originalText;
+              button.style.backgroundColor = '';
+              button.style.borderColor = '';
+              button.style.color = '';
+              button.disabled = false;
+              button.classList.remove('processing');
+              isAddingToCart = false;
+            }, 2000);
+          } else {
+            button.innerHTML = '<i class="fas fa-times me-1"></i>Error';
+            button.style.backgroundColor = '#dc3545';
+            button.style.borderColor = '#dc3545';
+            button.style.color = 'white';
+            showNotification('Failed to add item to cart', 'error');
+            setTimeout(function() {
+              button.innerHTML = originalText;
+              button.style.backgroundColor = '';
+              button.style.borderColor = '';
+              button.style.color = '';
+              button.disabled = false;
+              button.classList.remove('processing');
+              isAddingToCart = false;
+            }, 2000);
+          }
+        }, 300);
+      })
+      .catch(function(error) {
+        console.error('Error checking stock:', error);
+        showNotification('Could not verify stock. Please try again.', 'error');
+        button.innerHTML = originalText;
+        button.disabled = false;
+        button.classList.remove('processing');
+        isAddingToCart = false;
+      });
+  }
+
+  function initializeCartButtons() {
+    console.log('Initializing accessories cart buttons...');
+
+    if (window.accessoriesCartHandler) {
+      document.body.removeEventListener('click', window.accessoriesCartHandler, true);
     }
 
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', function () { initializeCartButtons(); });
-    } else {
-      initializeCartButtons();
-    }
-  })();
+    window.accessoriesCartHandler = function(e) {
+      var button = e.target.closest('.add-to-cart-btn');
+      if (button && !button.disabled && !button.classList.contains('processing')) {
+        e.preventDefault();
+        e.stopPropagation();
+        e.stopImmediatePropagation();
+        handleAddToCart(button);
+      }
+    };
+
+    document.body.addEventListener('click', window.accessoriesCartHandler, true);
+    window.accessoriesCartInitialized = true;
+    console.log('Accessories cart initialized successfully');
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() { initializeCartButtons(); });
+  } else {
+    initializeCartButtons();
+  }
+})();
 </script>
 {% endblock %}
