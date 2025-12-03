@@ -23,17 +23,57 @@
     font-weight: 600;
     color: #495057;
     margin-bottom: 0.5rem;
+    font-size: 0.9rem;
 }
 
-.form-control {
+.form-label i {
+    color: #007bff;
+    font-size: 0.85rem;
+}
+
+.form-control,
+.form-select {
     border: 2px solid #e9ecef;
     border-radius: 8px;
     transition: all 0.3s ease;
+    font-size: 0.95rem;
 }
 
-.form-control:focus {
+.form-control:focus,
+.form-select:focus {
     border-color: #007bff;
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Active Filters Badges */
+#activeFilters .badge {
+    padding: 0.5rem 0.75rem;
+    font-weight: 500;
+    font-size: 0.85rem;
+    border-radius: 20px;
+}
+
+#activeFilters .badge a {
+    font-weight: 700;
+    font-size: 1rem;
+    line-height: 1;
+}
+
+#activeFilters .badge a:hover {
+    opacity: 0.8;
+}
+
+/* Clear button styling */
+#clearFilters {
+    border-radius: 8px;
+    border-color: #dc3545;
+    color: #dc3545;
+}
+
+#clearFilters:hover {
+    background-color: #dc3545;
+    border-color: #dc3545;
+    color: white;
 }
 
 .btn-primary {
@@ -254,32 +294,32 @@
     .marketplace-container {
         padding: 1rem 0;
     }
-    
+
     .marketplace-header h1 {
         font-size: 2rem;
     }
-    
+
     .pet-image {
         height: 200px;
     }
-    
+
     .card-body {
         padding: 1rem;
     }
-    
+
     .pet-details {
         flex-direction: column;
         gap: 0.5rem;
     }
-    
+
     .card-actions {
         flex-direction: column;
     }
-    
+
     .empty-state {
         padding: 2rem 1rem;
     }
-    
+
     .empty-icon {
         font-size: 3rem;
     }

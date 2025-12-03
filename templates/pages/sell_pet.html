@@ -117,6 +117,26 @@
                     <p class="lead text-muted">Find a loving home for your pet by listing it on our marketplace</p>
                 </div>
 
+                <!-- Important Notice Banner -->
+                <div class="alert alert-warning alert-dismissible fade show mb-4" role="alert">
+                    <h5 class="alert-heading">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Important Notice
+                    </h5>
+                    <p class="mb-2"><strong>Please read carefully before submitting:</strong></p>
+                    <ul class="mb-2">
+                        <li>Once submitted, you <strong>CANNOT edit</strong> the listing</li>
+                        <li>Your submission will go through admin review</li>
+                        <li>If rejected, you can resubmit (uses another submission)</li>
+                        <li>You can only delete listings in "Pending Review" or "Rejected" status</li>
+                        <li>Deleting will NOT refund your submission count</li>
+                    </ul>
+                    <p class="mb-0">
+                        <i class="fas fa-info-circle me-1"></i>
+                        <strong>Remaining Submissions:</strong> {{ payment.get_remaining_submissions }} out of {{ payment.total_submissions_allowed }}
+                    </p>
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+
                 <div class="card shadow-lg">
                     <div class="card-body p-5">
                         <form method="post" enctype="multipart/form-data" class="pet-form" id="pet-form">
@@ -316,6 +336,23 @@
                                         {% if form.state.errors %}
                                             <div class="text-danger small">{{ form.state.errors.0 }}</div>
                                         {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Confirmation Checkbox -->
+                            <div class="card bg-light mb-4">
+                                <div class="card-body">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="confirmSubmission">
+                                        <label class="form-check-label" for="confirmSubmission">
+                                            <strong>I understand and confirm that:</strong>
+                                            <ul class="mb-0 mt-2">
+                                                <li>I cannot edit this listing after submission</li>
+                                                <li>All information provided is accurate and complete</li>
+                                                <li>I have read and agree to the submission terms</li>
+                                            </ul>
+                                        </label>
                                     </div>
                                 </div>
                             </div>

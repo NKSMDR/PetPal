@@ -1,0 +1,55 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Confirm Delete - PetPal{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card border-danger">
+                <div class="card-header bg-danger text-white">
+                    <h4 class="mb-0">
+                        <i class="fas fa-exclamation-triangle me-2"></i>Confirm Deletion
+                    </h4>
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        {% if pet.image %}
+                            <img src="{{ pet.image.url }}" alt="{{ pet.breed.name }}" class="img-fluid rounded" style="max-height: 200px;">
+                        {% endif %}
+                    </div>
+                    
+                    <h5 class="text-center mb-3">Are you sure you want to delete this pet listing?</h5>
+                    
+                    <div class="alert alert-info">
+                        <h6><strong>{{ pet.breed.name }}</strong> - {{ pet.get_gender_display }}</h6>
+                        <p class="mb-0">
+                            <strong>Age:</strong> {{ pet.age }}<br>
+                            <strong>Price:</strong> NPR {{ pet.price }}<br>
+                            <strong>Location:</strong> {{ pet.city }}, {{ pet.state }}
+                        </p>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        <strong>Warning:</strong> This action cannot be undone and will NOT refund your submission count.
+                    </div>
+                    
+                    <div class="d-flex gap-2 justify-content-center">
+                        <a href="{% url 'my_pets' %}" class="btn btn-secondary btn-lg">
+                            <i class="fas fa-times me-1"></i>Cancel
+                        </a>
+                        <form method="post" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-lg">
+                                <i class="fas fa-trash me-1"></i>Delete Permanently
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -51,6 +51,7 @@ urlpatterns = [
     path('sell-pet/', views.sell_pet_info, name='sell_pet'),
     path('sell-pet-form/', views.sell_pet_form, name='sell_pet_form'),
     path('my-pets/', views.my_pets, name='my_pets'),
+    path('my-pets/delete/<int:pk>/', views.delete_pet, name='delete_pet'),
     path('marketplace/', views.marketplace, name='marketplace'),
     path('marketplace/pet/<int:pk>/', views.marketplace_pet_detail, name='marketplace_pet_detail'),
     path('accessories/', views.accessories, name='accessories'),
