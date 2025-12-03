@@ -869,6 +869,26 @@ def my_pets(request):
     }
     return render(request, 'pages/my_pets.html', context)
 
+@login_required
+def delete_pet(request, pk):
+    """Delete a pet listing if allowed"""
+    pet = get_object_or_404(Pet, pk=pk, seller=request.user, is_user_submitted=True)
+    
+    # Check if pet can be deleted
+    if not pet.can_be_deleted_by_seller():
+        reason = pet.get_delete_restriction_reason()
+        messages.error(request, f"Cannot delete this pet. {reason}")
+        return redirect('my_pets')
+    
+    if request.method == 'POST':
+        pet_name = f"{pet.breed.name} ({pet.get_gender_display()})"
+        pet.delete()
+        messages.success(request, f"Successfully deleted {pet_name}")
+        return redirect('my_pets')
+    
+    # Show confirmation page
+    return render(request, 'pages/confirm_delete_pet.html', {'pet': pet})
+
 def marketplace(request):
     """Display approved user-submitted pets only"""
     pets = Pet.objects.filter(

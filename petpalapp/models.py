@@ -272,6 +272,31 @@ class Pet(models.Model):
     @property
     def main_image(self):
         return self.image.url if self.image else None
+    
+    def can_be_deleted_by_seller(self):
+        """Check if seller can delete this pet listing"""
+        # Cannot delete sold or pending sale pets
+        if self.status in ['sold', 'pending']:
+            return False
+        
+        # Check if pet has any chat threads (indicates buyer interest)
+        if self.chat_threads.exists():
+            return False
+        
+        # Can delete if pending_review, rejected, or available (without chat threads)
+        return self.status in ['pending_review', 'rejected', 'available']
+    
+    def get_delete_restriction_reason(self):
+        """Get reason why pet cannot be deleted"""
+        if self.status == 'sold':
+            return "Cannot delete sold pets"
+        elif self.status == 'pending':
+            return "Cannot delete pets with pending sales"
+        elif self.status == 'available' and self.chat_threads.exists():
+            return "Cannot delete pets with active buyer inquiries"
+        elif self.status == 'available':
+            return "Cannot delete approved listings. Contact admin for assistance."
+        return None
 
 
 class Order(models.Model):
