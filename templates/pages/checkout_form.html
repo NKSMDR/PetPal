@@ -96,20 +96,20 @@
                 <div class="card-body">
                     <div class="d-flex justify-content-between">
                         <span>Subtotal:</span>
-                        <span>Nrs{{ total }}</span>
+                        <span>Nrs{{ subtotal }}</span>
                     </div>
                     <div class="d-flex justify-content-between">
                         <span>Shipping:</span>
                         <span class="text-success">Free</span>
                     </div>
                     <div class="d-flex justify-content-between">
-                        <span>Tax:</span>
-                        <span>Nrs0.00</span>
+                        <span>Tax (13%):</span>
+                        <span>Nrs{{ tax|floatformat:2 }}</span>
                     </div>
                     <hr>
                     <div class="d-flex justify-content-between">
                         <strong>Total:</strong>
-                        <strong>Nrs{{ total }}</strong>
+                        <strong>Nrs{{ total|floatformat:2 }}</strong>
                     </div>
                 </div>
             </div>

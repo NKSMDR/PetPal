@@ -767,6 +767,33 @@ class ListingPriceAdmin(admin.ModelAdmin):
 #         return False
 
 
+# Earning Report Admin
+class EarningReport(Pet):
+    class Meta:
+        proxy = True
+        verbose_name = "Earning Report"
+        verbose_name_plural = "Earning Reports"
+
+class EarningReportAdmin(admin.ModelAdmin):
+    change_list_template = 'admin/earning_report.html'
+    
+    def has_add_permission(self, request):
+        return False
+    
+    def has_delete_permission(self, request, obj=None):
+        return False
+    
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        # Add any data you want to pass to the template
+        extra_context['total_pets'] = Pet.objects.count()
+        extra_context['total_orders'] = Order.objects.count()
+        extra_context['total_accessories'] = Accessory.objects.count()
+        return super().changelist_view(request, extra_context=extra_context)
+
+admin.site.register(EarningReport, EarningReportAdmin)
+
+
 # Customize admin site headers
 admin.site.site_header = "PetPal Administration"
 admin.site.site_title = "PetPal Admin"

@@ -15,7 +15,23 @@
                 <div class="card-body text-center">
                     <div class="mb-4">
                         <h5>Payment Summary</h5>
-                        <p><strong>Listing Fee:</strong> NPR {{ listing_payment.amount }}</p>
+                        <div class="card mb-3 border-primary" style="max-width: 400px; margin: 0 auto;">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Listing Amount:</span>
+                                    <span>NPR 100.00</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Service Tax (13%):</span>
+                                    <span>NPR 13.00</span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong>Total Amount:</strong>
+                                    <strong class="text-success">NPR {{ listing_payment.amount|floatformat:2 }}</strong>
+                                </div>
+                            </div>
+                        </div>
                         <p class="text-muted">One-time fee to list your pet on PetPal marketplace</p>
                     </div>
                     
@@ -31,7 +47,7 @@
                         {{ form|safe }}
                         
                         <button type="submit" class="btn btn-success btn-lg" id="pay-now-btn">
-                            <i class="fas fa-credit-card"></i> Pay NPR 100 with eSewa
+                            <i class="fas fa-credit-card"></i> Pay NPR {{ listing_payment.amount|floatformat:2 }} with eSewa
                         </button>
                     </form>
                     

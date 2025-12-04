@@ -3,12 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Webpage</title>
+    <title>Earning Report - PetPal</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 36px;
+        }
+        .report-header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #667eea;
+        }
+        .report-date {
+            color: #666;
+            font-size: 18px;
+        }
+        .report-content {
+            line-height: 1.8;
+        }
+        .back-button {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+        .back-button:hover {
+            background: #764ba2;
+        }
+    </style>
 </head>
 <body>
-
-    {% comment %} <h1>Welcome to My Webpage</h1>
-    <p>This is a basic HTML structure.</p> {% endcomment %}
-
+    <div class="container">
+        <a href="javascript:history.back()" class="back-button">← Back to Admin</a>
+        
+        <div class="report-header">
+            <h1>📊 Earning Report Details</h1>
+            <p class="report-date">Report Date: December 2025</p>
+        </div>
+        
+        <div class="report-content">
+            <h2>Welcome to the Earning Report Page</h2>
+            <p>This is the detailed earning report page for PetPal administration.</p>
+            
+            <h3>Overview</h3>
+            <p>This page will contain comprehensive earning statistics and financial reports for your PetPal business.</p>
+            
+            <h3>Key Metrics</h3>
+            <ul>
+                <li>Total Sales</li>
+                <li>New Customers</li>
+                <li>Pet Listings</li>
+                <li>Revenue Analytics</li>
+                <li>User Engagement</li>
+            </ul>
+            
+            <p><em>More detailed analytics and charts can be added here as needed.</em></p>
+        </div>
+    </div>
 </body>
 </html>

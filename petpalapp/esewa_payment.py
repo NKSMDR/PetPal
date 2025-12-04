@@ -48,7 +48,13 @@ class EsewaPayment:
             'transaction_uuid': self.transaction_uuid,
             'signature': self.signature
         }
-        return form_data
+        
+        # Generate HTML hidden input fields
+        html_fields = ''
+        for key, value in form_data.items():
+            html_fields += f'<input type="hidden" name="{key}" value="{value}" />\n'
+        
+        return html_fields
 
     def is_completed(self, verify_signature=True):
         """Verify if payment is completed (simplified for testing)"""

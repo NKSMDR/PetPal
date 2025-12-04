@@ -190,11 +190,32 @@
                                 <i class="fas fa-info-circle me-2"></i>
                                 <strong>Important:</strong> You must pay the listing fee before accessing the form. Listing fee is non-refundable.
                             </div>
+                            
+                            <!-- Tax Breakdown -->
+                            <div class="card mb-3 border-primary" style="max-width: 400px; margin: 0 auto;">
+                                <div class="card-body">
+                                    <h6 class="card-title text-center mb-3">Payment Breakdown</h6>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Listing Amount:</span>
+                                        <span>NPR {{ listing_price|floatformat:2 }}</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between mb-2">
+                                        <span>Service Tax (13%):</span>
+                                        <span>NPR {{ service_tax|floatformat:2 }}</span>
+                                    </div>
+                                    <hr class="my-2">
+                                    <div class="d-flex justify-content-between">
+                                        <strong>Total Amount:</strong>
+                                        <strong class="text-primary">NPR {{ total_amount|floatformat:2 }}</strong>
+                                    </div>
+                                </div>
+                            </div>
+                            
                             <form method="POST" action="{% url 'listing_payment_checkout' %}">
                                 {% csrf_token %}
                                 <button type="submit" class="btn btn-success btn-lg mb-3 pay-button">
                                     <i class="fas fa-credit-card me-2"></i>
-                                    Pay NPR {{ listing_price|floatformat:0 }} Listing Fee
+                                    Pay NPR {{ total_amount|floatformat:2 }} Listing Fee
                                 </button>
                             </form>
                             <p class="text-muted mt-3 small">
@@ -206,6 +227,27 @@
                             <i class="fas fa-info-circle me-2"></i>
                             <strong>Important:</strong> You must pay the listing fee before accessing the form. Listing fee is non-refundable.
                         </div>
+                        
+                        <!-- Tax Breakdown -->
+                        <div class="card mb-3 border-primary" style="max-width: 400px; margin: 0 auto;">
+                            <div class="card-body">
+                                <h6 class="card-title text-center mb-3">Payment Breakdown</h6>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Listing Amount:</span>
+                                    <span>NPR {{ listing_price|floatformat:2 }}</span>
+                                </div>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span>Service Tax (13%):</span>
+                                    <span>NPR {{ service_tax|floatformat:2 }}</span>
+                                </div>
+                                <hr class="my-2">
+                                <div class="d-flex justify-content-between">
+                                    <strong>Total Amount:</strong>
+                                    <strong class="text-primary">NPR {{ total_amount|floatformat:2 }}</strong>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <a href="{% url 'login' %}?next={% url 'sell_pet' %}" class="btn btn-primary btn-lg mb-3">
                             <i class="fas fa-sign-in-alt me-2"></i>
                             Login to Continue

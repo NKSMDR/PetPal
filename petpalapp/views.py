@@ -816,6 +816,10 @@ def sell_pet_info(request):
     # Get current listing price from database
     listing_price = ListingPrice.get_current_price()
     
+    # Calculate tax (13%)
+    tax = listing_price * Decimal('0.13')
+    total_amount = listing_price + tax
+    
     # Check if user has a valid payment with remaining submissions
     has_valid_payment = False
     remaining_submissions = 0
@@ -831,6 +835,8 @@ def sell_pet_info(request):
     
     context = {
         'listing_price': listing_price,
+        'service_tax': tax,
+        'total_amount': total_amount,
         'has_valid_payment': has_valid_payment,
         'remaining_submissions': remaining_submissions,
     }
@@ -1115,10 +1121,17 @@ def checkout(request):
         # This is the final checkout submission (not the initial POST from cart)
         print(f"DEBUG Checkout: Processing final checkout submission")
         
-        # Create order
+        # Calculate tax (13%)
+        tax = total * Decimal('0.13')
+        grand_total = total + tax
+        
+        # Round to 2 decimal places for eSewa
+        grand_total = round(grand_total, 2)
+        
+        # Create order with grand total including tax
         order = Order.objects.create(
             customer=request.user,
-            total_amount=total,
+            total_amount=grand_total,
             shipping_address=request.POST.get('shipping_address', ''),
             phone=request.POST.get('phone', ''),
             notes=request.POST.get('notes', '')
@@ -1140,26 +1153,29 @@ def checkout(request):
         selected_cart_item_ids = [item['cart_item'].id for item in cart_items]
         request.session['purchased_cart_items'] = selected_cart_item_ids
         
-        # Create transaction
+        # Create transaction with grand total including tax
         transaction_uuid = str(uuid.uuid4())
         transaction = Transaction.objects.create(
             order=order,
             transaction_uuid=transaction_uuid,
-            transaction_amount=total,
+            transaction_amount=grand_total,
             transaction_status='PENDING'
         )
         
-        # Initialize eSewa payment
+        # Initialize eSewa payment (amount must equal total_amount for eSewa validation)
+        # Format amounts with 2 decimal places
+        amount_str = f"{grand_total:.2f}"
+        
         epayment = EsewaPayment(
             product_code="EPAYTEST",
             success_url=request.build_absolute_uri(f'/payment/success/{transaction.id}/'),
             failure_url=f'http://localhost:8000/payment/failure/{transaction.id}/',
             secret_key='8gBm/:&EnhH.1/q',
-            amount=str(total),
+            amount=amount_str,
             tax_amount='0',
             product_service_charge='0',
             product_delivery_charge='0',
-            total_amount=str(total),
+            total_amount=amount_str,
             transaction_uuid=transaction_uuid,
         )
         
@@ -1169,6 +1185,9 @@ def checkout(request):
         form_html = epayment.generate_form()
         
         print("DEBUG: eSewa Form HTML generated for selected items")
+        print(f"DEBUG: amount={amount_str}, total_amount={amount_str}")
+        print(f"DEBUG: tax_amount=0, service_charge=0, delivery_charge=0")
+        print(f"DEBUG: Signature={epayment.signature}")
         
         context = {
             'order': order,
@@ -1180,9 +1199,15 @@ def checkout(request):
     # DON'T clear checkout items - keep them for form submission
     # They will be cleared after successful payment
     
+    # Calculate tax (13%)
+    tax = total * Decimal('0.13')
+    grand_total = total + tax
+    
     context = {
         'cart_items': cart_items,
-        'total': total,
+        'subtotal': total,
+        'tax': tax,
+        'total': grand_total,
     }
     return render(request, 'pages/checkout_form.html', context)
 
@@ -1327,14 +1352,24 @@ def listing_payment_checkout(request):
         # Get current listing price from database
         listing_price = ListingPrice.get_current_price()
         
-        # Create listing payment transaction
+        # Calculate tax (13%)
+        tax = listing_price * Decimal('0.13')
+        total_amount = listing_price + tax
+        
+        # Round to 2 decimal places
+        total_amount = round(total_amount, 2)
+        
+        # Create listing payment transaction with total amount
         transaction_uuid = str(uuid.uuid4())
         listing_payment = ListingPayment.objects.create(
             user=request.user,
             transaction_uuid=transaction_uuid,
-            amount=listing_price,
+            amount=total_amount,
             status='PENDING'
         )
+        
+        # Format amount with 2 decimal places
+        amount_str = f"{total_amount:.2f}"
         
         # Initialize eSewa payment
         epayment = EsewaPayment(
@@ -1343,11 +1378,11 @@ def listing_payment_checkout(request):
             # success_url=f'http://localhost:8000/listing-payment/success/{listing_payment.id}/',
             failure_url=f'http://localhost:8000/listing-payment/failure/{listing_payment.id}/',
             secret_key='8gBm/:&EnhH.1/q',
-            amount=str(listing_price),
+            amount=amount_str,
             tax_amount='0',
             product_service_charge='0',
             product_delivery_charge='0',
-            total_amount=str(listing_price),
+            total_amount=amount_str,
             transaction_uuid=transaction_uuid,
         )
         
@@ -1719,3 +1754,7 @@ def order_detail(request, order_id):
         'transaction': transaction,
     }
     return render(request, 'pages/order_detail.html', context)
+
+def earning_report_detail(request):
+    """Display earning report detail page"""
+    return render(request, 'test.html')

@@ -91,4 +91,7 @@ urlpatterns = [
     path('chat/threads/', views.chat_threads, name='chat_threads'),
     path('chat/thread/messages/', views.chat_thread_messages, name='chat_thread_messages'),
     path('chat/thread/send/', views.chat_thread_send, name='chat_thread_send'),
+    
+    # Earning Report
+    path('admin-earning-report/', views.earning_report_detail, name='earning_report_detail'),
 ]
