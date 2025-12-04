@@ -1,0 +1,145 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Order Details - {{ order.order_id }} - PetPal{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/pages/order_detail.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="container my-5">
+    <!-- Order Header -->
+    <div class="order-detail-card">
+        <div class="order-header">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h2 class="mb-2"><i class="fas fa-receipt"></i> Order #{{ order.order_id }}</h2>
+                    <p class="mb-0"><i class="far fa-calendar"></i> Placed on {{ order.created_at|date:"F d, Y" }} at {{ order.created_at|time:"g:i A" }}</p>
+                </div>
+                <div>
+                    <span class="status-badge status-{{ order.status }}">
+                        <i class="fas fa-circle"></i> {{ order.get_status_display }}
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Order Information -->
+        <div class="card-body">
+            <div class="row">
+                <!-- Shipping Information -->
+                <div class="col-md-6">
+                    <div class="info-section">
+                        <h5 class="mb-3"><i class="fas fa-shipping-fast text-primary"></i> Shipping Information</h5>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-user"></i> Customer:</span>
+                            <span class="info-value">{{ order.customer.get_full_name|default:order.customer.username }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-phone"></i> Phone:</span>
+                            <span class="info-value">{{ order.phone|default:"Not provided" }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-map-marker-alt"></i> Address:</span>
+                            <span class="info-value">{{ order.shipping_address|default:"Not provided" }}</span>
+                        </div>
+                        {% if order.notes %}
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-sticky-note"></i> Notes:</span>
+                            <span class="info-value">{{ order.notes }}</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Transaction Information -->
+                <div class="col-md-6">
+                    <div class="info-section">
+                        <h5 class="mb-3"><i class="fas fa-credit-card text-success"></i> Payment Information</h5>
+                        {% if transaction %}
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-hashtag"></i> Transaction ID:</span>
+                            <span class="info-value">{{ transaction.transaction_uuid }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-money-bill-wave"></i> Amount Paid:</span>
+                            <span class="info-value">NRS {{ transaction.transaction_amount }}</span>
+                        </div>
+                        <div class="info-row">
+                            <span class="info-label"><i class="fas fa-info-circle"></i> Payment Status:</span>
+                            <span>
+                                <span class="status-badge transaction-{{ transaction.transaction_status|lower }}">
+                                    {{ transaction.get_transaction_status_display }}
+                                </span>
+                            </span>
+                        </div>
+
+                        {% else %}
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> No transaction information available
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Order Items -->
+            <div class="mt-4">
+                <h5 class="mb-3"><i class="fas fa-box-open text-info"></i> Order Items</h5>
+                {% for item in order_items %}
+                <div class="order-item-card">
+                    <div class="row align-items-center">
+                        <div class="col-md-2">
+                            {% with product=item.get_product %}
+                                {% if product and product.image %}
+                                    <img src="{{ product.image.url }}" alt="{{ item.product_name }}" class="product-image">
+                                {% else %}
+                                    <img src="{% static 'img/default-product.png' %}" alt="{{ item.product_name }}" class="product-image">
+                                {% endif %}
+                            {% endwith %}
+                        </div>
+                        <div class="col-md-4">
+                            <h6 class="mb-1">{{ item.product_name }}</h6>
+                            <small class="text-muted">
+                                <i class="fas fa-tag"></i> {{ item.product_type|title }}
+                            </small>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <p class="mb-0"><strong>Quantity:</strong></p>
+                            <p class="mb-0">{{ item.quantity }}</p>
+                        </div>
+                        <div class="col-md-2 text-center">
+                            <p class="mb-0"><strong>Unit Price:</strong></p>
+                            <p class="mb-0">NRS {{ item.unit_price }}</p>
+                        </div>
+                        <div class="col-md-2 text-end">
+                            <p class="mb-0"><strong>Subtotal:</strong></p>
+                            <h5 class="mb-0 text-primary">NRS {{ item.total_price }}</h5>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+
+            <!-- Order Total -->
+            <div class="total-section">
+                <div class="d-flex justify-content-between align-items-center">
+                    <h4 class="mb-0"><i class="fas fa-calculator"></i> Order Total:</h4>
+                    <h3 class="mb-0">NRS {{ order.total_amount }}</h3>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="mt-4 text-center">
+                <a href="{% url 'home' %}" class="btn btn-back me-2">
+                    <i class="fas fa-home"></i> Back to Home
+                </a>
+                <a href="{% url 'profile' %}" class="btn btn-outline-primary">
+                    <i class="fas fa-user"></i> View Profile
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
