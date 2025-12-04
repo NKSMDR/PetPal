@@ -52,6 +52,86 @@
         .back-button:hover {
             background: #764ba2;
         }
+        .summary-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .summary-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .summary-card h3 {
+            margin: 0 0 10px 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .summary-card .amount {
+            font-size: 32px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .summary-card .count {
+            font-size: 14px;
+            opacity: 0.8;
+        }
+        .income-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 5px solid #667eea;
+        }
+        .income-section h3 {
+            color: #667eea;
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+        .income-table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .income-table th,
+        .income-table td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        .income-table th {
+            background: #667eea;
+            color: white;
+            font-weight: 600;
+        }
+        .income-table tr:last-child td {
+            border-bottom: none;
+        }
+        .income-table .total-row {
+            background: #f0f0f0;
+            font-weight: bold;
+        }
+        .income-table .grand-total-row {
+            background: #667eea;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        .text-right {
+            text-align: right;
+        }
+        .text-success {
+            color: #28a745;
+        }
+        .text-info {
+            color: #17a2b8;
+        }
     </style>
 </head>
 <body>
@@ -59,27 +139,138 @@
         <a href="javascript:history.back()" class="back-button">← Back to Admin</a>
         
         <div class="report-header">
-            <h1>📊 Earning Report Details</h1>
+            <h1>📊 Earning Report</h1>
             <p class="report-date">Report Date: December 2025</p>
         </div>
         
         <div class="report-content">
-            <h2>Welcome to the Earning Report Page</h2>
-            <p>This is the detailed earning report page for PetPal administration.</p>
-            
-            <h3>Overview</h3>
-            <p>This page will contain comprehensive earning statistics and financial reports for your PetPal business.</p>
-            
-            <h3>Key Metrics</h3>
-            <ul>
-                <li>Total Sales</li>
-                <li>New Customers</li>
-                <li>Pet Listings</li>
-                <li>Revenue Analytics</li>
-                <li>User Engagement</li>
-            </ul>
-            
-            <p><em>More detailed analytics and charts can be added here as needed.</em></p>
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card">
+                    <h3>💰 Total Revenue</h3>
+                    <div class="amount">NPR {{ grand_total|floatformat:2 }}</div>
+                    <div class="count">All Income Sources</div>
+                </div>
+                <div class="summary-card">
+                    <h3>📝 Pet Listings</h3>
+                    <div class="amount">NPR {{ listing_total|floatformat:2 }}</div>
+                    <div class="count">{{ listing_count }} Listing{{ listing_count|pluralize }}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>🛍️ Accessory Sales</h3>
+                    <div class="amount">NPR {{ accessory_total|floatformat:2 }}</div>
+                    <div class="count">{{ accessory_count }} Order{{ accessory_count|pluralize }}</div>
+                </div>
+                <div class="summary-card">
+                    <h3>💵 Tax Collected</h3>
+                    <div class="amount">NPR {{ grand_tax|floatformat:2 }}</div>
+                    <div class="count">13% Service Tax</div>
+                </div>
+            </div>
+
+            <!-- Pet Listing Income Section -->
+            <div class="income-section">
+                <h3>📝 Pet Listing Income Breakdown</h3>
+                <table class="income-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th class="text-right">Amount (NPR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Total Listings Sold</td>
+                            <td class="text-right">{{ listing_count }}</td>
+                        </tr>
+                        <tr>
+                            <td>Subtotal (Without Tax)</td>
+                            <td class="text-right text-info">{{ listing_subtotal|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td>Service Tax (13%)</td>
+                            <td class="text-right text-info">{{ listing_tax|floatformat:2 }}</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>Total Listing Income (With Tax)</td>
+                            <td class="text-right">{{ listing_total|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Accessory Sales Income Section -->
+            <div class="income-section">
+                <h3>🛍️ Accessory Sales Income Breakdown</h3>
+                <table class="income-table">
+                    <thead>
+                        <tr>
+                            <th>Description</th>
+                            <th class="text-right">Amount (NPR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Total Orders Completed</td>
+                            <td class="text-right">{{ accessory_count }}</td>
+                        </tr>
+                        <tr>
+                            <td>Subtotal (Without Tax)</td>
+                            <td class="text-right text-success">{{ accessory_subtotal|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td>Service Tax (13%)</td>
+                            <td class="text-right text-success">{{ accessory_tax|floatformat:2 }}</td>
+                        </tr>
+                        <tr class="total-row">
+                            <td>Total Sales Income (With Tax)</td>
+                            <td class="text-right">{{ accessory_total|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Grand Total Section -->
+            <div class="income-section">
+                <h3>💰 Overall Revenue Summary</h3>
+                <table class="income-table">
+                    <thead>
+                        <tr>
+                            <th>Income Source</th>
+                            <th class="text-right">Subtotal (NPR)</th>
+                            <th class="text-right">Tax (NPR)</th>
+                            <th class="text-right">Total (NPR)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>Pet Listing Fees</td>
+                            <td class="text-right">{{ listing_subtotal|floatformat:2 }}</td>
+                            <td class="text-right">{{ listing_tax|floatformat:2 }}</td>
+                            <td class="text-right">{{ listing_total|floatformat:2 }}</td>
+                        </tr>
+                        <tr>
+                            <td>Accessory Sales</td>
+                            <td class="text-right">{{ accessory_subtotal|floatformat:2 }}</td>
+                            <td class="text-right">{{ accessory_tax|floatformat:2 }}</td>
+                            <td class="text-right">{{ accessory_total|floatformat:2 }}</td>
+                        </tr>
+                        <tr class="grand-total-row">
+                            <td>GRAND TOTAL</td>
+                            <td class="text-right">{{ grand_subtotal|floatformat:2 }}</td>
+                            <td class="text-right">{{ grand_tax|floatformat:2 }}</td>
+                            <td class="text-right">{{ grand_total|floatformat:2 }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div style="background: #e7f3ff; padding: 20px; border-radius: 8px; border-left: 4px solid #2196F3;">
+                <p style="margin: 0; color: #1976D2;">
+                    <strong>📌 Note:</strong> All amounts shown include 13% service tax as per Nepal's VAT regulations. 
+                    Subtotal represents the base amount before tax, while Total includes tax.
+                </p>
+            </div>
         </div>
     </div>
 </body>

@@ -1126,11 +1126,15 @@ def checkout(request):
         grand_total = total + tax
         
         # Round to 2 decimal places for eSewa
+        total = round(total, 2)
+        tax = round(tax, 2)
         grand_total = round(grand_total, 2)
         
-        # Create order with grand total including tax
+        # Create order with subtotal, tax, and grand total
         order = Order.objects.create(
             customer=request.user,
+            subtotal=total,
+            tax_amount=tax,
             total_amount=grand_total,
             shipping_address=request.POST.get('shipping_address', ''),
             phone=request.POST.get('phone', ''),
@@ -1357,13 +1361,17 @@ def listing_payment_checkout(request):
         total_amount = listing_price + tax
         
         # Round to 2 decimal places
+        listing_price = round(listing_price, 2)
+        tax = round(tax, 2)
         total_amount = round(total_amount, 2)
         
-        # Create listing payment transaction with total amount
+        # Create listing payment transaction with subtotal, tax, and total
         transaction_uuid = str(uuid.uuid4())
         listing_payment = ListingPayment.objects.create(
             user=request.user,
             transaction_uuid=transaction_uuid,
+            subtotal=listing_price,
+            tax_amount=tax,
             amount=total_amount,
             status='PENDING'
         )
@@ -1757,4 +1765,44 @@ def order_detail(request, order_id):
 
 def earning_report_detail(request):
     """Display earning report detail page"""
-    return render(request, 'test.html')
+    from django.db.models import Sum
+    
+    # Calculate Listing Payments Income (successful payments only)
+    listing_payments = ListingPayment.objects.filter(status='SUCCESS')
+    listing_count = listing_payments.count()
+    
+    # Use stored subtotal and tax values directly
+    listing_subtotal = listing_payments.aggregate(total=Sum('subtotal'))['total'] or Decimal('0')
+    listing_tax = listing_payments.aggregate(total=Sum('tax_amount'))['total'] or Decimal('0')
+    listing_total_with_tax = listing_payments.aggregate(total=Sum('amount'))['total'] or Decimal('0')
+    
+    # Calculate Accessory Sales Income (from completed orders)
+    completed_orders = Order.objects.filter(status__in=['processing', 'completed'])
+    accessory_order_count = completed_orders.count()
+    
+    # Use stored subtotal and tax values directly
+    accessory_subtotal = completed_orders.aggregate(total=Sum('subtotal'))['total'] or Decimal('0')
+    accessory_tax = completed_orders.aggregate(total=Sum('tax_amount'))['total'] or Decimal('0')
+    accessory_total_with_tax = completed_orders.aggregate(total=Sum('total_amount'))['total'] or Decimal('0')
+    
+    # Calculate Grand Totals
+    grand_subtotal = listing_subtotal + accessory_subtotal
+    grand_tax = listing_tax + accessory_tax
+    grand_total = listing_total_with_tax + accessory_total_with_tax
+    
+    context = {
+        'listing_count': listing_count,
+        'listing_subtotal': listing_subtotal,
+        'listing_tax': listing_tax,
+        'listing_total': listing_total_with_tax,
+        
+        'accessory_count': accessory_order_count,
+        'accessory_subtotal': accessory_subtotal,
+        'accessory_tax': accessory_tax,
+        'accessory_total': accessory_total_with_tax,
+        
+        'grand_subtotal': grand_subtotal,
+        'grand_tax': grand_tax,
+        'grand_total': grand_total,
+    }
+    return render(request, 'test.html', context)

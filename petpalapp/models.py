@@ -319,6 +319,8 @@ class Order(models.Model):
     
     order_id = models.CharField(max_length=100, unique=True, blank=True)
     customer = models.ForeignKey(User, on_delete=models.CASCADE, related_name='orders')
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     total_amount = models.DecimalField(max_digits=10, decimal_places=2)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     shipping_address = models.TextField(blank=True)
@@ -457,6 +459,8 @@ class ListingPayment(models.Model):
     
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='listing_payments')
     transaction_uuid = models.CharField(max_length=100, unique=True)
+    subtotal = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    tax_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     amount = models.DecimalField(max_digits=10, decimal_places=2, default=100.00)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     payment_date = models.DateTimeField(auto_now_add=True)
