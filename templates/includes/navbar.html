@@ -43,10 +43,11 @@
                 </a>
               </li>
               <li>
-                <a class="dropdown-item position-relative" href="#"
+                <a class="dropdown-item position-relative d-flex align-items-center justify-content-between" href="#"
                    onclick="if (window.PetBuddyChat && typeof window.PetBuddyChat.openInbox === 'function') { window.PetBuddyChat.openInbox(); } return false;">
-                  <i class="fas fa-comments me-2"></i>Chat
-                  <span id="chat-unread-badge" class="badge bg-danger rounded-pill position-absolute top-0 start-100 translate-middle d-none" style="font-size: 0.6rem; padding: 0.25em 0.5em;">0</span>
+                  <span><i class="fas fa-comments me-2"></i>Chat</span>
+                  <span id="chat-unread-badge" class="badge bg-danger rounded-pill d-none" style="font-size: 0.65rem; padding: 0.3em 0.6em; min-width: 20px;">0</span>
+                  <span id="chat-notification-dot" class="position-absolute top-50 end-0 translate-middle-y me-2 d-none" style="width: 8px; height: 8px; background: #ef4444; border-radius: 50%; animation: pulse-dot 2s infinite;"></span>
                 </a>
               </li>
               <li><hr class="dropdown-divider"></li>

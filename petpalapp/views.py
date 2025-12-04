@@ -1435,71 +1435,6 @@ def get_product_stock(request, product_type, product_id):
 
 @login_required
 @require_http_methods(["GET"])
-def chat_messages(request):
-    """
-    Return chat messages between the current user (buyer) and the seller
-    for a specific marketplace pet, suitable for AJAX polling.
-    """
-    pet_id = request.GET.get('pet_id')
-    since_id = request.GET.get('since_id')
-
-    if not pet_id:
-        return JsonResponse({'status': 'error', 'message': 'pet_id is required'}, status=400)
-
-    pet = get_object_or_404(Pet, pk=pet_id, is_user_submitted=True)
-    seller = pet.seller
-
-    # Current user is always treated as the buyer in this context
-    buyer = request.user
-    if buyer == seller:
-        return JsonResponse({'status': 'error', 'message': 'Seller cannot be buyer in this chat'}, status=400)
-
-    thread, _created = ChatThread.objects.get_or_create(
-        pet=pet,
-        buyer=buyer,
-        defaults={'seller': seller},
-    )
-
-    messages_qs = thread.messages.all()
-    if since_id:
-        try:
-            since_id_int = int(since_id)
-            messages_qs = messages_qs.filter(id__gt=since_id_int)
-        except (TypeError, ValueError):
-            pass
-
-    messages_payload = []
-    last_id = None
-    messages_to_mark_read = []
-    
-    for msg in messages_qs.select_related('sender'):
-        last_id = msg.id
-        messages_payload.append({
-            'id': msg.id,
-            'sender_id': msg.sender_id,
-            'sender_name': msg.sender.get_full_name() or msg.sender.username,
-            'text': msg.text,
-            'created_at': timezone.localtime(msg.created_at).strftime('%Y-%m-%d %H:%M'),
-            'is_self': msg.sender_id == buyer.id,
-        })
-        
-        # Mark messages from seller as read
-        if msg.sender_id != buyer.id and not msg.is_read:
-            messages_to_mark_read.append(msg.id)
-    
-    # Bulk update messages as read
-    if messages_to_mark_read:
-        ChatMessage.objects.filter(id__in=messages_to_mark_read).update(is_read=True)
-
-    return JsonResponse({
-        'status': 'success',
-        'messages': messages_payload,
-        'last_id': last_id,
-    })
-
-
-@login_required
-@require_http_methods(["GET"])
 def chat_threads(request):
     """
     List chat threads for the current user (as buyer or seller).
@@ -1653,7 +1588,7 @@ def chat_thread_send(request):
 def chat_send_message(request):
     """
     Create a new chat message from the current user to the seller
-    for a particular marketplace pet.
+    for ANY pet (marketplace OR professional listing).
     """
     try:
         data = json.loads(request.body.decode('utf-8'))
@@ -1666,19 +1601,22 @@ def chat_send_message(request):
     if not pet_id or not text:
         return JsonResponse({'status': 'error', 'message': 'pet_id and message are required'}, status=400)
 
-    pet = get_object_or_404(Pet, pk=pet_id, is_user_submitted=True)
+    # FIXED: Remove is_user_submitted=True filter to support both pet types
+    pet = get_object_or_404(Pet, pk=pet_id)
     seller = pet.seller
 
     buyer = request.user
     if buyer == seller:
-        return JsonResponse({'status': 'error', 'message': 'Seller cannot send messages as buyer'}, status=400)
+        return JsonResponse({'status': 'error', 'message': 'You cannot send messages to yourself'}, status=400)
 
+    # Get or create thread
     thread, _created = ChatThread.objects.get_or_create(
         pet=pet,
         buyer=buyer,
         defaults={'seller': seller},
     )
 
+    # Create message
     message = ChatMessage.objects.create(
         thread=thread,
         sender=buyer,
@@ -1696,3 +1634,70 @@ def chat_send_message(request):
             'is_self': True,
         }
     }, status=201)
+
+
+@login_required
+@require_http_methods(["GET"])
+def chat_messages(request):
+    """
+    Return chat messages between the current user (buyer) and the seller
+    for a specific pet (marketplace OR professional listing).
+    """
+    pet_id = request.GET.get('pet_id')
+    since_id = request.GET.get('since_id')
+
+    if not pet_id:
+        return JsonResponse({'status': 'error', 'message': 'pet_id is required'}, status=400)
+
+    # FIXED: Remove is_user_submitted=True filter
+    pet = get_object_or_404(Pet, pk=pet_id)
+    seller = pet.seller
+
+    # Current user is always treated as the buyer in this context
+    buyer = request.user
+    if buyer == seller:
+        return JsonResponse({'status': 'error', 'message': 'You cannot chat with yourself'}, status=400)
+
+    # Get or create thread
+    thread, _created = ChatThread.objects.get_or_create(
+        pet=pet,
+        buyer=buyer,
+        defaults={'seller': seller},
+    )
+
+    messages_qs = thread.messages.all()
+    if since_id:
+        try:
+            since_id_int = int(since_id)
+            messages_qs = messages_qs.filter(id__gt=since_id_int)
+        except (TypeError, ValueError):
+            pass
+
+    messages_payload = []
+    last_id = None
+    messages_to_mark_read = []
+    
+    for msg in messages_qs.select_related('sender'):
+        last_id = msg.id
+        messages_payload.append({
+            'id': msg.id,
+            'sender_id': msg.sender_id,
+            'sender_name': msg.sender.get_full_name() or msg.sender.username,
+            'text': msg.text,
+            'created_at': timezone.localtime(msg.created_at).strftime('%Y-%m-%d %H:%M'),
+            'is_self': msg.sender_id == buyer.id,
+        })
+        
+        # Mark messages from seller as read
+        if msg.sender_id != buyer.id and not msg.is_read:
+            messages_to_mark_read.append(msg.id)
+    
+    # Bulk update messages as read
+    if messages_to_mark_read:
+        ChatMessage.objects.filter(id__in=messages_to_mark_read).update(is_read=True)
+
+    return JsonResponse({
+        'status': 'success',
+        'messages': messages_payload,
+        'last_id': last_id,
+    })

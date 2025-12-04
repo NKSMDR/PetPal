@@ -125,6 +125,11 @@
             if (data.last_id) {
                 lastMessageId = data.last_id;
             }
+            
+            // Update scroll indicators after receiving messages
+            setTimeout(() => {
+                handleMessageScroll();
+            }, 50);
 
             // Play sound and show notification for new messages from others
             if (hasNewMessages) {
@@ -146,6 +151,13 @@
         if (!rawText) return;
 
         const ctx = getContext();
+        
+        // Add visual feedback
+        const sendBtn = chatForm.querySelector('.chat-send-btn');
+        if (sendBtn) {
+            sendBtn.disabled = true;
+            sendBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+        }
 
         // If we don't have any context yet, just keep local echo
         if (!ctx.petId && !ctx.threadId) {
@@ -199,8 +211,26 @@
             })
             .catch(() => {
                 // Ignore for now; message already shown locally
+            })
+            .finally(() => {
+                // Reset send button
+                const sendBtn = chatForm.querySelector('.chat-send-btn');
+                if (sendBtn) {
+                    sendBtn.disabled = false;
+                    sendBtn.innerHTML = '<i class="fas fa-paper-plane"></i>';
+                }
             });
     });
+
+    // Allow Enter key to send message (Shift+Enter for new line)
+    if (messageInput) {
+        messageInput.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                chatForm.dispatchEvent(new Event('submit'));
+            }
+        });
+    }
 
     function clearMessagesUI() {
         chatMessagesEl.innerHTML = '';
@@ -233,6 +263,18 @@
             }
 
             listEl.innerHTML = '';
+            
+            // Update chat count badge
+            const chatCountBadge = document.getElementById('chat-count-badge');
+            if (chatCountBadge) {
+                if (data.threads.length > 0) {
+                    chatCountBadge.textContent = data.threads.length;
+                    chatCountBadge.style.display = 'inline-block';
+                } else {
+                    chatCountBadge.style.display = 'none';
+                }
+            }
+            
             data.threads.forEach((t) => {
                 const item = document.createElement('div');
                 item.className = 'chat-conversation';
@@ -299,6 +341,11 @@
 
                 listEl.appendChild(item);
             });
+            
+            // Check scroll indicators after loading threads
+            setTimeout(() => {
+                handleSidebarScroll();
+            }, 100);
         } catch (e) {
             const listEl2 = document.getElementById('chat-conversation-list');
             if (listEl2) {
@@ -398,13 +445,21 @@
     // Update unread badge
     function updateUnreadBadge(count) {
         const badge = document.getElementById('chat-unread-badge');
+        const notificationDot = document.getElementById('chat-notification-dot');
+        
         if (!badge) return;
 
         if (count > 0) {
             badge.textContent = count > 99 ? '99+' : count;
             badge.classList.remove('d-none');
+            if (notificationDot) {
+                notificationDot.classList.remove('d-none');
+            }
         } else {
             badge.classList.add('d-none');
+            if (notificationDot) {
+                notificationDot.classList.add('d-none');
+            }
         }
     }
 
@@ -453,13 +508,87 @@
         }
     }
 
+    // Handle scroll indicators for messages
+    function handleMessageScroll() {
+        if (!chatMessagesEl) return;
+        
+        const topIndicator = document.getElementById('messages-scroll-top');
+        const bottomIndicator = document.getElementById('messages-scroll-bottom');
+        
+        if (!topIndicator || !bottomIndicator) return;
+        
+        const scrollTop = chatMessagesEl.scrollTop;
+        const scrollHeight = chatMessagesEl.scrollHeight;
+        const clientHeight = chatMessagesEl.clientHeight;
+        const scrollBottom = scrollHeight - scrollTop - clientHeight;
+        
+        // Show top indicator if scrolled down more than 50px
+        if (scrollTop > 50) {
+            topIndicator.classList.add('show');
+        } else {
+            topIndicator.classList.remove('show');
+        }
+        
+        // Show bottom indicator if not at bottom and has content
+        if (scrollBottom > 50 && scrollHeight > clientHeight) {
+            bottomIndicator.classList.add('show');
+        } else {
+            bottomIndicator.classList.remove('show');
+        }
+    }
+    
+    // Handle scroll indicators for sidebar
+    function handleSidebarScroll() {
+        const sidebarBody = document.getElementById('chat-conversation-list');
+        const indicator = document.getElementById('sidebar-scroll-indicator');
+        
+        if (!sidebarBody || !indicator) return;
+        
+        const scrollTop = sidebarBody.scrollTop;
+        const scrollHeight = sidebarBody.scrollHeight;
+        const clientHeight = sidebarBody.clientHeight;
+        const scrollBottom = scrollHeight - scrollTop - clientHeight;
+        
+        // Show indicator if there's more content below
+        if (scrollBottom > 20 && scrollHeight > clientHeight) {
+            indicator.classList.add('show');
+        } else {
+            indicator.classList.remove('show');
+        }
+    }
+    
+    // Add scroll event listeners
+    if (chatMessagesEl) {
+        chatMessagesEl.addEventListener('scroll', handleMessageScroll);
+    }
+    
+    const sidebarBody = document.getElementById('chat-conversation-list');
+    if (sidebarBody) {
+        sidebarBody.addEventListener('scroll', handleSidebarScroll);
+    }
+
     // Expose a tiny global helper so page-specific code (like Contact Seller
     // or navbar chat) can control the chat modal.
     window.PetBuddyChat = {
         startForCurrentContext: function () {
-            lastMessageId = null;
+            // Don't reset lastMessageId here - it should be set by the initial load
+            // lastMessageId = null;
             stopUnreadCheck();
             startPollingIfNeeded();
+            
+            // Check scroll indicators after context starts
+            setTimeout(() => {
+                handleMessageScroll();
+            }, 100);
+        },
+        stopPolling: function () {
+            if (pollTimer) {
+                clearInterval(pollTimer);
+                pollTimer = null;
+            }
+        },
+        setLastMessageId: function (id) {
+            lastMessageId = id;
         },
         openInbox: function () {
             if (!chatForm) return;

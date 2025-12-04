@@ -351,17 +351,138 @@ document.getElementById('lightbox').addEventListener('click', function(e) {
     }
 });
 
+// Replace the openChatWithSeller function in pet_detail.html with this:
+
 function openChatWithSeller(petId, petName) {
     {% if user.is_authenticated %}
-        // Open chat system - check if PetBuddyChat exists (from chat.js)
-        if (typeof PetBuddyChat !== 'undefined' && PetBuddyChat.openInbox) {
-            PetBuddyChat.openInbox();
-        } else {
-            // Fallback: redirect to chat page if available
-            window.location.href = '/chat/?pet=' + petId;
+        const petSellerId = {{ pet.seller.id }};
+        const petSellerName = "{{ pet.seller.get_full_name|default:pet.seller.username|escapejs }}";
+        
+        // Open chat modal with pet context
+        const chatModal = document.getElementById('chatModal');
+        const chatForm = document.getElementById('chat-form');
+        const chatTitle = document.getElementById('chatModalLabel');
+        const chatSubtitle = document.getElementById('chatModalSubtitle');
+        const convoTitle = document.getElementById('chatConversationTitle');
+        const convoSubtitle = document.getElementById('chatConversationSubtitle');
+        const messagesEl = document.getElementById('chat-messages');
+        
+        if (!chatModal || !chatForm) {
+            alert('Chat system is not available. Please refresh the page.');
+            return;
         }
+        
+        // Set context for this pet
+        chatForm.dataset.petId = petId;
+        chatForm.dataset.sellerId = petSellerId;
+        chatForm.dataset.context = 'browse_pet';
+        
+        // Update modal titles
+        if (chatTitle) {
+            chatTitle.textContent = `Chat with ${petSellerName}`;
+        }
+        if (chatSubtitle) {
+            chatSubtitle.textContent = `About ${petName}`;
+        }
+        if (convoTitle) {
+            convoTitle.textContent = petName;
+        }
+        if (convoSubtitle) {
+            convoSubtitle.textContent = 'Messages are private between you and the seller';
+        }
+        
+        // Clear any existing messages first
+        messagesEl.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        
+        // IMPORTANT: Stop any existing polling before starting new chat context
+        if (window.PetBuddyChat && window.PetBuddyChat.stopPolling) {
+            window.PetBuddyChat.stopPolling();
+        }
+        
+        // Load existing messages for this pet (only once during initial load)
+        fetch(`/chat/messages/?pet_id=${petId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // Clear loading spinner and any old messages
+                    messagesEl.innerHTML = '';
+                    
+                    if (data.messages && data.messages.length > 0) {
+                        // Display existing messages
+                        data.messages.forEach(msg => {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = `chat-message-row ${msg.is_self ? 'self' : ''}`;
+                            
+                            if (!msg.is_self) {
+                                messageDiv.innerHTML = `
+                                    <div class="chat-message-avatar">
+                                        <i class="fas fa-user-circle"></i>
+                                    </div>
+                                `;
+                            }
+                            
+                            const bubbleDiv = document.createElement('div');
+                            bubbleDiv.className = 'chat-message-bubble';
+                            bubbleDiv.innerHTML = `
+                                <div class="chat-message-meta">
+                                    <span class="chat-message-author">${msg.is_self ? 'You' : msg.sender_name}</span>
+                                    <span class="chat-message-time">${msg.created_at}</span>
+                                </div>
+                                <div class="chat-message-text">${msg.text}</div>
+                            `;
+                            
+                            messageDiv.appendChild(bubbleDiv);
+                            messagesEl.appendChild(messageDiv);
+                        });
+                        
+                        // Scroll to bottom
+                        messagesEl.scrollTop = messagesEl.scrollHeight;
+                        
+                        // CRITICAL: Set the lastMessageId in the global chat system to prevent duplicate loading
+                        if (window.PetBuddyChat && data.last_id) {
+                            window.PetBuddyChat.setLastMessageId(data.last_id);
+                        }
+                    } else {
+                        // No messages yet - show welcome message
+                        messagesEl.innerHTML = `
+                            <div class="chat-empty-state">
+                                <i class="fas fa-comment-dots mb-3"></i>
+                                <h6>Start the conversation</h6>
+                                <p class="mb-0">Send a message to inquire about this ${petName}</p>
+                            </div>
+                        `;
+                    }
+                    
+                    // Open the modal first
+                    const modal = new bootstrap.Modal(chatModal);
+                    modal.show();
+                    
+                    // Start polling for NEW messages only (after modal is shown)
+                    if (window.PetBuddyChat && typeof window.PetBuddyChat.startForCurrentContext === 'function') {
+                        window.PetBuddyChat.startForCurrentContext();
+                    }
+                } else {
+                    messagesEl.innerHTML = `
+                        <div class="alert alert-warning">
+                            Could not load chat messages. Please try again.
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error loading chat:', error);
+                if (messagesEl) {
+                    messagesEl.innerHTML = `
+                        <div class="alert alert-danger">
+                            <i class="fas fa-exclamation-circle me-2"></i>
+                            Error loading chat. Please try again or check your connection.
+                        </div>
+                    `;
+                }
+            });
+        
     {% else %}
-        // Redirect to login with next parameter
+        // Redirect to login
         window.location.href = '{% url "login" %}?next={{ request.path }}';
     {% endif %}
 }

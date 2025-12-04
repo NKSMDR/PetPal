@@ -476,20 +476,88 @@ function contactSeller() {
         convoSubtitle.textContent = 'Messages are private between you and the seller.';
     }
 
-    // Clear previous messages UI (optional, frontend only)
+    // Clear previous messages UI and show loading
     const messagesEl = document.getElementById('chat-messages');
     if (messagesEl) {
-        messagesEl.innerHTML = '';
+        messagesEl.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
     }
 
-    // Start chat polling for this pet context
-    if (window.PetBuddyChat && typeof window.PetBuddyChat.startForCurrentContext === 'function') {
-        window.PetBuddyChat.startForCurrentContext();
+    // IMPORTANT: Stop any existing polling before starting new chat context
+    if (window.PetBuddyChat && window.PetBuddyChat.stopPolling) {
+        window.PetBuddyChat.stopPolling();
     }
 
-    // Open the Bootstrap modal
-    const modal = new bootstrap.Modal(chatModalEl);
-    modal.show();
+    // Load existing messages for this pet before opening modal
+    fetch(`/chat/messages/?pet_id=${CHAT_PET_ID}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success' && messagesEl) {
+                messagesEl.innerHTML = '';
+                
+                if (data.messages && data.messages.length > 0) {
+                    data.messages.forEach(msg => {
+                        const messageDiv = document.createElement('div');
+                        messageDiv.className = `chat-message-row ${msg.is_self ? 'self' : ''}`;
+                        
+                        if (!msg.is_self) {
+                            messageDiv.innerHTML = `
+                                <div class="chat-message-avatar">
+                                    <i class="fas fa-user-circle"></i>
+                                </div>
+                            `;
+                        }
+                        
+                        const bubbleDiv = document.createElement('div');
+                        bubbleDiv.className = 'chat-message-bubble';
+                        bubbleDiv.innerHTML = `
+                            <div class="chat-message-meta">
+                                <span class="chat-message-author">${msg.is_self ? 'You' : msg.sender_name}</span>
+                                <span class="chat-message-time">${msg.created_at}</span>
+                            </div>
+                            <div class="chat-message-text">${msg.text}</div>
+                        `;
+                        
+                        messageDiv.appendChild(bubbleDiv);
+                        messagesEl.appendChild(messageDiv);
+                    });
+                    
+                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                    
+                    // CRITICAL: Set the lastMessageId to prevent duplicate loading
+                    if (window.PetBuddyChat && data.last_id) {
+                        window.PetBuddyChat.setLastMessageId(data.last_id);
+                    }
+                } else {
+                    messagesEl.innerHTML = `
+                        <div class="chat-empty-state">
+                            <i class="fas fa-comment-dots mb-3"></i>
+                            <h6>Start the conversation</h6>
+                            <p class="mb-0">Send a message to inquire about this pet</p>
+                        </div>
+                    `;
+                }
+                
+                // Open modal first, then start polling
+                const modal = new bootstrap.Modal(chatModalEl);
+                modal.show();
+                
+                // Start polling for NEW messages only
+                if (window.PetBuddyChat && typeof window.PetBuddyChat.startForCurrentContext === 'function') {
+                    window.PetBuddyChat.startForCurrentContext();
+                }
+            }
+        })
+        .catch(error => {
+            console.error('Error loading chat:', error);
+            if (messagesEl) {
+                messagesEl.innerHTML = `
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>
+                        Error loading chat. Please try again.
+                    </div>
+                `;
+            }
+        });
 }
 
 // Calculate distance between two points (Haversine formula)
