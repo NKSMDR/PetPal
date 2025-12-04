@@ -23,7 +23,7 @@ class PetSubmissionForm(forms.ModelForm):
             }),
             'price': forms.NumberInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter price in USD',
+                'placeholder': 'Enter price in NRS',
                 'step': '0.01'
             }),
             'description': forms.Textarea(attrs={

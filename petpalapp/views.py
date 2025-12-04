@@ -1750,6 +1750,26 @@ def chat_messages(request):
     })
 
 @login_required
+def my_orders(request):
+    """Display all orders for the logged-in user"""
+    orders = Order.objects.filter(customer=request.user).order_by('-created_at')
+    
+    # Calculate order statistics
+    total_orders = orders.count()
+    processing_orders = orders.filter(status__in=['pending', 'processing']).count()
+    shipped_orders = orders.filter(status='shipped').count()
+    delivered_orders = orders.filter(status='delivered').count()
+    
+    context = {
+        'orders': orders,
+        'total_orders': total_orders,
+        'processing_orders': processing_orders,
+        'shipped_orders': shipped_orders,
+        'delivered_orders': delivered_orders,
+    }
+    return render(request, 'pages/my_orders.html', context)
+
+@login_required
 def order_detail(request, order_id):
     """Display order details for a specific order"""
     order = get_object_or_404(Order, order_id=order_id, customer=request.user)

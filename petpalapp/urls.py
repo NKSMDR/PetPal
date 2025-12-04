@@ -72,6 +72,7 @@ urlpatterns = [
     path('payment/success/<int:transaction_id>/', views.payment_success, name='payment_success'),
     path('payment/failure/<int:transaction_id>/', views.payment_failure, name='payment_failure'),
     # Order URLs
+    path('my-orders/', views.my_orders, name='my_orders'),
     path('order/<str:order_id>/', views.order_detail, name='order_detail'),
     # Listing Payment URLs
     path('listing-payment/checkout/', views.listing_payment_checkout, name='listing_payment_checkout'),
