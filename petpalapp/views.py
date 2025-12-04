@@ -1021,16 +1021,19 @@ def checkout(request):
     
     # Get selected items from POST data or session
     if request.method == 'POST' and 'selected_items' in request.POST:
-        # First time - coming from cart page
+        # First time - coming from cart page, save to session and redirect
         selected_items_json = request.POST.get('selected_items')
         try:
             selected_item_keys = json.loads(selected_items_json)
             request.session['checkout_items'] = selected_item_keys
+            request.session.modified = True
+            # Redirect to GET request to show checkout form
+            return redirect('checkout')
         except json.JSONDecodeError:
             messages.error(request, 'Invalid selection data.')
             return redirect('cart')
     else:
-        # Coming from GET request (showing checkout form)
+        # Coming from GET request or final form submission
         selected_item_keys = request.session.get('checkout_items', [])
     
     if not selected_item_keys:
@@ -1108,8 +1111,9 @@ def checkout(request):
     
     print(f"DEBUG Checkout: Total={total}, Selected Items={len(cart_items)}")
     
-    if request.method == 'POST':
-        print(f"DEBUG Checkout: Processing POST request")
+    if request.method == 'POST' and 'shipping_address' in request.POST:
+        # This is the final checkout submission (not the initial POST from cart)
+        print(f"DEBUG Checkout: Processing final checkout submission")
         
         # Create order
         order = Order.objects.create(
@@ -1173,8 +1177,8 @@ def checkout(request):
         }
         return render(request, 'pages/checkout.html', context)
     
-    # Clear checkout items from session after displaying form
-    request.session.pop('checkout_items', None)
+    # DON'T clear checkout items - keep them for form submission
+    # They will be cleared after successful payment
     
     context = {
         'cart_items': cart_items,
@@ -1696,3 +1700,17 @@ def chat_send_message(request):
             'is_self': True,
         }
     }, status=201)
+
+@login_required
+def order_detail(request, order_id):
+    """Display order details for a specific order"""
+    order = get_object_or_404(Order, order_id=order_id, customer=request.user)
+    order_items = order.items.all()
+    transaction = order.transactions.first()
+    
+    context = {
+        'order': order,
+        'order_items': order_items,
+        'transaction': transaction,
+    }
+    return render(request, 'pages/order_detail.html', context)

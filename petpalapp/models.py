@@ -348,6 +348,15 @@ class OrderItem(models.Model):
     
     def __str__(self):
         return f"{self.product_name} x{self.quantity}"
+    
+    def get_product(self):
+        """Get the actual product object"""
+        if self.product_type == 'accessory':
+            try:
+                return Accessory.objects.get(id=self.product_id)
+            except Accessory.DoesNotExist:
+                return None
+        return None
 
 
 class Cart(models.Model):
